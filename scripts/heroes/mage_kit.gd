@@ -499,7 +499,7 @@ func _thunder(s: SpellData, pw: float) -> void:
 	var pos := aim_point(s.max_range) - Vector3(0, 0.9, 0)
 	Telegraph.circle(pos, s.radius, s.delay, Color(0.75, 0.65, 1.0, 0.6))
 	var h := hero
-	schedule(s.delay, func():
+	schedule_world(s.delay, func():
 		if not is_instance_valid(h):
 			return
 		FX.beam(pos + Vector3(0, 12, 0), pos, ELEMENT_COLORS.storm, 0.35)

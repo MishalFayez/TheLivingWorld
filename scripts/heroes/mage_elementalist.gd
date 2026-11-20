@@ -802,7 +802,7 @@ func _fire_impact(s: ChargedSpellData, pos: Vector3, full: bool, power: float, r
 		var cp := float(kit.ap("infernal_collapse", "power", 1.5))
 		Telegraph.circle(ground, cr, delay, Color(1.0, 0.5, 0.15, 0.55))
 		var h = hero
-		kit.schedule(delay, func():
+		kit.schedule_world(delay, func():
 			if not is_instance_valid(h):
 				return
 			VFX.fire_burst(ground, cr * 1.1)
@@ -820,7 +820,7 @@ func _fire_impact(s: ChargedSpellData, pos: Vector3, full: bool, power: float, r
 ## Arcane Sanctum + Fire: an eligible charged Fire impact produces a secondary flame wave.
 func _sanctum_fire_wave(ground: Vector3, m: float) -> void:
 	var h = hero
-	kit.schedule(0.35, func():
+	kit.schedule_world(0.35, func():
 		if not is_instance_valid(h):
 			return
 		VFX.ground_ring(ground, 5.0 * m, Color(1.0, 0.5, 0.15), 0.45)
@@ -883,7 +883,7 @@ func _cinderfall(s: ChargedSpellData, ctx: Dictionary) -> void:
 	var h = hero
 	var sanct: bool = ctx.sanctum
 	var m: float = ctx.mult
-	kit.schedule(delay, func():
+	kit.schedule_world(delay, func():
 		if not is_instance_valid(h):
 			return
 		VFX.fire_burst(point + Vector3(0, 0.3, 0), r)
@@ -971,7 +971,7 @@ func _earth(s: ChargedSpellData, ctx: Dictionary) -> void:
 		var travel := point - hero.global_position
 		Telegraph.circle(point, r, delay, Color(0.85, 0.65, 0.35, 0.6))
 		_falling_rock(point, delay, Color(0.5, 0.42, 0.34), 1.1)
-		kit.schedule(delay, func():
+		kit.schedule_world(delay, func():
 			if not is_instance_valid(h):
 				return
 			_stone_impact(point, null, true, power, poise * pm, r, ctx, "Mountainfall", travel)

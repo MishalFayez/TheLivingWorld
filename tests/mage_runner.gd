@@ -34,6 +34,7 @@ func _run_all() -> void:
 	await test_e_augments()
 	await test_e_stats()
 	await test_f_ai_and_save()
+	await test_g_delayed_effects_world_clock()
 	await teardown()
 
 
@@ -93,6 +94,62 @@ func width_of(f: WorldFormation) -> float:
 func lock(h: Hero, e) -> void:
 	face(h, e)
 	h.lock_target = e
+
+
+# ================================================================== AUDIT regression
+## A telegraphed delayed impact must land when its world telegraph says, even if the caster is downed
+## (or in hitstop) meanwhile. Before the fix the damage was queued on the caster's kit clock, which stops
+## while downed: the circle vanished on time and the impact fired only after the revive.
+func test_g_delayed_effects_world_clock() -> void:
+	print("\n[AUDIT] Delayed Mage impacts follow the world clock")
+	var h := await mage(10)
+	var e := el(h)
+	Game.invincible = false
+	await grant(h, ["cinderfall"])
+	e.equip_spell(0, "cinderfall")
+	var t := enemy_at("raider", h.global_position + Vector3(0, 0, -10))
+	lock(h, t)
+	refill(h)
+	await wait(0.6)
+	var n_rel := released.size()
+	tap(h, "light")
+	await wait(0.5)          # released at the 0.25s minimum; the 1.2s warning is now on the ground
+	check(released.size() > n_rel and t.hp == 99999.0, "Cinderfall released, warning shown, impact pending")
+	var kill := DamageInfo.new()
+	kill.amount = h.hp + 9999.0
+	kill.raw_amount = kill.amount
+	kill.source = t
+	kill.source_pos = t.global_position
+	h.take_damage(kill)
+	check(h.downed, "caster downed during the warning")
+	await wait(1.1)
+	check(t.hp < 99999.0, "the impact lands on time although the caster is downed", "target HP %.0f" % t.hp)
+	var cf := func() -> int: return dmg.filter(func(d): return String(d.name).begins_with("Cinderfall")).size()
+	var cf_before: int = cf.call()
+	h.revive(null)
+	t.queue_free()
+	await wait(1.5)
+	check(cf.call() == cf_before, "no late 'ghost' Cinderfall impact after the revive", "%d extra" % (cf.call() - cf_before))
+	# Mountainfall: same pending-impact path, interrupted by the caster's own hitstop many times
+	Game.add_augment("mage", "mountainfall")
+	e.equip_spell(0, "earthbreaker")
+	var m := enemy_at("raider", h.global_position + Vector3(0, 0, -8))
+	lock(h, m)
+	refill(h)
+	await wait(0.6)
+	await hold(h, "light", 1.85)
+	var fire_at := Game.time + 1.0
+	var mf := func() -> bool: return dmg.any(func(d): return d.target == m and String(d.name) == "Mountainfall")
+	for i in 30:
+		h.hitstop = 0.1           # caster keeps getting hit
+		await wait(0.05)
+		if mf.call():
+			break
+	h.hitstop = 0.0
+	var late := Game.time - fire_at
+	check(mf.call() and late >= -0.1 and late <= 0.25, "Mountainfall lands ~1s after release despite caster hitstop", "landed %s, %.2fs after the expected time" % [mf.call(), late])
+	m.queue_free()
+	Game.remove_augment("mage", "mountainfall")
 
 
 # ================================================================== MILESTONE A

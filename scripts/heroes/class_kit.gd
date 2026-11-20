@@ -139,8 +139,21 @@ func process(delta: float) -> void:
 				s.fn.call()
 
 
+## Delay on the HERO's clock: pauses during the hero's hitstop and while downed / dead. For the hero's own
+## follow-up actions (deferred recovery, same-tick follow-ups).
 func schedule(delay: float, fn: Callable) -> void:
 	_scheduled.append({"t": delay, "fn": fn})
+
+
+## Delay on the WORLD clock, for effects already announced in the world (telegraphed impacts, secondary
+## waves): they land when their telegraph says, even if the caster is in hitstop, downed or dead. A paused
+## tree (menus, drafts) still pauses them.
+func schedule_world(delay: float, fn: Callable) -> void:
+	if hero == null or not hero.is_inside_tree():
+		return
+	hero.get_tree().create_timer(maxf(delay, 0.0), false, true).timeout.connect(func():
+		if fn.is_valid():
+			fn.call())
 
 
 func cd(key: String) -> float:
