@@ -73,7 +73,9 @@ func setup(class_id: String, party: bool = false, legacy: bool = true, unlock: b
 				if m.kind != "stats" and m.kind != "augment":
 					Game.prog(c).debug_unlocks.append(m.id)
 	Game.mage_core = "weave" if legacy else "elementalist"
-	Game.reaver_core = "bladecraft" if legacy else "sense"
+	# non-legacy = the APPROVED current cores (Worldweaver "elementalist", Swordmaster). Retired cores
+	# (Sword Sense, Ley Sigils...) are selected explicitly by the tests that cover them, labelled LEGACY.
+	Game.reaver_core = "bladecraft" if legacy else "swordmaster"
 	Game.permadeath = true
 	Game.invincible = false
 	Game.party_mode = false

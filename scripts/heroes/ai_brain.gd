@@ -3,7 +3,8 @@ extends Node
 ## Party Test companion AI. Drives a Hero through the same press/release interface as the player.
 ## Vanguard: guards (sometimes perfectly), intercepts threats to allies, holds threat.
 ## Mage: heals allies by priority, keeps distance, attacks / weaves when safe.
-## Reaver: aggressive melee, reads telegraphs and dodges, uses Bladecraft forms.
+## Reaver: aggressive melee, reads telegraphs and dodges; follows the active core's rules (Swordmaster Blade
+## Lines by default, never attempting illegal links; the retired cores only when selected in Debug).
 
 var hero: Hero
 var think_t: float = 0.0

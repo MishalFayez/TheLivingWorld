@@ -1,6 +1,7 @@
 extends "res://tests/test_runner.gd"
 ## Update 5 automated checks: save/load, debug isolation, unlock gating, stat previews,
-## equipment, Mage Ley Sigils, Reaver Sword Sense, training dummy.
+## equipment, training dummy, QA/REVIEW save safety. LEGACY sections (retired cores, Debug comparison only):
+## Mage Ley Sigils, Reaver Sword Sense; they select their core explicitly.
 ##   godot --headless --fixed-fps 60 res://tests/update5_runner.tscn
 ## These are automated mechanical checks only - they do not replace human playtesting.
 
@@ -453,10 +454,12 @@ func test_sigils_offense_resonance_consume() -> void:
 
 
 func test_openings_and_cuts() -> void:
-	print("\n[Reaver Sword Sense: Openings + cuts]")
+	print("\n[LEGACY Reaver Sword Sense (retired core, Debug comparison only): Openings + cuts]")
 	var h := await setup("reaver", false, false, false)
 	var kit: ReaverKit = h.kit
-	check(kit.sense_core(), "Sword Sense is the default Reaver core")
+	check(not kit.sense_core() and Game.reaver_core == "swordmaster", "the approved default Reaver core is Swordmaster")
+	Game.reaver_core = "sense"          # explicitly select the retired core for this legacy test
+	check(kit.sense_core(), "LEGACY: Sword Sense selected explicitly for this test")
 	var r := dummy("raider", h.global_position + Vector3(0, 0, -1.8))
 	r.max_hp = 99999
 	r.hp = 99999
@@ -502,8 +505,9 @@ func test_openings_and_cuts() -> void:
 
 
 func test_perfect_dodge_opening() -> void:
-	print("\n[Reaver Lv5 Perfect Dodge -> Opening]")
+	print("\n[LEGACY Reaver Sword Sense: Lv5 Perfect Dodge -> Opening]")
 	var h := await setup("reaver", false, false, false)
+	Game.reaver_core = "sense"          # retired core, selected explicitly
 	Game.set_level("reaver", 5)
 	var r := dummy("raider", h.global_position + Vector3(0, 0, -1.8))
 	r.target = h
