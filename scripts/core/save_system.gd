@@ -48,7 +48,7 @@ func recover_if_needed() -> bool:
 		if not FileAccess.file_exists(cand):
 			continue
 		var d = _read_file(cand)
-		if d is Dictionary and d.get("characters") is Dictionary:
+		if d is Dictionary:
 			var t := String(d.get("saved_at", ""))
 			if best == "" or t > best_time:
 				best = cand
@@ -78,7 +78,8 @@ func _read() -> Dictionary:
 	return data if data is Dictionary else {}
 
 
-## Parses a save file. Returns null (and sets last_error) when it cannot be opened or is not a JSON object.
+## Parses a save file. Returns null (and sets last_error) when it cannot be opened, is not a JSON object,
+## or fails validate_save() (structurally malformed data is treated exactly like an unreadable file).
 func _read_file(p: String) -> Variant:
 	var f := FileAccess.open(p, FileAccess.READ)
 	if f == null:
@@ -90,7 +91,90 @@ func _read_file(p: String) -> Variant:
 	if json.parse(txt) != OK or typeof(json.data) != TYPE_DICTIONARY:
 		last_error = "corrupt save"
 		return null
+	var problem := validate_save(json.data)
+	if problem != "":
+		last_error = "malformed save: " + problem
+		return null
 	return json.data
+
+
+## Structural validation of a parsed save. Returns "" when the data can be loaded safely, else the first
+## problem found. Only TYPES of fields that are present are checked: a missing field is legal (older saves
+## lack later fields and ClassProgress.from_dict fills defaults), so no older save is rejected for that.
+## There are no migration rules, so a save whose version is newer than this build is not accepted.
+const _CHAR_BOOL := ["created", "bloom_shared"]
+const _CHAR_STRING := ["class_id", "name"]
+const _CHAR_NUMBER := ["level", "xp", "total_exp", "pending_drafts", "drafts_taken", "free_points", "life_number", "play_time"]
+const _CHAR_STRING_ARRAY := ["augments", "inactive_mutations", "elements", "slots", "shrine_elements"]
+const _CHAR_ARRAY := ["pending_draft_tiers", "seen_unlocks", "inventory", "spell_loadout", "reaver_loadout"]
+const _CHAR_DICT := ["allocated", "equipment", "discipline_casts"]
+
+
+static func validate_save(d: Dictionary) -> String:
+	if d.has("version"):
+		if not _is_number(d.version):
+			return "version is not a number"
+		if float(d.version) > VERSION:
+			return "save version %s is newer than supported %d" % [str(d.version), VERSION]
+	if not (d.get("characters") is Dictionary):
+		return "characters missing or not an object"
+	for key in ["last_class", "saved_at"]:
+		if d.has(key) and typeof(d[key]) != TYPE_STRING:
+			return key + " is not a string"
+	if d.has("settings") and not (d.settings is Dictionary):
+		return "settings is not an object"
+	for cid in d.characters:
+		var problem := _validate_character(String(cid), d.characters[cid])
+		if problem != "":
+			return "character '%s': %s" % [cid, problem]
+	return ""
+
+
+static func _validate_character(cid: String, c: Variant) -> String:
+	if not (c is Dictionary):
+		return "not an object"
+	for k in _CHAR_BOOL:
+		if c.has(k) and typeof(c[k]) != TYPE_BOOL:
+			return k + " is not a boolean"
+	for k in _CHAR_STRING:
+		if c.has(k) and typeof(c[k]) != TYPE_STRING:
+			return k + " is not a string"
+	for k in _CHAR_NUMBER:
+		if c.has(k) and not _is_number(c[k]):
+			return k + " is not a number"
+	for k in _CHAR_STRING_ARRAY:
+		if c.has(k):
+			if not (c[k] is Array):
+				return k + " is not a list"
+			for v in c[k]:
+				if typeof(v) != TYPE_STRING:
+					return k + " contains a non-text entry"
+	for k in _CHAR_ARRAY:
+		if c.has(k) and not (c[k] is Array):
+			return k + " is not a list"
+	for k in _CHAR_DICT:
+		if c.has(k) and not (c[k] is Dictionary):
+			return k + " is not an object"
+	if c.has("class_id") and String(c.class_id) != cid:
+		return "class_id '%s' does not match its entry" % c.class_id
+	if c.has("level") and float(c.level) < 1.0:
+		return "level below 1"
+	if c.has("allocated"):
+		for k in c.allocated:
+			if not _is_number(c.allocated[k]):
+				return "allocated." + str(k) + " is not a number"
+	if c.has("equipment"):
+		for k in c.equipment:
+			if typeof(c.equipment[k]) != TYPE_STRING:
+				return "equipment." + str(k) + " is not an item id"
+	return ""
+
+
+static func _is_number(v: Variant) -> bool:
+	var t := typeof(v)
+	if t == TYPE_INT:
+		return true
+	return t == TYPE_FLOAT and not is_nan(v) and not is_inf(v)
 
 
 ## Writes `data` to `path` without ever leaving the user with no save:
@@ -115,8 +199,10 @@ func _write_atomic(data: Dictionary) -> bool:
 	var stored := f.store_string(JSON.stringify(data, "\t"))
 	f.close()
 	if not stored or not (_read_file(tmp) is Dictionary):
+		var why := last_error
 		DirAccess.remove_absolute(tmp)
-		last_error = "cannot write save"
+		last_error = ("cannot write save: " + why) if stored else "cannot write save"
+		push_warning(last_error)
 		return false
 	var previous := ""
 	var keep_previous := false

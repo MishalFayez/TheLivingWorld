@@ -27,6 +27,11 @@ func _run_all() -> void:
 	await test_rv_no_valid_backup_keeps_everything()
 	await test_rv_newest_candidate_and_orphan_tmp()
 	await test_rv_tools_isolate_real_save()
+	await test_rv2_validator_cases()
+	await test_rv2_malformed_primary_recovers_from_backup()
+	await test_rv2_malformed_backup_never_restored()
+	await test_rv2_malformed_primary_without_backup()
+	await test_rv2_older_save_loads_unchanged()
 	await teardown()
 
 
@@ -261,6 +266,123 @@ func test_rv_newest_candidate_and_orphan_tmp() -> void:
 	f2.close()
 	check(Save.save_game(), "the next save succeeds", Save.last_error)
 	check(_rv_siblings(p, ".orphan").any(func(n): return _rv_bytes(p.get_base_dir().path_join(n)) == newer), "the earlier finished .tmp is preserved as .orphan-*")
+	_qa_end(p)
+
+
+# ------------------------------------------------------------------ REVIEW-002 structural save validation
+# Syntactically valid JSON whose STRUCTURE is wrong must be handled like an unreadable file: never loaded,
+# never restored from a backup, never deleted. Older saves that merely lack later fields stay legal.
+
+func _rv2_write(p: String, txt: String) -> void:
+	var f := FileAccess.open(p, FileAccess.WRITE)
+	f.store_string(txt)
+	f.close()
+
+
+## A well-formed save whose reaver entry gets `field` replaced by `bad` (JSON text).
+func _rv2_malformed(good: String, field: String, bad: String) -> String:
+	var d: Dictionary = JSON.parse_string(good)
+	d.characters.reaver[field] = JSON.parse_string(bad)
+	return JSON.stringify(d, "\t")
+
+
+func test_rv2_validator_cases() -> void:
+	print("\n[REVIEW-002: structural validation rejects malformed data, accepts current and older saves]")
+	var p: String = await _rv_saved("rv2_cases.json", 5)
+	var current: Dictionary = JSON.parse_string(_rv_bytes(p))
+	check(Save.validate_save(current) == "", "a save written by this build is valid", Save.validate_save(current))
+	var older := {"characters": {"reaver": {"name": "Old", "level": 3, "created": true}}}
+	check(Save.validate_save(older) == "", "an older save missing later fields (no version, no loadouts) is valid", Save.validate_save(older))
+	check(Save.validate_save({"version": 1, "characters": {}, "last_class": "", "settings": {}}) == "", "a settings-only save is valid")
+	var bad := {
+		"no characters": {"version": 1},
+		"characters is a list": {"characters": []},
+		"version is text": {"version": "1", "characters": {}},
+		"newer version": {"version": 2, "characters": {}},
+		"settings is a list": {"characters": {}, "settings": []},
+		"last_class is a number": {"characters": {}, "last_class": 3},
+		"character is a string": {"characters": {"reaver": "lvl 9"}},
+		"level is text": {"characters": {"reaver": {"level": "nine"}}},
+		"level 0": {"characters": {"reaver": {"level": 0}}},
+		"created is text": {"characters": {"reaver": {"created": "yes"}}},
+		"augments is text": {"characters": {"reaver": {"augments": "predators_patience"}}},
+		"augments holds a number": {"characters": {"reaver": {"augments": [1]}}},
+		"inventory is an object": {"characters": {"reaver": {"inventory": {}}}},
+		"allocated is a list": {"characters": {"reaver": {"allocated": [1, 2]}}},
+		"allocated value is text": {"characters": {"reaver": {"allocated": {"str": "x"}}}},
+		"equipment value is a number": {"characters": {"reaver": {"equipment": {"weapon": 4}}}},
+		"class_id mismatch": {"characters": {"reaver": {"class_id": "mage"}}},
+	}
+	var missed: Array = []
+	for k in bad:
+		if Save.validate_save(bad[k]) == "":
+			missed.append(k)
+	check(missed.is_empty(), "all %d malformed shapes are rejected" % bad.size(), "accepted: %s" % str(missed))
+	_qa_end(p)
+
+
+func test_rv2_malformed_primary_recovers_from_backup() -> void:
+	print("\n[REVIEW-002: structurally malformed primary, valid backup]")
+	var p: String = await _rv_saved("rv2_primary.json", 6)
+	var good := _rv_bytes(p)
+	DirAccess.copy_absolute(p, p + ".bak")
+	var junk := _rv2_malformed(good, "augments", "\"predators_patience\"")
+	_rv2_write(p, junk)
+	Game.reset_all_progress()
+	check(Save.load_game() and Game.prog("reaver").level == 6 and Game.prog("reaver").character_name == "Kaelen", "progress loaded from the validated backup", Save.last_error)
+	check(_rv_bytes(p) == good and _rv_bytes(p + ".bak") == good, "primary reinstalled from backup; backup kept")
+	check(_rv_siblings(p, ".corrupt").any(func(n): return _rv_bytes(p.get_base_dir().path_join(n)) == junk), "the malformed primary is kept byte-for-byte as .corrupt-*")
+	_qa_end(p)
+
+
+func test_rv2_malformed_backup_never_restored() -> void:
+	print("\n[REVIEW-002: a structurally malformed backup is never restored]")
+	var p: String = await _rv_saved("rv2_backup.json", 4)
+	var good := _rv_bytes(p)
+	# no primary, malformed .bak only
+	DirAccess.remove_absolute(p)
+	var bad_bak := _rv2_malformed(good, "level", "\"nine\"")
+	_rv2_write(p + ".bak", bad_bak)
+	Game.reset_all_progress()
+	check(not Save.recover_if_needed() and not Save.has_save(), "malformed .bak is not restored", Save.last_error)
+	check(not Save.load_game() and not Game.prog("reaver").created, "nothing is loaded from it")
+	check(_rv_bytes(p + ".bak") == bad_bak and not FileAccess.file_exists(p), "the malformed .bak is left untouched")
+	# a newer but malformed .tmp loses to an older valid .bak
+	_rv2_write(p + ".bak", good)
+	var bad_tmp := _rv2_malformed(good, "inventory", "{}").replace("\"saved_at\": \"", "\"saved_at\": \"9")
+	_rv2_write(p + ".tmp", bad_tmp)
+	check(Save.load_game() and Game.prog("reaver").level == 4 and Save.recovered_from == p.get_file() + ".bak", "the valid older .bak wins over a malformed newer .tmp", Save.recovered_from)
+	check(_rv_bytes(p + ".tmp") == bad_tmp, "the malformed .tmp is preserved")
+	_qa_end(p)
+
+
+func test_rv2_malformed_primary_without_backup() -> void:
+	print("\n[REVIEW-002: malformed primary and no backup: never loaded, never overwritten, never deleted]")
+	var p: String = await _rv_saved("rv2_alone.json", 8)
+	var junk := _rv2_malformed(_rv_bytes(p), "allocated", "[1, 2]")
+	_rv2_write(p, junk)
+	Game.reset_all_progress()
+	check(not Save.load_game() and not Game.prog("reaver").created, "load reports failure (no crash, no partial data)", Save.last_error)
+	check(Save.last_error.contains("allocated"), "the error names the malformed field", Save.last_error)
+	Save.settings.invert_y = true
+	check(not Save.save_settings() and _rv_bytes(p) == junk, "a settings change does not overwrite it")
+	Save.reset_settings()
+	Game.create_character("vanguard", "Aldric")   # a new save is written
+	check(_rv_siblings(p, ".corrupt").any(func(n): return _rv_bytes(p.get_base_dir().path_join(n)) == junk), "after a new save the malformed file still exists as .corrupt-*")
+	var d = _qa_parse(p)
+	check(d is Dictionary and d.characters.vanguard.created and Save.validate_save(d) == "", "the new save is valid")
+	_qa_end(p)
+
+
+func test_rv2_older_save_loads_unchanged() -> void:
+	print("\n[REVIEW-002: an older save without later fields loads with defaults and is not moved aside]")
+	var p: String = await _qa_begin("rv2_older.json")
+	var old := "{\"characters\": {\"reaver\": {\"name\": \"Old\", \"level\": 3, \"created\": true}}, \"last_class\": \"reaver\"}"
+	_rv2_write(p, old)
+	check(Save.load_game(), "older save loads", Save.last_error)
+	var q := Game.prog("reaver")
+	check(q.created and q.character_name == "Old" and q.level == 3 and q.spell_loadout.size() == 4 and q.reaver_loadout.size() == 4, "fields present are restored, missing ones take defaults")
+	check(_rv_bytes(p) == old and _rv_siblings(p, ".corrupt").is_empty(), "the older file is left as it is by loading")
 	_qa_end(p)
 
 
