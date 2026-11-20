@@ -78,7 +78,7 @@ func _ready() -> void:
 	per_physics = not rig.use_interpolation
 	if per_physics:
 		print("NOTE: no 3D physics interpolation on this engine -> camera + character update together on the physics tick; measuring per physics step.")
-	print("Engine %s | physics interpolation in use: %s | render fps 144 vs physics 60" % [Engine.get_version_info().string, rig.use_interpolation])
+	print("Engine %s | physics interpolation in use: %s | physics %d Hz (run with --fixed-fps 144 to render faster than physics)" % [Engine.get_version_info().string, rig.use_interpolation, Engine.physics_ticks_per_second])
 	await frames(20)
 	Input.action_press("move_forward")
 	await frames(40)
@@ -148,5 +148,22 @@ func _ready() -> void:
 	var extra_snaps: int = rig.forced_snaps - snaps_before
 	print("  INFO  wall sweep census: %d runs, %d anti-clipping snaps, %d frames inside geometry %s" % [runs, extra_snaps, rig.inside_frames - inside_before, rig.last_snap_info])
 	check(rig.inside_frames - inside_before == 0, "wall sweep census: camera never ends a frame inside geometry", "%d snaps in %d runs" % [extra_snaps, runs])
+	# AUDIT regression 1: the documented 0.57m snap at the tall pillar (26, 2.25, -2) came from sampling only
+	# the END of the look-ahead horizon while the hero slid around the pillar; the horizon is now sampled.
+	check(extra_snaps == 0, "wall sweep census: no anti-clipping snap (pillar look-ahead samples the whole horizon)", "%d snaps in %d runs" % [extra_snaps, runs])
+	# AUDIT regression 2: hero backed into the tall side boundary wall with the camera at an oblique angle.
+	# The shoulder offset pushed the pivot through the wall and min_collision_distance kept the camera
+	# inside it (23 rendered frames per run before the fix).
+	var oblique_inside: int = rig.inside_frames
+	for spot in [Vector3(28.0, 0.2, 0.0), Vector3(28.0, 0.2, -12.0), Vector3(26.0, 0.2, -5.0)]:
+		h.teleport(spot)
+		rig.yaw = PI / 4.0
+		rig.snap_to_target()
+		await frames(5)
+		Input.action_press("move_right")
+		for i in 90:
+			await tick()
+		Input.action_release("move_right")
+	check(rig.inside_frames - oblique_inside == 0, "boundary wall at an oblique camera angle: never a frame inside geometry", "%d rendered frames" % (rig.inside_frames - oblique_inside))
 	print("\n==== CAMERA: %d passed, %d failed ====" % [ok, bad])
 	get_tree().quit(1 if bad > 0 else 0)

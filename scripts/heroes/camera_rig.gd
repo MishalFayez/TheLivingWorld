@@ -43,7 +43,9 @@ extends Node3D
 @export var near_clip_radius: float = 0.14     ## camera near-plane volume that must never be inside geometry
 @export var occlusion_pull_speed: float = 15.0
 @export var min_collision_distance: float = 0.3 ## closest the camera may come to the pivot (was 0.6)
-@export var prediction_time: float = 0.3      ## s of pivot motion used to see obstacles coming ## m/s pull-in when only occluded (camera not inside geometry)
+@export var prediction_time: float = 0.3      ## s of pivot motion used to see obstacles coming
+@export var prediction_samples: int = 3       ## points sampled along the prediction horizon
+@export var shoulder_collision: bool = true   ## keep the shoulder / lock pivot offset out of geometry
 @export var ease_out_speed: float = 4.0
 
 var target = null                 # the Hero
@@ -58,6 +60,9 @@ var _last_pivot: Vector3 = Vector3.ZERO
 var _has_last_pivot: bool = false
 var forced_snaps: int = 0
 var lifts: int = 0
+var close_ins: int = 0              ## frames resolved by moving inside min_collision_distance (debug / tests)
+var max_snap: float = 0.0           ## largest anti-clipping snap so far (m, debug / tests)
+var _offset_frac: float = 1.0
 var cam_lift: float = 0.0
 var last_snap_info: String = ""     ## anti-clipping snaps (debug / tests)
 var debug_track_inside: bool = false   ## tests: count frames where the final camera sphere overlaps geometry
@@ -205,7 +210,16 @@ func _update(delta: float) -> void:
 
 func _apply(hp: Vector3, delta: float, snap: bool) -> void:
 	var b := Basis.from_euler(Vector3(pitch, yaw, 0.0))
-	var pivot := hp + Vector3(0, height, 0) + shift + b.x * shoulder_offset
+	# the shoulder offset and lock framing shift must never push the pivot through a wall: otherwise the
+	# occlusion cast starts inside geometry and the camera ends frames inside it (hero backed into the side wall)
+	var head := hp + Vector3(0, height, 0)
+	var off := shift + b.x * shoulder_offset
+	if shoulder_collision:
+		# shrink at once (never through a wall), recover gradually (no sideways swing back into it)
+		var safe := _clear_fraction(head, off)
+		_offset_frac = safe if (snap or safe < _offset_frac) else move_toward(_offset_frac, safe, ease_out_speed * 0.5 * delta)
+		off *= _offset_frac
+	var pivot := head + off
 	var back := b.z
 	# Near-wall fix. Two different cases when geometry is behind the hero:
 	#  * geometry only passes BETWEEN hero and camera (pillar / tree / wall edge while strafing): pull in at
@@ -220,8 +234,11 @@ func _apply(hp: Vector3, delta: float, snap: bool) -> void:
 		var pv := (pivot - _last_pivot) / delta
 		pv.y = 0.0
 		if pv.length() > 0.3:
-			var pred := _collision_distance(pivot + pv * prediction_time, back, frame_dist)
-			target = minf(want, pred)
+			# sample the whole horizon, not only its end: an obstacle crossed WITHIN the horizon (sliding past a
+			# pillar on a curved path) is otherwise missed, the camera eases out, and later needs a snap
+			for k in range(1, prediction_samples + 1):
+				var t := prediction_time * float(k) / float(prediction_samples)
+				target = minf(target, _collision_distance(pivot + pv * t, back, frame_dist))
 	_last_pivot = pivot
 	_has_last_pivot = true
 	if snap:
@@ -231,12 +248,22 @@ func _apply(hp: Vector3, delta: float, snap: bool) -> void:
 		if _penetrating(pivot + back * next_d):
 			if debug_track_inside:
 				last_snap_info = _overlap_info(pivot + back * next_d) + " d %.2f->%.2f" % [cur_dist, want]
+			max_snap = maxf(max_snap, cur_dist - want)
 			next_d = want
 			forced_snaps += 1
 		cur_dist = next_d
 	else:
 		cur_dist = move_toward(cur_dist, target, ease_out_speed * delta)
 	var cam_pos := pivot + back * cur_dist
+	# min_collision_distance must never place the near plane inside geometry (hero backed into a tall
+	# boundary wall): the pivot is kept clear above, so first move toward it until clear
+	if _penetrating(cam_pos):
+		var d := cur_dist
+		while d > 0.0 and _penetrating(pivot + back * d):
+			d = maxf(0.0, d - 0.05)
+		if not _penetrating(pivot + back * d):
+			cam_pos = pivot + back * d
+			close_ins += 1
 	# last resort: even the minimum distance is inside geometry (hero pressed against a pillar / trunk
 	# with the camera on the far side) -> lift the camera over it instead of sitting inside it
 	var lift := 0.0
@@ -289,6 +316,21 @@ func _overlap_info(p: Vector3) -> String:
 		var shp = col.shape_owner_get_owner(col.shape_find_owner(h.shape)) if col is CollisionObject3D else null
 		out += " [%s/%s %s at %s]" % [col.name, shp.name if shp else "?", str(shp.shape.get_class()) if shp and "shape" in shp else "", str((shp.global_position if shp else col.global_position).snapped(Vector3.ONE * 0.01))]
 	return out
+
+
+## Fraction (0..1) of a pivot offset (shoulder + lock shift) the camera sphere can travel clear of geometry.
+func _clear_fraction(from: Vector3, offset: Vector3) -> float:
+	if not is_inside_tree() or offset.length() < 0.001:
+		return 1.0
+	var q := PhysicsShapeQueryParameters3D.new()
+	q.shape = _sphere
+	q.transform = Transform3D(Basis(), from)
+	q.motion = offset
+	q.collision_mask = Combatant.LAYER_WORLD
+	var res := get_world_3d().direct_space_state.cast_motion(q)
+	if res.size() >= 1 and res[0] < 1.0:
+		return res[0]
+	return 1.0
 
 
 func _collision_distance(pivot: Vector3, back: Vector3, want: float) -> float:
