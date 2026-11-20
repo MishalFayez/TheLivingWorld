@@ -11,5 +11,6 @@ exports/
 .dev/local.json
 .dev/reports/
 .dev/handoff/
+.dev/tools/
 *.log
 screenshots/
