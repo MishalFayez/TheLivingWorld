@@ -1,6 +1,14 @@
 @echo off
 title The Living World - Claude Code
 cd /d "%~dp0"
+if exist ".dev\local.json" goto project_found
+cd /d "C:\Users\PC\Documents\Codex\2026-11-20\new-chat\TheLivingWorld"
+if exist ".dev\local.json" goto project_found
+echo ERROR: The Living World project configuration could not be found.
+echo Expected project: C:\Users\PC\Documents\Codex\2026-11-20\new-chat\TheLivingWorld
+pause
+exit /b 1
+:project_found
 echo Starting Claude Code in:
 echo %CD%
 echo This window will stay open if startup fails.
