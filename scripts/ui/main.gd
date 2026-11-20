@@ -240,12 +240,18 @@ func _build_create() -> Control:
 	name_edit.custom_minimum_size = Vector2(300, 46)
 	name_edit.add_theme_font_size_override("font_size", 18)
 	bottom.add_child(name_edit)
-	bottom.add_child(_big_button("Create  ·  Level 1", _confirm_create, 300))
+	_create_btn = _big_button("Create  ·  Level 1", _confirm_create, 300)
+	bottom.add_child(_create_btn)
 	return m
+
+
+var _create_btn: Button
 
 
 func _pick_new_class(cid: String) -> void:
 	new_class = cid
+	if _create_btn:
+		_create_btn.text = "Create  ·  Test Session" if Game.saving_locked() else "Create  ·  Level 1"
 	for k in class_buttons:
 		class_buttons[k].button_pressed = k == cid
 	if preview:
@@ -280,14 +286,42 @@ func _pick_new_class(cid: String) -> void:
 		pl.custom_minimum_size = Vector2(440, 0)
 		info_box.add_child(pl)
 	var p := Game.prog(cid)
-	if p.created:
+	if Game.saving_locked():
+		var lw := UITheme.text("A save from a newer version is protected: this character can only be played as a TEST SESSION. Nothing is saved.", 14, Color(1.0, 0.6, 0.45))
+		lw.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		lw.custom_minimum_size = Vector2(440, 0)
+		info_box.add_child(lw)
+	elif p.created:
 		var w := UITheme.text("Existing %s: %s (Level %d) will be replaced." % [cid.capitalize(), p.character_name, p.level], 14, Color(1.0, 0.6, 0.45))
 		w.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		w.custom_minimum_size = Vector2(440, 0)
 		info_box.add_child(w)
 
 
+## REVIEW-004: while a newer-version save is protected, a character can only start a labelled test session.
+func _confirm_test_session() -> void:
+	confirm.title = "Test session - not saved"
+	confirm.ok_button_text = "Start Test Session"
+	confirm.dialog_text = ("Your save was made by a newer version of the game and is protected: it will not be changed.\n" +
+		"This %s will be played as a TEST SESSION. Nothing from it is saved, and it is discarded when you return to the title.") % new_class.capitalize()
+	for cn in confirm.confirmed.get_connections():
+		confirm.confirmed.disconnect(cn.callable)
+	confirm.confirmed.connect(_create_test_now)
+	confirm.popup_centered()
+
+
+func _create_test_now() -> void:
+	Game.test_session = true
+	Game.create_character(new_class, name_edit.text)
+	start_game(new_class, party)
+
+
 func _confirm_create() -> void:
+	if Game.saving_locked():
+		_confirm_test_session()
+		return
+	confirm.title = "Replace character?"
+	confirm.ok_button_text = "Replace"
 	var p := Game.prog(new_class)
 	if p.created:
 		confirm.dialog_text = "Your %s %s (Level %d) will be permanently replaced by a new Level 1 character.\nOther classes are not affected." % [new_class.capitalize(), p.character_name, p.level]
@@ -367,6 +401,8 @@ func _refresh_select() -> void:
 
 func _ask_reset(cid: String) -> void:
 	var p := Game.prog(cid)
+	confirm.title = "Replace character?"
+	confirm.ok_button_text = "Replace"
 	confirm.dialog_text = "Reset %s (Level %d) back to a fresh Level 1 %s?\nThis cannot be undone. Other classes are not affected." % [p.character_name, p.level, cid.capitalize()]
 	for cn in confirm.confirmed.get_connections():
 		confirm.confirmed.disconnect(cn.callable)
@@ -400,6 +436,11 @@ func start_game(class_id: String, p_party: bool, training: bool = false) -> void
 		menu = null
 	class_buttons.clear()
 	preview = null
+	# REVIEW-004: no progression session may save while a newer-version save is protected; every start
+	# path (menu, Character Selection, tests, --autostart) becomes a labelled test session
+	if Game.saving_locked() and not Game.test_session:
+		push_warning("newer-version save is protected - starting a non-saving TEST SESSION")
+		Game.test_session = true
 	if not Game.prog(class_id).created:
 		# direct start (tests / --autostart): a temporary unsaved Level 1 character
 		Game.prog(class_id).created = true
@@ -417,17 +458,21 @@ func start_game(class_id: String, p_party: bool, training: bool = false) -> void
 		world.teleport_player("training")
 	else:
 		Events.notify.emit("Valley Outskirts")
+	if Game.test_session:
+		Events.notify.emit("TEST SESSION - progress is not saved")
+		Events.log_message.emit("Test session: a save from a newer version is protected, so nothing from this session is saved.", "system")
 
 
 func return_to_menu() -> void:
 	get_tree().paused = false
 	Engine.time_scale = 1.0
-	if Game.debug_tainted:
-		# discard debug-only changes: reload the characters exactly as last saved
+	if Game.debug_tainted or Game.test_session:
+		# discard debug-only / test-session changes: reload the characters exactly as last saved
 		Game.reset_all_progress()
 		if Save.has_save():
 			Save.load_game()
 		Game.debug_tainted = false
+		Game.test_session = false
 	else:
 		Game.autosave()
 	for n in SESSION_LAYERS:

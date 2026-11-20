@@ -123,6 +123,15 @@ func _read_file(p: String) -> Variant:
 	return json.data
 
 
+## Re-reads the primary save (no recovery, no writes) and refreshes `newer_version`.
+func primary_is_newer() -> bool:
+	var abs_path := ProjectSettings.globalize_path(path)
+	newer_version = 0.0
+	if FileAccess.file_exists(abs_path) and not (_read_file(abs_path) is Dictionary) and _read_was_newer:
+		newer_version = _read_newer_version
+	return newer_version > 0.0
+
+
 static func is_newer_version(d: Dictionary) -> bool:
 	return d.has("version") and _is_number(d.version) and float(d.version) > VERSION
 
@@ -303,6 +312,9 @@ func save_game() -> bool:
 	if Game.debug_tainted:
 		last_error = "debug session - not saved"
 		return false
+	if Game.test_session:
+		last_error = "test session - not saved"
+		return false
 	var chars := {}
 	for c in Game.CLASSES:
 		chars[c] = Game.prog(c).to_dict()
@@ -347,6 +359,7 @@ func load_game() -> bool:
 	var lc: Variant = data.get("last_class", "vanguard")
 	Game.active_class = lc if typeof(lc) == TYPE_STRING and lc in Game.CLASSES else "vanguard"
 	Game.debug_tainted = false
+	Game.test_session = false
 	_merge_settings(data.get("settings", {}))
 	apply_settings()
 	return true
@@ -357,8 +370,8 @@ func _describe_problem() -> String:
 	var fname := path.get_file()
 	if newer_version > 0.0:
 		return ("Your save was made by a newer version of the game (save version %s; this version reads up to %d). " +
-			"It was not loaded and will not be changed or overwritten. Progress made in this version will not be saved " +
-			"until you return to the newer version or move %s elsewhere.") % [_fmt_version(newer_version), VERSION, fname]
+			"It was not loaded and will not be changed or overwritten. Until you return to the newer version or move %s " +
+			"elsewhere, new characters can only be played in a TEST SESSION that is never saved.") % [_fmt_version(newer_version), VERSION, fname]
 	return ("Your save could not be read (%s). It was not loaded. The file is kept: the next time the game saves, " +
 		"it is moved to %s.corrupt-<time> instead of being deleted.") % [last_error, fname]
 

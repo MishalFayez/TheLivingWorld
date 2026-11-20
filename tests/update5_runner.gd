@@ -36,6 +36,7 @@ func _run_all() -> void:
 	await test_rv3_newer_backup_and_tmp_preserved()
 	await test_rv3_title_explains_unloadable_save()
 	await test_rv3_accepted_saves_load_cleanly()
+	await test_rv4_newer_save_blocks_saving_sessions()
 	await teardown()
 
 
@@ -452,6 +453,66 @@ func test_rv3_title_explains_unloadable_save() -> void:
 		main.queue_free()
 		await wait(0.05)
 		_qa_end(p)
+
+
+func _rv4_untouched(p: String, original: String) -> bool:
+	return _rv_bytes(p) == original and not FileAccess.file_exists(p + ".tmp") and _rv_siblings(p, ".corrupt").is_empty() and _rv_siblings(p, ".orphan").is_empty()
+
+
+func test_rv4_newer_save_blocks_saving_sessions() -> void:
+	print("\n[REVIEW-004: with a newer-version save on disk only a labelled non-saving TEST SESSION can start]")
+	var p: String = await _qa_begin("rv4_locked.json")
+	_rv2_write(p, _RV3_FUTURE)
+	Game.auto_open_drafts = false
+	var main = load("res://scenes/main.tscn").instantiate()
+	add_child(main)
+	await wait(0.1)
+	check(main._continue_btn.disabled and main._continue_info.text.contains("TEST SESSION"), "title: Continue disabled, restriction explained", main._continue_info.text)
+	# New Character: the button and the class panel say it is a test session
+	main._goto("create")
+	main._pick_new_class("reaver")
+	await wait(0.05)
+	var panel_txt := ""
+	for c in main.info_box.get_children():
+		if c is Label:
+			panel_txt += c.text + " "
+	check(main._create_btn.text.contains("Test Session") and panel_txt.contains("TEST SESSION"), "New Character: button and panel label the test session", main._create_btn.text)
+	main.name_edit.text = "Tester"
+	main._confirm_create()
+	check(main.confirm.visible and main.confirm.title.contains("Test session") and main.confirm.ok_button_text == "Start Test Session" and main.confirm.dialog_text.contains("Nothing from it is saved"), "creating asks for explicit confirmation of a non-saving test session", main.confirm.dialog_text)
+	check(main.world == null and not Game.prog("reaver").created, "nothing starts before the player confirms")
+	main.confirm.hide()
+	main.confirm.confirmed.emit()
+	await wait(0.3)
+	check(main.world != null and Game.test_session and Game.prog("reaver").character_name == "Tester", "confirming starts the test session")
+	check(String(main.get_node("HUD").status_label.text).contains("TEST SESSION"), "HUD labels the session as not saved", main.get_node("HUD").status_label.text)
+	Game.gain_exp(500, "test")
+	Game.autosave()
+	check(not Save.save_game() and Save.last_error.contains("test session"), "progress in the test session is never written", Save.last_error)
+	check(_rv4_untouched(p, _RV3_FUTURE), "the newer save is byte-for-byte unchanged, nothing written beside it")
+	main.return_to_menu()
+	await wait(0.1)
+	check(not Game.test_session and not Game.prog("reaver").created and main._continue_btn.disabled, "returning to the title discards the test character")
+	# every other start path (Character Selection Play / Training, tests, --autostart) is forced into test mode
+	main.start_game("vanguard", false, true)
+	await wait(0.2)
+	check(Game.test_session and not Save.save_game(), "a direct start is a test session too and cannot save", Save.last_error)
+	main.return_to_menu()
+	await wait(0.1)
+	check(_rv4_untouched(p, _RV3_FUTURE), "after all sessions the newer save is still unchanged")
+	# control: a normal save allows normal saving sessions (no behaviour change)
+	_rv2_write(p, "{\"version\": 1, \"characters\": {}}")
+	main._goto("create")
+	main._pick_new_class("vanguard")
+	check(main._create_btn.text == "Create  ·  Level 1" and not Game.saving_locked(), "control: with a current save New Character is unchanged")
+	main.start_game("vanguard", false)
+	await wait(0.2)
+	check(not Game.test_session, "control: a normal session is not a test session")
+	main.return_to_menu()
+	await wait(0.1)
+	main.queue_free()
+	await wait(0.05)
+	_qa_end(p)
 
 
 ## Every save the validator ACCEPTS must load and be usable without a script error (Test.ps1 fails the

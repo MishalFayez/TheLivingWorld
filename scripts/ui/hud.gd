@@ -791,7 +791,10 @@ func _draw_cast_ring() -> void:
 func _status(delta: float) -> void:
 	cast_ring.queue_redraw()
 	_saved_t = maxf(0.0, _saved_t - delta)
-	if Game.debug_tainted:
+	if Game.test_session:
+		status_label.text = "TEST SESSION  ·  progress is not saved (a newer-version save is protected)"
+		status_label.modulate = Color(1, 1, 1)
+	elif Game.debug_tainted:
 		status_label.text = "DEBUG SESSION  ·  progress is not saved"
 		status_label.modulate = Color(1, 1, 1)
 	elif _saved_t > 0.0:

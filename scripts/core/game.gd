@@ -43,6 +43,9 @@ var bladecraft_enabled: bool:
 var permadeath: bool = true
 ## Any debug change to progression taints the session: it is never written to the save file.
 var debug_tainted: bool = false
+## REVIEW-004: a labelled non-saving test session (the only kind allowed while a newer-version save is
+## protected on disk). Nothing is written while it is set; progress is discarded on return to the title.
+var test_session: bool = false
 var invincible: bool = false
 var show_hitboxes: bool = false
 var auto_open_drafts: bool = true
@@ -260,10 +263,15 @@ func taint(reason: String) -> void:
 		Events.notify.emit("DEBUG SESSION - progress not saved")
 
 
+## REVIEW-004: true when a save written by a newer version is protected on disk; no session may save then.
+func saving_locked() -> bool:
+	return Save.primary_is_newer()
+
+
 func autosave() -> void:
 	if Save.save_game():
 		Events.saved.emit()
-	elif Save.enabled and not debug_tainted:
+	elif Save.enabled and not debug_tainted and not test_session:
 		# a real failure (not "saving disabled" / "debug session"): never report it as saved
 		push_warning("autosave failed: " + Save.last_error)
 

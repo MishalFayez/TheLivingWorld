@@ -212,7 +212,9 @@ func _character() -> Control:
 	if c == "reaver" and Game.reaver_core != "sense":
 		core = "Bladecraft (legacy core)" if Game.reaver_core == "bladecraft" else "No core (comparison)"
 	left.add_child(UITheme.text("Core: " + core, 14, UITheme.PARCHMENT))
-	if Game.debug_tainted:
+	if Game.test_session:
+		left.add_child(UITheme.text("TEST SESSION - nothing is saved (a newer-version save is protected)", 13, Color(1.0, 0.55, 0.4)))
+	elif Game.debug_tainted:
 		left.add_child(UITheme.text("DEBUG SESSION - changes are not saved", 13, Color(1.0, 0.55, 0.4)))
 	# primary stats + allocation
 	var mid := _col(430)
