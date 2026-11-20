@@ -108,18 +108,24 @@ Press a **different** cut during the previous cut's recovery to **link** it. For
 - **All classes:** Lv11–30 content.
 - **Not done this pass:** sound effects (none exist) and AnimationTree crossfades.
 
-## Test results (Godot 4.7.2, headless, `--fixed-fps 60`)
+## Test results (Godot 4.7.2, headless; `tools/dev/Test.ps1`)
+Updated 2026-11-20 on branch `review/chatgpt-001` (QA-001 + audit + review fixes, not yet merged).
+
 | Suite | Result |
 |---|---|
 | resolution_runner (Design Resolution) | 78 / 78 |
 | refoundation_runner | 71 / 71 |
-| mage_runner | 164 / 164 |
+| mage_runner | 169 / 169 |
 | test_runner | 136 / 136 |
-| update5_runner | 63 / 63 |
-| smoke_runner | 31 / 31 |
-| camera_jitter | 7 / 7 (1 snap of 0.57m in an 18-run wall census; 0 frames inside geometry) |
+| update5_runner (incl. save safety + crash recovery) | 94 / 94 |
+| smoke_runner (isolated fixture save) | 32 / 32 |
+| camera_jitter @60 fps | 16 / 16 |
+| camera_jitter @144 fps | 16 / 16 |
+| camera_jitter @30 fps | 16 / 16 |
 
-There were no script errors in the logs. Old vs new measurements: `tests/compare_runner.tscn`.
+628 passed, 0 failed, exit code 0. No script errors; the only warnings come from deliberate negative save tests.
+Non-legacy test setup uses the approved cores (Worldweaver, Swordmaster); retired-core tests are labelled LEGACY.
+Measurement tools (not pass/fail): `tests/compare_runner.tscn`, `tests/benchmark_runner.tscn`, `tests/analysis_runner.tscn`.
 **These tests verify mechanics, not enjoyment.**
 
 ## Manual playtesting
@@ -128,7 +134,7 @@ Follow `CLASS_PLAYTEST_GUIDE.md` (scenarios V1–V4, VH–VJ, M1–M5, R1–R5, 
 ## Known limitations
 - **Art:** procedural placeholder characters, animation and VFX. They are not final art.
 - **Sound:** none.
-- **Camera:** one reproducible 0.57m anti-clipping snap when walking into a tall pillar with the camera behind (not fully fixed; see DESIGN_TECHNICAL_FEEDBACK.md §6).
+- **Camera:** the documented 0.57m pillar snap, rendered frames inside the side boundary wall and a wall-hugging oscillation are fixed (2026-11-20, see `collaboration/results/REVIEW-001.md`). A wider 64-sweep census still shows 2-3 snaps where the camera boom sweeps past the tall pillar at running speed; removing them needs a decision (faster pull-in, camera collision proxies or occluder fading).
 - **Reaver:** Forward → Forward no longer links; spam keeps about 76% of deliberate-path DPS (measured). The comfort of the Shift + A/D chord needs human testing.
 - **Mage:** setup cost of Worldcraft before Lv10.
 
@@ -292,9 +298,11 @@ The training dummy panel shows:
 Every Debug change taints the session, so it is never saved. Debug grants are not written to the save; a test checks this.
 
 ### Verified automatically (Godot 4.7.2, headless, `--fixed-fps 60`)
-| Suite | Result |
+Historical Worldweaver-pass numbers; the current results are in the main **Test results** table above.
+
+| Suite | Result (at the Worldweaver pass) |
 |---|---|
-| `tests/mage_runner.tscn`: Worldweaver milestones A–F | **164 / 164 passed**, no script errors in the log |
+| `tests/mage_runner.tscn`: Worldweaver milestones A–F | 164 / 164 passed, no script errors in the log |
 | `tests/test_runner.tscn` | 136 / 136 |
 | `tests/update5_runner.tscn` | 63 / 63 |
 | `tests/smoke_runner.tscn` (all three classes load, full Valley run, boss, save) | 31 / 31 |

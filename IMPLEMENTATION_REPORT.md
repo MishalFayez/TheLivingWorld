@@ -1,3 +1,7 @@
+> **Later work (2026-11-20, not yet merged):** technical fixes from QA-001, the class & combat audit and the
+> ChatGPT review are documented in `collaboration/results/QA-001.md`, `CLASS_COMBAT_AUDIT.md` and `REVIEW-001.md`.
+> Current test counts are in README → Test results (628/628). The camera and test numbers below are historical.
+
 # IMPLEMENTATION REPORT — Refoundation Design Resolution
 
 Engine: Godot 4.7.2 (GDScript). Date: 2026-11-20.
