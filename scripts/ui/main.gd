@@ -154,6 +154,13 @@ func _refresh_title() -> void:
 				break
 	_continue_btn.disabled = not ok
 	_continue_info.text = ("%s  ·  %s  ·  Level %d" % [Game.prog(lc).character_name, lc.capitalize(), Game.prog(lc).level]) if ok else "no saved character yet"
+	# REVIEW-003: a save that exists but could not be loaded is explained instead of looking like "no save"
+	var problem := Save.load_problem != "" and not ok
+	_continue_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if problem else TextServer.AUTOWRAP_OFF
+	_continue_info.custom_minimum_size = Vector2(620, 0) if problem else Vector2.ZERO
+	_continue_info.add_theme_color_override("font_color", Color(1.0, 0.6, 0.45) if problem else UITheme.TEXT_DIM)
+	if problem:
+		_continue_info.text = Save.load_problem
 
 
 func _continue() -> void:

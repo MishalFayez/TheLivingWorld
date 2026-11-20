@@ -32,6 +32,10 @@ func _run_all() -> void:
 	await test_rv2_malformed_backup_never_restored()
 	await test_rv2_malformed_primary_without_backup()
 	await test_rv2_older_save_loads_unchanged()
+	await test_rv3_newer_version_never_overwritten()
+	await test_rv3_newer_backup_and_tmp_preserved()
+	await test_rv3_title_explains_unloadable_save()
+	await test_rv3_accepted_saves_load_cleanly()
 	await teardown()
 
 
@@ -294,13 +298,20 @@ func test_rv2_validator_cases() -> void:
 	var older := {"characters": {"reaver": {"name": "Old", "level": 3, "created": true}}}
 	check(Save.validate_save(older) == "", "an older save missing later fields (no version, no loadouts) is valid", Save.validate_save(older))
 	check(Save.validate_save({"version": 1, "characters": {}, "last_class": "", "settings": {}}) == "", "a settings-only save is valid")
+	# REVIEW-003: cosmetic top-level fields and unknown entries are not a reason to reject a save
+	var lenient := {"characters": {"reaver": {"level": 2}, "paladin": "from another build"}, "settings": [], "last_class": 3, "saved_at": 7}
+	check(Save.validate_save(lenient) == "", "wrong-typed settings / last_class / saved_at and unknown class entries do not reject a save", Save.validate_save(lenient))
 	var bad := {
 		"no characters": {"version": 1},
 		"characters is a list": {"characters": []},
 		"version is text": {"version": "1", "characters": {}},
 		"newer version": {"version": 2, "characters": {}},
-		"settings is a list": {"characters": {}, "settings": []},
-		"last_class is a number": {"characters": {}, "last_class": 3},
+		"spell_loadout holds a number": {"characters": {"mage": {"spell_loadout": [1, "", "", ""]}}},
+		"reaver_loadout holds null": {"characters": {"reaver": {"reaver_loadout": [null]}}},
+		"inventory holds a number": {"characters": {"reaver": {"inventory": [5]}}},
+		"pending_draft_tiers holds a number": {"characters": {"reaver": {"pending_draft_tiers": [2]}}},
+		"discipline_casts value is a list": {"characters": {"mage": {"discipline_casts": {"fire": []}}}},
+		"name is null": {"characters": {"reaver": {"name": null}}},
 		"character is a string": {"characters": {"reaver": "lvl 9"}},
 		"level is text": {"characters": {"reaver": {"level": "nine"}}},
 		"level 0": {"characters": {"reaver": {"level": 0}}},
@@ -384,6 +395,150 @@ func test_rv2_older_save_loads_unchanged() -> void:
 	check(q.created and q.character_name == "Old" and q.level == 3 and q.spell_loadout.size() == 4 and q.reaver_loadout.size() == 4, "fields present are restored, missing ones take defaults")
 	check(_rv_bytes(p) == old and _rv_siblings(p, ".corrupt").is_empty(), "the older file is left as it is by loading")
 	_qa_end(p)
+
+
+# ------------------------------------------------------------------ REVIEW-003 compatibility + loadability
+const _RV3_FUTURE := "{\"version\": 2, \"format\": \"from a newer build\", \"characters\": {\"reaver\": {\"name\": \"Future\", \"level\": 40, \"gear_v2\": {\"sets\": [1, 2]}}}, \"last_class\": \"reaver\"}"
+
+
+func test_rv3_newer_version_never_overwritten() -> void:
+	print("\n[REVIEW-003: a save from a newer version is never loaded, recovered over, moved or overwritten]")
+	var p: String = await _rv_saved("rv3_future.json", 3)
+	var older := _rv_bytes(p)
+	_rv2_write(p, _RV3_FUTURE)
+	_rv2_write(p + ".bak", older)                # a valid older backup must NOT be restored over it
+	Game.reset_all_progress()
+	check(Save.has_save() and not Save.load_game() and not Game.prog("reaver").created, "not loaded", Save.last_error)
+	check(Save.newer_version == 2.0 and Save.load_problem.contains("newer version") and Save.load_problem.contains("will not be changed or overwritten"), "the player-facing reason says why", Save.load_problem)
+	Game.create_character("vanguard", "Aldric")  # autosave attempt
+	check(not Save.save_game() and Save.last_error.contains("newer version"), "save_game refuses and reports why", Save.last_error)
+	Save.settings.invert_y = true
+	check(not Save.save_settings(), "save_settings refuses", Save.last_error)
+	Save.reset_settings()
+	check(_rv_bytes(p) == _RV3_FUTURE and _rv_bytes(p + ".bak") == older, "the newer save and the backup are byte-for-byte unchanged")
+	check(_rv_siblings(p, ".corrupt").is_empty() and _rv_siblings(p, ".orphan").is_empty() and not FileAccess.file_exists(p + ".tmp"), "nothing was moved aside or left behind")
+	_qa_end(p)
+
+
+func test_rv3_newer_backup_and_tmp_preserved() -> void:
+	print("\n[REVIEW-003: newer-version .bak / .tmp files are never restored and never deleted]")
+	var p: String = await _qa_begin("rv3_future_side.json")
+	_rv2_write(p + ".bak", _RV3_FUTURE)
+	_rv2_write(p + ".tmp", _RV3_FUTURE.replace("Future", "FutureTmp"))
+	check(not Save.recover_if_needed() and not Save.has_save(), "neither is restored")
+	Game.create_character("vanguard", "Aldric")  # first save: no primary yet
+	Game.prog("vanguard").set_level(3)
+	check(Save.save_game(), "a second save succeeds", Save.last_error)
+	var kept_tmp := _rv_siblings(p, ".orphan").any(func(n): return _rv_bytes(p.get_base_dir().path_join(n)) == _RV3_FUTURE.replace("Future", "FutureTmp"))
+	var kept_bak := _rv_siblings(p, ".orphan").any(func(n): return _rv_bytes(p.get_base_dir().path_join(n)) == _RV3_FUTURE)
+	check(kept_tmp and kept_bak, "both newer files are preserved byte-for-byte as .orphan-*", str(_rv_siblings(p, ".orphan")))
+	var d = _qa_parse(p)
+	check(d is Dictionary and int(d.characters.vanguard.level) == 3, "the current save is valid")
+	_qa_end(p)
+
+
+func test_rv3_title_explains_unloadable_save() -> void:
+	print("\n[REVIEW-003: the title screen explains a save that could not be loaded]")
+	for case in [["newer", _RV3_FUTURE, "newer version"], ["malformed", "{\"characters\": {\"reaver\": {\"inventory\": [5]}}}", "could not be read"]]:
+		var p: String = await _qa_begin("rv3_title_%s.json" % case[0])
+		_rv2_write(p, case[1])
+		Save.enabled = false
+		var main = load("res://scenes/main.tscn").instantiate()
+		add_child(main)
+		await wait(0.1)
+		var info: String = main._continue_info.text
+		check(main._continue_btn.disabled and info.contains(case[2]) and info == Save.load_problem, "%s save: Continue disabled, reason shown" % case[0], info)
+		check(_rv_bytes(p) == case[1], "%s save: file untouched by starting the game" % case[0])
+		main.queue_free()
+		await wait(0.05)
+		_qa_end(p)
+
+
+## Every save the validator ACCEPTS must load and be usable without a script error (Test.ps1 fails the
+## suite on any SCRIPT ERROR line). Each field of a full save is replaced by each sample value, or removed.
+func test_rv3_accepted_saves_load_cleanly() -> void:
+	print("\n[REVIEW-003: every accepted save variant loads and is usable; rejected ones are preserved]")
+	var p: String = await _qa_begin("rv3_fuzz.json")
+	for c in Game.CLASSES:
+		Game.create_character(c, c.capitalize())
+	Game.prog("reaver").inventory.append("r_crimson_blade")
+	Game.prog("reaver").pending_draft_tiers.append("advanced")
+	Game.prog("mage").discipline_casts["fire"] = 3
+	Save.save_game()
+	var base: Dictionary = JSON.parse_string(_rv_bytes(p))
+	var samples := [null, true, 0, 3, -1, 2.5, "", "txt", [], ["txt"], [1], [null], {}, {"k": 1}, {"k": "v"}, {"str": 2}]
+	var accepted := 0
+	var rejected := 0
+	var load_failures: Array = []
+	var fields: Array = base.characters.mage.keys()
+	for field in fields:
+		for si in samples.size() + 1:
+			var d: Dictionary = base.duplicate(true)
+			if si == samples.size():
+				d.characters.mage.erase(field)       # older save without this field
+			else:
+				d.characters.mage[field] = samples[si]
+			var txt := JSON.stringify(d)
+			if Save.validate_save(JSON.parse_string(txt)) != "":
+				rejected += 1
+				continue
+			accepted += 1
+			_rv2_write(p, txt)
+			Game.reset_all_progress()
+			if not Save.load_game():
+				load_failures.append("%s=%s" % [field, str(samples[si]) if si < samples.size() else "<removed>"])
+				continue
+			_rv3_use_everything()
+	for top in ["last_class", "saved_at", "settings", "version"]:
+		for s in samples:
+			var d: Dictionary = base.duplicate(true)
+			d[top] = s
+			var txt := JSON.stringify(d)
+			if Save.validate_save(JSON.parse_string(txt)) != "":
+				rejected += 1
+				continue
+			accepted += 1
+			_rv2_write(p, txt)
+			Game.reset_all_progress()
+			if not Save.load_game():
+				load_failures.append("%s=%s" % [top, str(s)])
+				continue
+			_rv3_use_everything()
+	print("    %d variants accepted and loaded, %d rejected" % [accepted, rejected])
+	check(accepted > 100 and load_failures.is_empty(), "every accepted variant loads (any script error fails the suite)", str(load_failures))
+	# known settings with the wrong type are ignored (defaults kept); valid ones and unknown keys are kept
+	Save.reset_settings()
+	var sd: Dictionary = base.duplicate(true)
+	sd.settings = {"vsync": "yes", "mouse_sensitivity": "fast", "show_fps": 1, "fullscreen": "on", "invert_y": true, "camera_shake": 0, "future_option": [1]}
+	_rv2_write(p, JSON.stringify(sd))
+	Game.reset_all_progress()
+	check(Save.load_game(), "a save with wrong-typed settings still loads", Save.last_error)
+	_rv3_use_everything()
+	var st := Save.settings
+	check(st.vsync == true and st.mouse_sensitivity == 1.0 and st.show_fps == false and st.fullscreen == false and st.camera_shake == true and st.invert_y == true and st.has("future_option"),
+		"wrong-typed settings fall back to defaults, valid and unknown ones are kept", str(st))
+	Save.reset_settings()
+	_qa_end(p)
+
+
+## Touches every loaded field the way the game does (inventory, equipment, drafts, loadouts, settings).
+func _rv3_use_everything() -> void:
+	for c in Game.CLASSES:
+		var q := Game.prog(c)
+		q.to_dict()
+		q.equipped_items()
+		q.known_elements()
+		q.unlocked_ids()
+		for id in q.inventory:
+			Game.item(id)
+		Game.draft_tier(c)
+		for s in q.spell_loadout:
+			String(s)
+		for s in q.reaver_loadout:
+			String(s)
+		for el in q.discipline_casts:
+			int(q.discipline_casts.get(el, 0))
+	Save.apply_settings()
 
 
 func test_rv_tools_isolate_real_save() -> void:
