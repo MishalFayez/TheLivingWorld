@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_w2w4g"]
+
+[resource]
+script = ExtResource("1_w2w4g")
+id = "warden_flame_combo"
+display_name = "Flame Combination"
+anim_style = "flurry"
+startup = 0.85
+active = 0.9
+recovery = 1.0
+damage_mult = 2.4
+poise_damage = 40.0
+hits = 4
+hit_weights = PackedFloat32Array()
+hitbox_size = Vector3(3, 1.8, 3)
+hitbox_offset = Vector3(0, 1, -1.8)
+tags = PackedStringArray()
+ai_range = Vector2(0, 3.6)
+ai_cooldown = 7.0
+ai_min_phase = 2

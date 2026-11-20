@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_n641i"]
+
+[resource]
+script = ExtResource("1_n641i")
+id = "grip_gloves"
+display_name = "Swordsman's Grips"
+description = "Leather grips that never slip."
+slot = "hands"
+bonuses = {
+"dex": 2
+}
+drop_weight = 1.2

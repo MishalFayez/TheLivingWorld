@@ -1,0 +1,120 @@
+[gd_resource type="Resource" script_class="ProgressionTrack" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/progression_track.gd" id="1_6urip"]
+
+[resource]
+script = ExtResource("1_6urip")
+class_id = "vanguard"
+milestones = Array[Dictionary]([{
+"desc": "Hold to block frontal attacks with your shield. Raise it just before impact for a Perfect Guard.",
+"icon": "guard",
+"id": "v_guard",
+"input": "Shift",
+"kind": "ability",
+"level": 1,
+"name": "Aegis Guard"
+}, {
+"desc": "After a Perfect Guard, Light Attack becomes a staggering shield-and-sword counter.",
+"icon": "counter",
+"id": "v_counter",
+"input": "LMB after Perfect Guard",
+"kind": "technique",
+"level": 1,
+"name": "Aegis Counter"
+}, {
+"desc": "While holding Guard, LMB is a short sword strike. Your protection is reduced during the swing and returns afterwards.",
+"icon": "sword",
+"id": "v_guarded_strike",
+"input": "Shift + LMB",
+"kind": "technique",
+"level": 1,
+"name": "Guarded Strike"
+}, {
+"desc": "Attribute points: spend 2 points per level in the Character screen (C).",
+"icon": "buff",
+"id": "stats_2",
+"input": "C",
+"kind": "stats",
+"level": 2,
+"name": "Attributes"
+}, {
+"desc": "Charge forward behind your shield, striking and drawing enemy attention.",
+"icon": "shield_rush",
+"id": "shield_rush",
+"input": "1",
+"kind": "skill",
+"level": 3,
+"name": "Shield Rush"
+}, {
+"desc": "Choose one of three augments.",
+"icon": "passive",
+"id": "draft_4",
+"input": "",
+"kind": "augment",
+"level": 4,
+"name": "First Augment"
+}, {
+"desc": "Resolve choices: HOLD 1 = Empowered Shield Rush (30), fully charged 2 = Verdict Strike (40, Lv7), HOLD 3 = Aegis Sweep (25, Lv9). Only skills you have unlocked can spend.",
+"icon": "guard",
+"id": "v_resolve",
+"input": "hold 1 / full 2 / hold 3",
+"kind": "mechanic",
+"level": 5,
+"name": "Resolve Spending"
+}, {
+"desc": "Attribute points: spend 2 points per level in the Character screen (C).",
+"icon": "buff",
+"id": "stats_6",
+"input": "C",
+"kind": "stats",
+"level": 6,
+"name": "Attributes"
+}, {
+"desc": "Hold to charge a crushing strike. Right after a Perfect Guard it becomes an instant Riposte.",
+"icon": "judgment",
+"id": "judgment_strike",
+"input": "2 (hold)",
+"kind": "skill",
+"level": 7,
+"name": "Judgment Strike"
+}, {
+"desc": "Shield Rush toward an ally under attack: you take the blow in their place.",
+"icon": "shield_rush",
+"id": "v_intercept",
+"input": "1 toward ally",
+"kind": "technique",
+"level": 7,
+"name": "Interception"
+}, {
+"desc": "Choose an Advanced or Exotic augment.",
+"icon": "mutation",
+"id": "draft_8",
+"input": "",
+"kind": "augment",
+"level": 8,
+"name": "Advanced Augment"
+}, {
+"desc": "A three-hit spin that strikes every nearby enemy. Hold Guard while using it for a Guarded Sweep.",
+"icon": "sweep",
+"id": "iron_sweep",
+"input": "3",
+"kind": "skill",
+"level": 9,
+"name": "Iron Sweep"
+}, {
+"desc": "Perfect Guard window +35% and counter windows +40% (existing mechanic; the spec's wording is not yet defined in detail). Plus an augment draft.",
+"icon": "guard",
+"id": "v_bulwark_mastery",
+"input": "",
+"kind": "mastery",
+"level": 10,
+"name": "Aegis Mastery"
+}, {
+"desc": "Plant the shield for 4s: reinforced frontal protection and displacement resistance, 15% movement, no rear protection. Press E again (or Dodge) to recover. 15 stamina, 18s cooldown. (Beyond the Lv10 prototype cap: Build Showcase.)",
+"icon": "guard",
+"id": "v_shield_plant",
+"input": "E",
+"kind": "skill",
+"level": 12,
+"name": "Shield Plant"
+}])

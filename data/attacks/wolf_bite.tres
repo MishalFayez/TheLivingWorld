@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_dch7x"]
+
+[resource]
+script = ExtResource("1_dch7x")
+id = "wolf_bite"
+display_name = "Bite"
+anim_style = "bite"
+startup = 0.45
+active = 0.1
+recovery = 0.5
+damage_mult = 0.8
+poise_damage = 12.0
+hit_weights = PackedFloat32Array()
+hitbox_size = Vector3(1.2, 1.2, 1.4)
+hitbox_offset = Vector3(0, 0.8, -1.1)
+tags = PackedStringArray()
+ai_range = Vector2(0, 2.2)
+ai_cooldown = 1.5

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_0rcyg"]
+
+[resource]
+script = ExtResource("1_0rcyg")
+id = "warden_execution"
+display_name = "Execution Strike"
+anim_style = "slam"
+startup = 1.9
+active = 0.25
+recovery = 1.5
+damage_mult = 5.0
+poise_damage = 100.0
+hit_weights = PackedFloat32Array()
+guard_break = true
+hitstop = 0.2
+knockback = 8.0
+hitbox_size = Vector3(2.6, 2, 3.2)
+hitbox_offset = Vector3(0, 1, -1.8)
+lunge = 10.0
+tags = PackedStringArray()
+ai_range = Vector2(0, 9)
+ai_cooldown = 14.0
+ai_min_phase = 3
+telegraph_color = Color(0.6, 0, 0, 0.7)
+special = "execution"

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_q21u3"]
+
+[resource]
+script = ExtResource("1_q21u3")
+id = "raider_combo3"
+display_name = "Raider Combo III"
+anim_style = "slash_v"
+startup = 0.6
+active = 0.14
+recovery = 1.1
+damage_mult = 1.2
+poise_damage = 25.0
+hit_weights = PackedFloat32Array()
+hitbox_size = Vector3(1.8, 1.6, 2.4)
+hitbox_offset = Vector3(0, 1, -1.4)
+lunge = 3.0
+tags = PackedStringArray()
+ai_range = Vector2(99, 99)

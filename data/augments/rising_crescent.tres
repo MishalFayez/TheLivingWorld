@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_nv8u5"]
+
+[resource]
+script = ExtResource("1_nv8u5")
+id = "rising_crescent"
+display_name = "Rising Crescent"
+description = "MUTATION: your uncharged Heavy Attack becomes a rising crescent that launches (staggers) non-boss enemies; the next Light within 1s gains +25% Crit Chance."
+class_id = "reaver"
+category = "mutation"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Finality", "Precision")
+interacts_with = "Heavy Attack; Split/Focus/Precision still apply on top."
+params = {
+"legacy_reaver": true
+}

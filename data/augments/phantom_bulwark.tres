@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_wfhj4"]
+
+[resource]
+script = ExtResource("1_wfhj4")
+id = "phantom_bulwark"
+display_name = "Phantom Bulwark"
+description = "MUTATION: Shield Rush leaves a Phantom Bulwark where it ends: a 3.5m dome with HP (40% of your max HP, +2% per FOR) for 6s. It absorbs damage dealt to allies inside from attackers outside, and blocks enemy projectiles."
+class_id = "vanguard"
+category = "mutation"
+rarity = "exotic"
+requires_skills = PackedStringArray("shield_rush")
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Protector")
+interacts_with = "Shield Rush (incl. interception rush) -> functional barrier."
+params = {
+"duration": 6.0,
+"hp_pct": 0.4,
+"radius": 3.5
+}

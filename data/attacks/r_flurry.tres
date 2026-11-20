@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_u6bam"]
+
+[resource]
+script = ExtResource("1_u6bam")
+id = "r_flurry"
+display_name = "Tempest Flurry"
+anim_style = "flurry"
+startup = 0.18
+active = 0.7
+recovery = 0.45
+damage_mult = 2.8
+poise_damage = 30.0
+hits = 6
+hit_weights = PackedFloat32Array()
+hitstop = 0.04
+hitbox_size = Vector3(2.8, 1.6, 2.4)
+stamina_cost = 22.0
+move_during = 0.3
+tags = PackedStringArray("skill", "multi")

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ChargedSpellData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/charged_spell_data.gd" id="1_35tfw"]
+
+[resource]
+script = ExtResource("1_35tfw")
+id = "lifeline"
+display_name = "Lifeline"
+element = "life"
+cast_type = "instant"
+description = "Emergency heal: instant, on your heal target, dedicated 12s cooldown. Less healing than a full Life Bloom."
+slot_kind = "emergency"
+mana_partial = 15.0
+mana_full = 15.0
+recovery_partial = 0.2
+cooldown = 12.0
+power_partial = 1.6
+max_range = 22.0

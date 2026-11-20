@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FusionData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/fusion_data.gd" id="1_plknv"]
+
+[resource]
+script = ExtResource("1_plknv")
+id = "sanctuary"
+display_name = "Sanctuary"
+key = "life+life"
+description = "Powerful group heal + HoT + damage reduction around the Mage."
+mana_cost = 30.0
+heal_power = 2.2
+radius = 12.0
+status_power = 0.3
+status_duration = 6.0

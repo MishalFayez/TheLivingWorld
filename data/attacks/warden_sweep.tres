@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_301yo"]
+
+[resource]
+script = ExtResource("1_301yo")
+id = "warden_sweep"
+display_name = "Ashen Sweep"
+anim_style = "sweep"
+startup = 1.15
+active = 0.2
+recovery = 1.1
+damage_mult = 1.6
+poise_damage = 40.0
+hit_weights = PackedFloat32Array()
+knockback = 6.0
+hitbox_size = Vector3(8, 1.8, 5)
+hitbox_offset = Vector3(0, 1, -1.2)
+tags = PackedStringArray()
+ai_range = Vector2(0, 4.8)
+ai_cooldown = 6.0

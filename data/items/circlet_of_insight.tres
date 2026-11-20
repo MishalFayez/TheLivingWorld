@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_87qxd"]
+
+[resource]
+script = ExtResource("1_87qxd")
+id = "circlet_of_insight"
+display_name = "Circlet of Insight"
+description = "A silver band set with a tiny clear stone."
+slot = "head"
+rarity = "advanced"
+tier = 2
+icon = "precision"
+bonuses = {
+"crit": 0.04,
+"mas": 2
+}
+drop_weight = 0.8
+min_area = 1

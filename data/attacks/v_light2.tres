@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_1t364"]
+
+[resource]
+script = ExtResource("1_1t364")
+id = "v_light2"
+display_name = "Return Cut"
+startup = 0.18
+recovery = 0.36
+cancel_after = 0.12
+poise_damage = 14.0
+hit_weights = PackedFloat32Array()
+approach_max = 0.8
+tags = PackedStringArray("light")

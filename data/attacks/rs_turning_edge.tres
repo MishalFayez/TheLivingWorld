@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_ikbt1"]
+
+[resource]
+script = ExtResource("1_ikbt1")
+id = "rs_turning_edge"
+display_name = "Turning Edge"
+startup = 0.22
+active = 0.1
+recovery = 0.32
+cancel_after = 0.14
+damage_mult = 1.3
+poise_damage = 18.0
+hit_weights = PackedFloat32Array()
+hitstop = 0.07
+hitbox_size = Vector3(2.4, 1.6, 2)
+hitbox_offset = Vector3(0, 1, -1.2)
+stamina_cost = 16.0
+tags = PackedStringArray("skill", "turning")

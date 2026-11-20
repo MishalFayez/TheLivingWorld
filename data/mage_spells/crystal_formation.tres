@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="ChargedSpellData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/charged_spell_data.gd" id="1_six3t"]
+
+[resource]
+script = ExtResource("1_six3t")
+id = "crystal_formation"
+display_name = "Crystal Formation"
+element = "frost"
+description = "Raises a temporary ice formation at the aimed location (placement preview; orientation follows your aim). Ice blocks enemy movement and is a Frozen Structure."
+partial_text = "One small ice obstruction (1.5m) + limited Chill on nearby enemies."
+full_text = "A larger connected formation (4m) with more path-blocking coverage + Chill within range."
+unlock_id = "m_frost"
+places_formation = true
+full_charge = 1.2
+move_mult = 0.65
+mana_partial = 12.0
+mana_full = 22.0
+recovery_full = 0.45
+power_partial = 0.3
+power_full = 0.5
+poise_partial = 8.0
+poise_full = 15.0
+radius_partial = 2.0
+radius_full = 3.5
+max_range = 18.0
+duration_partial = 7.0
+duration_full = 7.0
+status_power = 0.45
+width_partial = 1.5
+width_full = 4.0

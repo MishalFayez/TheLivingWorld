@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_2evxk"]
+
+[resource]
+script = ExtResource("1_2evxk")
+id = "ghost_step"
+display_name = "Ghost Step"
+description = "MUTATION: after a Perfect Dodge, your next attack within 1.2s becomes an instant Vital Cut with +50% Critical Damage, whatever its type."
+class_id = "reaver"
+category = "mutation"
+rarity = "exotic"
+requires_skills = PackedStringArray("r_perfect_dodge")
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Precision", "Tempest")
+interacts_with = "Perfect Dodge -> any attack."
+params = {
+"crit_damage": 0.5,
+"requires_core": "sense",
+"window": 1.2
+}

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_nt6h4"]
+
+[resource]
+script = ExtResource("1_nt6h4")
+id = "amulet_of_vigor"
+display_name = "Amulet of Vigor"
+description = "A warm amber pendant."
+slot = "accessory"
+icon = "life"
+bonuses = {
+"vit": 3
+}
+drop_weight = 1.2

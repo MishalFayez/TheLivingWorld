@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_50c5i"]
+
+[resource]
+script = ExtResource("1_50c5i")
+id = "r_light3"
+display_name = "Piercing Step"
+anim_style = "thrust"
+startup = 0.12
+active = 0.1
+recovery = 0.26
+cancel_after = 0.08
+damage_mult = 0.85
+poise_damage = 9.0
+hit_weights = PackedFloat32Array()
+hitbox_size = Vector3(1, 1.5, 2.6)
+hitbox_offset = Vector3(0, 1, -1.6)
+stamina_cost = 8.0
+lunge = 4.0
+tags = PackedStringArray("light")

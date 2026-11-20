@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_dxcs7"]
+
+[resource]
+script = ExtResource("1_dxcs7")
+id = "wolf_lunge"
+display_name = "Lunge"
+anim_style = "lunge"
+startup = 0.8
+active = 0.25
+recovery = 0.7
+poise_damage = 20.0
+hit_weights = PackedFloat32Array()
+hitbox_size = Vector3(1.4, 1.2, 1.6)
+hitbox_offset = Vector3(0, 0.8, -1.2)
+lunge = 13.0
+tags = PackedStringArray()
+ai_range = Vector2(2.5, 7.5)
+ai_weight = 1.5
+ai_cooldown = 3.5

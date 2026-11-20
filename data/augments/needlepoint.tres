@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_26ryq"]
+
+[resource]
+script = ExtResource("1_26ryq")
+id = "needlepoint"
+display_name = "Needlepoint"
+description = "MUTATION: Piercing Lunge becomes narrower (x0.6 width) with +20% Crit Chance and x1.3 Poise Damage."
+class_id = "reaver"
+category = "mutation"
+rarity = "advanced"
+requires_skills = PackedStringArray("r_lunge")
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Duelist")
+interacts_with = "Piercing Lunge."
+params = {
+"crit": 0.2,
+"poise_mult": 1.3,
+"requires_core": "swordmaster",
+"width_mult": 0.6
+}

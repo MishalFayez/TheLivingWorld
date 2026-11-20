@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_34jpb"]
+
+[resource]
+script = ExtResource("1_34jpb")
+id = "ley_charm"
+display_name = "Ley Charm"
+description = "Threads of ley-light knotted in glass."
+slot = "accessory"
+rarity = "advanced"
+tier = 2
+icon = "weave"
+bonuses = {
+"cdr": 0.05,
+"mas": 3
+}
+drop_weight = 0.7
+min_area = 1

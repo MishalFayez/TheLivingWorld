@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_isqep"]
+
+[resource]
+script = ExtResource("1_isqep")
+id = "sundering_verdict"
+display_name = "Sundering Verdict"
+description = "Heavy Cut or Draw Cut hitting a RAISED GUARD weakens it for 4s: the guard blocks much less of your attacks (Shield Guardian)."
+class_id = "reaver"
+category = "conditional"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Breaker")
+interacts_with = "Heavy Cut, Draw Cut vs guarding enemies (only the Shield Guardian has a guard)."
+params = {
+"duration": 4.0,
+"requires_core": "swordmaster"
+}

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_uvlhq"]
+
+[resource]
+script = ExtResource("1_uvlhq")
+id = "wandering_sanctum"
+display_name = "Wandering Sanctum"
+description = "MUTATION: Arcane Sanctum FOLLOWS you, but its element enhancements are 30% weaker."
+class_id = "mage"
+category = "mutation"
+rarity = "exotic"
+requires_skills = PackedStringArray("m_sanctum")
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Worldcraft")
+interacts_with = "Arcane Sanctum (all elements)."
+params = {
+"effect_mult": 0.7,
+"requires_core": "elementalist"
+}

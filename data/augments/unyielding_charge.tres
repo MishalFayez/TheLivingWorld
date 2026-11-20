@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_wgd06"]
+
+[resource]
+script = ExtResource("1_wgd06")
+id = "unyielding_charge"
+display_name = "Unyielding Charge"
+description = "While charging Judgment Strike or executing Shield Rush / Judgment Strike, frontal hits deal 50% less damage and cannot break your Poise."
+class_id = "vanguard"
+category = "enhancement"
+requires_skills = PackedStringArray("judgment_strike")
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Breaker")
+interacts_with = "Charge attacks (Judgment Strike charge, Shield Rush)."
+params = {
+"reduction": 0.5
+}

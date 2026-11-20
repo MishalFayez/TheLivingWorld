@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_taxly"]
+
+[resource]
+script = ExtResource("1_taxly")
+id = "everlasting_bloom"
+display_name = "Everlasting Bloom"
+description = "35% of Life Bloom's direct healing is converted into Healing over Time (6s). Same total; HoT scales with MAS."
+class_id = "mage"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray("life")
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Lifebinding")
+interacts_with = "Life Bloom (Focused and Shared)."
+params = {
+"convert": 0.35,
+"duration": 6.0,
+"requires_core": "elementalist"
+}

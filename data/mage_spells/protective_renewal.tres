@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ChargedSpellData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/charged_spell_data.gd" id="1_62fra"]
+
+[resource]
+script = ExtResource("1_62fra")
+id = "protective_renewal"
+display_name = "Protective Renewal"
+element = "life"
+cast_type = "instant"
+description = "Utility. Preventive protection on your heal target for 6s: a limited shield, and part of the damage taken while it lasts is healed back. Never blocks all damage."
+unlock_id = "m_renewal"
+slot_kind = "utility"
+mana_partial = 20.0
+cooldown = 14.0
+power_partial = 1.2
+max_range = 22.0
+duration_partial = 6.0
+status_power = 0.4

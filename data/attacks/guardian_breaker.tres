@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_8bw74"]
+
+[resource]
+script = ExtResource("1_8bw74")
+id = "guardian_breaker"
+display_name = "Guard Breaker"
+anim_style = "slam"
+startup = 1.5
+active = 0.18
+recovery = 1.4
+damage_mult = 1.6
+poise_damage = 70.0
+hit_weights = PackedFloat32Array()
+guard_break = true
+hitstop = 0.14
+knockback = 6.0
+hitbox_size = Vector3(2, 1.8, 2.8)
+hitbox_offset = Vector3(0, 1, -1.6)
+tags = PackedStringArray()
+ai_range = Vector2(0, 3)
+ai_cooldown = 9.0

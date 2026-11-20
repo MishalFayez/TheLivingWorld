@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_yafqy"]
+
+[resource]
+script = ExtResource("1_yafqy")
+id = "starter_v_sword"
+display_name = "Squire's Arming Sword"
+description = "A plain but honest blade."
+class_id = "vanguard"

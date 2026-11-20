@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/heroes/hero.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/heroes/reaver_kit.gd" id="2"]
+
+[node name="Reaver" type="CharacterBody3D"]
+script = ExtResource("1")
+class_id = "reaver"
+
+[node name="Kit" type="Node" parent="."]
+script = ExtResource("2")

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_11kiy"]
+
+[resource]
+script = ExtResource("1_11kiy")
+id = "m_ley_staff"
+display_name = "Leycrystal Staff"
+description = "A crystal that drinks moonlight."
+class_id = "mage"
+rarity = "advanced"
+tier = 2
+icon = "mage"
+bonuses = {
+"mas": 2,
+"power": 0.12
+}
+min_area = 1

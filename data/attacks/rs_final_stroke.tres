@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_u6kq8"]
+
+[resource]
+script = ExtResource("1_u6kq8")
+id = "rs_final_stroke"
+display_name = "Final Stroke"
+anim_style = "thrust"
+startup = 0.4
+recovery = 0.6
+cancel_after = 0.5
+damage_mult = 3.0
+poise_damage = 40.0
+hit_weights = PackedFloat32Array()
+hitstop = 0.14
+hitbox_size = Vector3(1.1, 1.6, 2.6)
+hitbox_offset = Vector3(0, 1, -1.5)
+stamina_cost = 25.0
+approach_max = 0.4
+approach_range = 1.9
+tags = PackedStringArray("skill", "finisher")

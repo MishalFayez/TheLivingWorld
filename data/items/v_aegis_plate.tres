@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_6qey5"]
+
+[resource]
+script = ExtResource("1_6qey5")
+id = "v_aegis_plate"
+display_name = "Aegis of the Warden"
+description = "Ceremonial plate that hums when struck."
+slot = "chest"
+class_id = "vanguard"
+rarity = "exotic"
+tier = 3
+icon = "shield"
+bonuses = {
+"armor": 35,
+"for": 3,
+"vit": 4
+}
+drop_weight = 0.4
+min_area = 2

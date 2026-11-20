@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_qguvf"]
+
+[resource]
+script = ExtResource("1_qguvf")
+id = "starter_m_staff"
+display_name = "Apprentice Staff"
+description = "Ash wood with a faint ley-crystal."
+class_id = "mage"
+icon = "mage"

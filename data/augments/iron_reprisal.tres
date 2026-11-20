@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_mq78d"]
+
+[resource]
+script = ExtResource("1_mq78d")
+id = "iron_reprisal"
+display_name = "Iron Reprisal"
+description = "After a Perfect Guard, your next Heavy Attack (Heavy, Judgment Strike, Riposte) within 6s is empowered: +60% damage, +50% Poise damage and a wider hitbox."
+class_id = "vanguard"
+category = "conditional"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Bulwark", "Punisher")
+interacts_with = "Perfect Guard -> Heavy Attacks. Poise bonus multiplies with Crushing Rhythm (explicit multiplicative)."
+params = {
+"damage_bonus": 0.6,
+"duration": 6.0,
+"poise_bonus": 0.5
+}

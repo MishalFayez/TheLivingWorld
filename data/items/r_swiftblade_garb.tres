@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_87o6q"]
+
+[resource]
+script = ExtResource("1_87o6q")
+id = "r_swiftblade_garb"
+display_name = "Swiftblade Garb"
+description = "The attire of a master who never wastes a motion."
+slot = "chest"
+class_id = "reaver"
+rarity = "exotic"
+tier = 3
+icon = "reaver"
+bonuses = {
+"armor": 20,
+"critdmg": 0.15,
+"dex": 3,
+"str": 3
+}
+drop_weight = 0.4
+min_area = 2

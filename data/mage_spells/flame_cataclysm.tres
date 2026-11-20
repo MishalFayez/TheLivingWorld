@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="ChargedSpellData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/charged_spell_data.gd" id="1_pl6ps"]
+
+[resource]
+script = ExtResource("1_pl6ps")
+id = "flame_cataclysm"
+display_name = "Flame Cataclysm"
+description = "Charged fire projectile. Explosive damage and area denial."
+partial_text = "Compact projectile, small explosion (Magic Damage). No burning area."
+full_text = "Larger projectile, wider explosion and ONE temporary burning area (2.5m, 5s, damage every 1s)."
+full_charge = 1.2
+move_mult = 0.65
+root_on_full = 0.15
+mana_full = 22.0
+recovery_partial = 0.28
+power_partial = 1.15
+power_full = 1.6
+poise_partial = 12.0
+poise_full = 40.0
+radius_partial = 1.5
+radius_full = 3.0
+speed_partial = 24.0
+speed_full = 17.0
+max_range = 26.0
+duration_full = 5.0
+status_power = 0.28
+width_full = 2.5

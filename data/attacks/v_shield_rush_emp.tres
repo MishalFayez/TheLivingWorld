@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_hy8jf"]
+
+[resource]
+script = ExtResource("1_hy8jf")
+id = "v_shield_rush_emp"
+display_name = "Shield Rush (Empowered)"
+anim_style = "bash"
+startup = 0.15
+active = 0.5
+recovery = 0.35
+dodge_cancel = false
+damage_mult = 1.4
+poise_damage = 60.0
+hit_weights = PackedFloat32Array()
+threat_mult = 5.0
+knockback = 9.0
+stagger_on_hit = 0.6
+hitbox_size = Vector3(2.4, 1.8, 1.8)
+hitbox_offset = Vector3(0, 1, -1)
+stamina_cost = 15.0
+lunge = 17.0
+frontal_guard = 0.4
+tags = PackedStringArray("skill", "charge_attack")

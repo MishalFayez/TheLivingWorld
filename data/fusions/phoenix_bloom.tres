@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FusionData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/fusion_data.gd" id="1_gm7uo"]
+
+[resource]
+script = ExtResource("1_gm7uo")
+id = "phoenix_bloom"
+display_name = "Phoenix Bloom"
+key = "fire+life"
+description = "Blooming zone that burns enemies and heals allies inside."
+mana_cost = 25.0
+power = 0.35
+heal_power = 0.35
+duration = 6.0
+poise_damage = 3.0

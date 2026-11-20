@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_68b1m"]
+
+[resource]
+script = ExtResource("1_68b1m")
+id = "warden_slash1"
+display_name = "Warden Slash"
+startup = 0.75
+active = 0.14
+recovery = 0.35
+damage_mult = 1.2
+poise_damage = 25.0
+hit_weights = PackedFloat32Array()
+hitbox_size = Vector3(3, 1.8, 2.6)
+hitbox_offset = Vector3(0, 1, -1.8)
+tags = PackedStringArray()
+ai_range = Vector2(0, 3.6)
+ai_cooldown = 2.5
+chain_next = "warden_slash2"

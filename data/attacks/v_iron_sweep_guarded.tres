@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_e8igv"]
+
+[resource]
+script = ExtResource("1_e8igv")
+id = "v_iron_sweep_guarded"
+display_name = "Guarded Sweep"
+anim_style = "spin"
+startup = 0.25
+active = 0.4
+recovery = 0.4
+damage_mult = 1.4
+poise_damage = 30.0
+hits = 2
+hit_weights = PackedFloat32Array()
+threat_mult = 2.5
+hitbox_size = Vector3(4.2, 1.6, 4.2)
+hitbox_offset = Vector3(0, 1, 0)
+stamina_cost = 18.0
+frontal_guard = 0.6
+tags = PackedStringArray("skill", "multi", "guarded")

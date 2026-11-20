@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_5l7ie"]
+
+[resource]
+script = ExtResource("1_5l7ie")
+id = "warden_seal"
+display_name = "Seal of the Ashen Warden"
+description = "Taken from the Warden's gauntlet."
+slot = "accessory"
+rarity = "exotic"
+tier = 3
+icon = "guard"
+bonuses = {
+"armor": 10,
+"for": 3,
+"str": 2,
+"vit": 3
+}
+drop_weight = 0.3
+min_area = 2

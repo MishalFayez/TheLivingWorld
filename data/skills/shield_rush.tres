@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Resource" path="res://data/attacks/v_shield_rush_emp.tres" id="1_mplu2"]
+[ext_resource type="Resource" path="res://data/attacks/v_shield_rush.tres" id="2_7yvlu"]
+[ext_resource type="Script" path="res://scripts/data/skill_data.gd" id="3_wxd6r"]
+
+[resource]
+script = ExtResource("3_wxd6r")
+id = "shield_rush"
+display_name = "Shield Rush"
+description = "Forward shield charge that damages, generates heavy threat and can INTERCEPT: aimed toward an endangered ally it rushes to them and takes the next blow aimed at them. With 30 Resolve it becomes an Empowered Rush (staggering impact)."
+attack = ExtResource("2_7yvlu")
+alt_attack = ExtResource("1_mplu2")
+variations = PackedStringArray("Interception (ally in danger)", "Empowered (30 Resolve)")

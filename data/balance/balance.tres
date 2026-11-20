@@ -1,0 +1,87 @@
+[gd_resource type="Resource" script_class="BalanceConfig" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance_config.gd" id="1_63wj4"]
+
+[resource]
+script = ExtResource("1_63wj4")
+exp_curve = PackedInt32Array(80, 120, 160, 200, 250, 300, 360, 420, 600)
+draft_levels = PackedInt32Array(2, 4, 6, 8, 10)
+class_base = {
+"mage": {
+"armor": 12,
+"aspd": 1.0,
+"cdr": 0.0,
+"crit": 0.08,
+"critdmg": 1.5,
+"dex": 4,
+"for": 5,
+"hp": 140,
+"mas": 12,
+"mres": 35,
+"poise": 40.0,
+"power": 20.0,
+"str": 3,
+"vit": 6
+},
+"reaver": {
+"armor": 22,
+"aspd": 1.1,
+"cdr": 0.0,
+"crit": 0.12,
+"critdmg": 1.6,
+"dex": 10,
+"for": 5,
+"hp": 160,
+"mas": 3,
+"mres": 15,
+"poise": 55.0,
+"power": 21.0,
+"str": 10,
+"vit": 7
+},
+"vanguard": {
+"armor": 40,
+"aspd": 1.0,
+"cdr": 0.0,
+"crit": 0.05,
+"critdmg": 1.5,
+"dex": 5,
+"for": 12,
+"hp": 200,
+"mas": 4,
+"mres": 25,
+"poise": 90.0,
+"power": 18.0,
+"str": 8,
+"vit": 12
+}
+}
+class_growth = {
+"mage": {
+"armor": 1,
+"dex": 0,
+"for": 1,
+"mas": 2,
+"mres": 2,
+"str": 0,
+"vit": 1
+},
+"reaver": {
+"armor": 1,
+"dex": 1,
+"for": 0,
+"mas": 0,
+"mres": 1,
+"str": 1,
+"vit": 1
+},
+"vanguard": {
+"armor": 3,
+"dex": 0,
+"for": 2,
+"mas": 0,
+"mres": 2,
+"str": 1,
+"vit": 2
+}
+}

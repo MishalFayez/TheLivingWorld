@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="SpellData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/spell_data.gd" id="1_63kva"]
+
+[resource]
+script = ExtResource("1_63kva")
+id = "renewal"
+display_name = "Renewal Wave"
+element = "life"
+charged = true
+mana_cost = 28.0
+cast_time = 0.7
+recovery = 0.4
+power = 1.4
+radius = 9.0
+status_duration = 6.0
+status_power = 0.25
+description = "Slow channel, then heals EVERY ally around the Mage and leaves a HoT."

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_omo0t"]
+
+[resource]
+script = ExtResource("1_omo0t")
+id = "verdict_of_steel"
+display_name = "Verdict of Steel"
+description = "MUTATION: a Resolve-powered (fully charged) Judgment Strike becomes a POISE finisher: x2.2 Poise Damage but x0.7 damage."
+class_id = "vanguard"
+category = "mutation"
+rarity = "advanced"
+requires_skills = PackedStringArray("judgment_strike", "v_resolve")
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Retribution")
+interacts_with = "Judgment Strike Verdict (full charge + Resolve)."
+params = {
+"damage_mult": 0.7,
+"poise_mult": 2.2
+}

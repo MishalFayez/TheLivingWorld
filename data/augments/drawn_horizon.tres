@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_kw10e"]
+
+[resource]
+script = ExtResource("1_kw10e")
+id = "drawn_horizon"
+display_name = "Drawn Horizon"
+description = "MUTATION: Draw Cut becomes a longer (x1.6), narrower (x0.55) line."
+class_id = "reaver"
+category = "mutation"
+rarity = "advanced"
+requires_skills = PackedStringArray("r_draw")
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Breaker")
+interacts_with = "Draw Cut (hold RMB, Lv7)."
+params = {
+"length_mult": 1.6,
+"requires_core": "swordmaster",
+"width_mult": 0.55
+}

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_ol08e"]
+
+[resource]
+script = ExtResource("1_ol08e")
+id = "spell_echo"
+display_name = "Spell Echo"
+description = "Quick-casting a DIFFERENT element within 1.5s of a quick cast re-casts the earlier spell at 40% power (e.g. Firebolt -> Mend fires a weak second Firebolt). Echo copies never trigger Spell Echo or store Elemental Echoes."
+class_id = "mage"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Weaver")
+interacts_with = "Quick casts of any element incl. Life. Non-recursive."
+params = {
+"power": 0.4,
+"requires_core": "weave",
+"window": 1.5
+}

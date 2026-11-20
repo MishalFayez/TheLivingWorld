@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_82ygf"]
+
+[resource]
+script = ExtResource("1_82ygf")
+id = "unbroken_form"
+display_name = "Unbroken Form"
+description = "Arming a DIFFERENT Bladecraft form during a transformed attack lets you cancel its recovery immediately into the next attack, for 15 extra Stamina."
+class_id = "reaver"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_bladecraft = true
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Tempest", "Precision", "Finality")
+interacts_with = "Bladecraft form chains (Split -> Focus etc.)."
+params = {
+"stamina": 15.0
+}

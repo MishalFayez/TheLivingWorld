@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_fh5cd"]
+
+[resource]
+script = ExtResource("1_fh5cd")
+id = "storm_discovery"
+display_name = "Storm Discovery"
+description = "DISCOVERY: unlock the Storm element (Spark / Thunder Strike) and the Plasma Surge (Fire+Storm) and Vital Current (Storm+Life) weaves."
+class_id = "mage"
+category = "enhancement"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray("storm")
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Discovery")
+interacts_with = "Arcane Weave combinations."
+params = {
+"requires_core": "weave",
+"unlock_element": "storm"
+}

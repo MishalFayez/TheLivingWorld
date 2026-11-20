@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_0qtyc"]
+
+[resource]
+script = ExtResource("1_0qtyc")
+id = "v_plant_exit"
+display_name = "Shield Plant (recover)"
+anim_style = "bash"
+startup = 0.02
+active = 0.02
+recovery = 0.35
+dodge_cancel = false
+damage_mult = 0.0
+poise_damage = 0.0
+hits = 0
+hit_weights = PackedFloat32Array()
+stamina_cost = 0.0
+tags = PackedStringArray("plant_exit")

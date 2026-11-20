@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_v8m0a"]
+
+[resource]
+script = ExtResource("1_v8m0a")
+id = "one_perfect_cut"
+display_name = "One Perfect Cut"
+description = "Any attack with 3+ hits concentrates 45% of its total damage into the FINAL hit, which counts as a Heavy strike with +50% Critical Damage."
+class_id = "reaver"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Finality", "Tempest")
+interacts_with = "Split, Splintering Steel, Whirling Finisher with Split, Iron... any 3+ hit sequence."
+params = {
+"final_crit_damage": 0.5,
+"final_share": 0.45,
+"legacy_reaver": true
+}

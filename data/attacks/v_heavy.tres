@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_d5umd"]
+
+[resource]
+script = ExtResource("1_d5umd")
+id = "v_heavy"
+display_name = "Shieldbreaker Slash"
+anim_style = "slash_v"
+startup = 0.45
+active = 0.15
+recovery = 0.5
+cancel_after = 0.3
+damage_mult = 2.0
+poise_damage = 40.0
+hit_weights = PackedFloat32Array()
+is_heavy = true
+hitstop = 0.1
+knockback = 4.0
+hitbox_size = Vector3(2.2, 1.8, 2.2)
+hitbox_offset = Vector3(0, 1, -1.4)
+stamina_cost = 20.0
+poise_armor = 0.5
+approach_max = 1.8
+approach_range = 1.8
+approach_window = 0.8
+tags = PackedStringArray("heavy")

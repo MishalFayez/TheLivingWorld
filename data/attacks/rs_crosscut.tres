@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_novbq"]
+
+[resource]
+script = ExtResource("1_novbq")
+id = "rs_crosscut"
+display_name = "Crosscut"
+startup = 0.16
+active = 0.4
+recovery = 0.32
+cancel_after = 0.16
+damage_mult = 1.9
+poise_damage = 22.0
+hits = 2
+hit_weights = PackedFloat32Array(0.55, 0.45)
+hitstop = 0.06
+hitbox_size = Vector3(3, 1.6, 2)
+hitbox_offset = Vector3(0, 1, -1.2)
+stamina_cost = 16.0
+move_during = 0.15
+approach_max = 0.4
+approach_range = 1.9
+tags = PackedStringArray("skill", "multi", "crosscut", "dodge_between_hits")

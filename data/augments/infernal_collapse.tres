@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_p3vl2"]
+
+[resource]
+script = ExtResource("1_p3vl2")
+id = "infernal_collapse"
+display_name = "Infernal Collapse"
+description = "MUTATION: a fully charged Flame Cataclysm creates NO persistent burning area; instead the impact point collapses in a delayed secondary explosion (1s, telegraphed)."
+class_id = "mage"
+category = "mutation"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray("fire")
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Primal Sorcery")
+interacts_with = "Flame Cataclysm (full)."
+params = {
+"delay": 1.0,
+"power": 1.5,
+"radius": 3.0,
+"requires_core": "elementalist"
+}

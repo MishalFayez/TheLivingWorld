@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_57prl"]
+
+[resource]
+script = ExtResource("1_57prl")
+id = "m_sage_robes"
+display_name = "Robes of the Sage Circle"
+description = "Layered silk woven with warding thread."
+slot = "chest"
+class_id = "mage"
+rarity = "advanced"
+tier = 2
+icon = "life"
+bonuses = {
+"mas": 3,
+"mres": 18
+}
+min_area = 1

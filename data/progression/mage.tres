@@ -1,0 +1,96 @@
+[gd_resource type="Resource" script_class="ProgressionTrack" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/progression_track.gd" id="1_omx3j"]
+
+[resource]
+script = ExtResource("1_omx3j")
+class_id = "mage"
+milestones = Array[Dictionary]([{
+"desc": "Fire and Life. Charged spellcasting: hold to prepare, release early for a partial cast or at full charge for the full spell. Flame Cataclysm, Life Bloom, Lifeline.",
+"icon": "fire",
+"id": "m_fire_life",
+"input": "LMB / RMB (hold) / F",
+"kind": "ability",
+"level": 1,
+"name": "Worldweaver"
+}, {
+"desc": "Attribute points: spend 2 points per level in the Character screen (C).",
+"icon": "buff",
+"id": "stats_2",
+"input": "C",
+"kind": "stats",
+"level": 2,
+"name": "Attributes"
+}, {
+"desc": "Frost and Crystal Formation: temporary ice formations that block enemy movement and Chill. Aim to place, orientation follows your aim.",
+"icon": "frost",
+"id": "m_frost",
+"input": "1 (hold)",
+"kind": "element",
+"level": 3,
+"name": "Frost"
+}, {
+"desc": "Choose one of three augments.",
+"icon": "passive",
+"id": "draft_4",
+"input": "",
+"kind": "augment",
+"level": 4,
+"name": "First Augment"
+}, {
+"desc": "A stationary 3.5m circle under you (10s, 25s cooldown). Spells cast from inside gain one element enhancement each. Never required.",
+"icon": "sigil",
+"id": "m_sanctum",
+"input": "E",
+"kind": "skill",
+"level": 5,
+"name": "Arcane Sanctum"
+}, {
+"desc": "Attribute points: spend 2 points per level in the Character screen (C).",
+"icon": "buff",
+"id": "stats_6",
+"input": "C",
+"kind": "stats",
+"level": 6,
+"name": "Attributes"
+}, {
+"desc": "Stone and Earthbreaker: heavy charged impact with Poise Damage; displacement depends on enemy weight.",
+"icon": "stone",
+"id": "m_stone",
+"input": "Spellbook",
+"kind": "element",
+"level": 7,
+"name": "Stone"
+}, {
+"desc": "Preventive protection on your heal target: a limited shield, and part of the damage taken is healed back.",
+"icon": "ward",
+"id": "m_renewal",
+"input": "3",
+"kind": "skill",
+"level": 7,
+"name": "Protective Renewal"
+}, {
+"desc": "Choose an Advanced or Exotic augment.",
+"icon": "mutation",
+"id": "draft_8",
+"input": "",
+"kind": "augment",
+"level": 8,
+"name": "Advanced Augment"
+}, {
+"desc": "Storm and Thunder Conduit: focused strike, or a full-charge chain (max 3 targets, 6m jumps).",
+"icon": "storm",
+"id": "m_storm",
+"input": "Spellbook",
+"kind": "element",
+"level": 9,
+"name": "Storm"
+}, {
+"desc": "Dodging during a releasable charge preserves 40% of that charge for 2s (same spell only, 15s internal cooldown). You must start casting again to use it. Plus an augment draft.",
+"icon": "mage",
+"id": "m_arcane_mastery",
+"input": "Space while charging",
+"kind": "mastery",
+"level": 10,
+"name": "Arcane Mastery"
+}])

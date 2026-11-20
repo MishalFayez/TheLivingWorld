@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_i7s27"]
+
+[resource]
+script = ExtResource("1_i7s27")
+id = "living_current"
+display_name = "Living Current"
+description = "Storm damage heals your most wounded ally for 25% of the damage dealt. Vital Current (Storm+Life) gains +2 jumps and heals x1.5."
+class_id = "mage"
+category = "synergy"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray("storm")
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Healer", "Storm")
+interacts_with = "Spark, Thunder Strike, Plasma Surge, Vital Current."
+params = {
+"heal_ratio": 0.25,
+"requires_core": "weave",
+"vital_bounces": 2,
+"vital_heal_mult": 1.5
+}

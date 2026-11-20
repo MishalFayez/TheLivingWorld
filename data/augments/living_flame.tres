@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_cr4me"]
+
+[resource]
+script = ExtResource("1_cr4me")
+id = "living_flame"
+display_name = "Living Flame"
+description = "MUTATION: Fire spells leave lingering flames where they land (Firebolt: small 3s patch, Fireball: large 4s patch) that burn enemies every 0.5s."
+class_id = "mage"
+category = "mutation"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray("fire")
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Pyromancy")
+interacts_with = "Firebolt, Fireball (and Spell Echo copies)."
+params = {
+"requires_core": "weave",
+"tick_power": 0.25
+}

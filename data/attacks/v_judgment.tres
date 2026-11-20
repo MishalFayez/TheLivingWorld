@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_fnupg"]
+
+[resource]
+script = ExtResource("1_fnupg")
+id = "v_judgment"
+display_name = "Judgment Strike"
+anim_style = "slam"
+startup = 0.45
+active = 0.15
+recovery = 0.6
+damage_mult = 2.4
+poise_damage = 55.0
+hit_weights = PackedFloat32Array()
+is_heavy = true
+hitstop = 0.14
+knockback = 5.0
+hitbox_size = Vector3(2.4, 1.8, 2.6)
+hitbox_offset = Vector3(0, 1, -1.6)
+stamina_cost = 22.0
+poise_armor = 0.7
+approach_max = 1.5
+approach_range = 1.9
+approach_window = 0.8
+charge_time = 1.2
+charge_damage_bonus = 1.6
+charge_poise_bonus = 50.0
+tags = PackedStringArray("skill", "heavy", "charge_attack")

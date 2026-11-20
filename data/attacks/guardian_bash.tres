@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_vt3nq"]
+
+[resource]
+script = ExtResource("1_vt3nq")
+id = "guardian_bash"
+display_name = "Shield Bash"
+anim_style = "bash"
+startup = 0.75
+active = 0.15
+recovery = 0.8
+poise_damage = 25.0
+hit_weights = PackedFloat32Array()
+knockback = 5.0
+hitbox_size = Vector3(2, 1.8, 1.8)
+hitbox_offset = Vector3(0, 1, -1.2)
+tags = PackedStringArray()
+ai_range = Vector2(0, 2.4)
+ai_cooldown = 3.5

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_0rc8y"]
+
+[resource]
+script = ExtResource("1_0rc8y")
+id = "flowing_edge"
+display_name = "Flowing Edge"
+description = "Movement during eligible multi-hit techniques: you can move at 55% speed (and steer) during attacks with 3 or more hits (Tempest Flurry)."
+class_id = "reaver"
+category = "enhancement"
+requires_skills = PackedStringArray("r_flurry")
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Flowblade")
+interacts_with = "Tempest Flurry."
+params = {
+"move_fraction": 0.55,
+"requires_core": "swordmaster"
+}

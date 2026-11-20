@@ -1,0 +1,128 @@
+[gd_resource type="Resource" script_class="ProgressionTrack" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/progression_track.gd" id="1_vvv56"]
+
+[resource]
+script = ExtResource("1_vvv56")
+class_id = "reaver"
+milestones = Array[Dictionary]([{
+"desc": "LMB = Forward Cut (always, whatever you are moving). Shift + A / D + LMB = Lateral Cut left / right (short side step). RMB = Heavy Cut. Dodge then LMB = Slip Cut.",
+"icon": "reaver",
+"id": "r_blade_lines",
+"input": "LMB / Shift+A/D+LMB / RMB",
+"kind": "ability",
+"level": 1,
+"name": "Blade Lines"
+}, {
+"desc": "Changing line during the previous cut's recovery is a LINK (Forward<->Lateral, Lateral->Heavy, Dodge->Slip Cut...): faster start, keeps tracking, opens follow-ups. Repeating the same cut is allowed but is not a link. Lateral left<->right reversal is not legal.",
+"icon": "split",
+"id": "r_continuity",
+"input": "",
+"kind": "mechanic",
+"level": 1,
+"name": "Blade Continuity"
+}, {
+"desc": "Attribute points: spend 2 points per level in the Character screen (C).",
+"icon": "buff",
+"id": "stats_2",
+"input": "C",
+"kind": "stats",
+"level": 2,
+"name": "Attributes"
+}, {
+"desc": "A precise forward thrust.",
+"icon": "precision",
+"id": "r_lunge",
+"input": "skill slot",
+"kind": "skill",
+"level": 3,
+"name": "Piercing Lunge"
+}, {
+"desc": "Choose one of three augments.",
+"icon": "passive",
+"id": "draft_4",
+"input": "",
+"kind": "augment",
+"level": 4,
+"name": "First Augment"
+}, {
+"desc": "Short 0.7m directional step (12 stamina, 3s cooldown, NO invulnerability). Used in a link window it keeps your sequence alive for the next cut.",
+"icon": "dodge",
+"id": "r_flow_step",
+"input": "skill slot",
+"kind": "skill",
+"level": 5,
+"name": "Flow Step + expanded Continuity"
+}, {
+"desc": "Attribute points: spend 2 points per level in the Character screen (C).",
+"icon": "buff",
+"id": "stats_6",
+"input": "C",
+"kind": "stats",
+"level": 6,
+"name": "Attributes"
+}, {
+"desc": "Heavy Cut gains a charged form: HOLD RMB for Draw Cut.",
+"icon": "heavy",
+"id": "r_draw",
+"input": "RMB (hold)",
+"kind": "technique",
+"level": 7,
+"name": "Draw Cut"
+}, {
+"desc": "Two-hit technique: wide diagonal, then a narrow reverse slash you can steer slightly. Dodge after the first hit abandons the second.",
+"icon": "split",
+"id": "r_crosscut",
+"input": "skill slot",
+"kind": "skill",
+"level": 7,
+"name": "Crosscut"
+}, {
+"desc": "Choose an Advanced or Exotic augment.",
+"icon": "mutation",
+"id": "draft_8",
+"input": "",
+"kind": "augment",
+"level": 8,
+"name": "Advanced Augment"
+}, {
+"desc": "A six-hit flurry you can steer slightly.",
+"icon": "split",
+"id": "r_flurry",
+"input": "skill slot",
+"kind": "skill",
+"level": 9,
+"name": "Tempest Flurry"
+}, {
+"desc": "Once per sequence, one otherwise illegal directional transition (left <-> right reversal) is allowed as a link. Plus an augment draft.",
+"icon": "reaver",
+"id": "r_discipline",
+"input": "",
+"kind": "mastery",
+"level": 10,
+"name": "Swordmaster's Discipline"
+}, {
+"desc": "Committed angled strike: moderate damage, high Poise damage, extra effect on a raised guard. Long recovery if it misses. (Beyond the Lv10 prototype cap: Build Showcase.)",
+"icon": "heavy",
+"id": "r_sunder_edge",
+"input": "skill slot",
+"kind": "skill",
+"level": 12,
+"name": "Sunder Edge"
+}, {
+"desc": "Short lateral step (A or D held) then a slash. Hitting from a real flank angle prepares Final Stroke. (Build Showcase.)",
+"icon": "precision",
+"id": "r_turning_edge",
+"input": "skill slot + A/D",
+"kind": "skill",
+"level": 15,
+"name": "Turning Edge"
+}, {
+"desc": "Finisher, only during a 1.5s opportunity opened by: two different linked cuts that both hit, a Sunder Edge poise break, or a Duelist hit from a flank angle. Costs stamina, can miss, ends the sequence. (Build Showcase.)",
+"icon": "reaver",
+"id": "r_final_stroke",
+"input": "F (when opened)",
+"kind": "skill",
+"level": 18,
+"name": "Final Stroke"
+}])

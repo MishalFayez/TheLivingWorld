@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_c4dmh"]
+
+[resource]
+script = ExtResource("1_c4dmh")
+id = "crushing_rhythm"
+display_name = "Crushing Rhythm"
+description = "When a multi-hit attack (Iron Sweep, Guarded Sweep, Light chain hits) lands ALL of its hits, your next attack deals x1.75 Poise damage."
+class_id = "vanguard"
+category = "synergy"
+rarity = "advanced"
+stack_mode = "mult"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Breaker")
+interacts_with = "Iron Sweep -> Judgment Strike / Heavy. Explicitly multiplies with Iron Reprisal's Poise bonus."
+params = {
+"poise_mult": 1.75
+}

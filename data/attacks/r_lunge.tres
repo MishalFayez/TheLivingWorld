@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_iqaya"]
+
+[resource]
+script = ExtResource("1_iqaya")
+id = "r_lunge"
+display_name = "Piercing Lunge"
+anim_style = "thrust"
+startup = 0.22
+active = 0.14
+recovery = 0.42
+damage_mult = 2.2
+poise_damage = 30.0
+hit_weights = PackedFloat32Array()
+crit_chance_bonus = 0.15
+hitstop = 0.12
+hitbox_size = Vector3(0.9, 1.5, 2.8)
+hitbox_offset = Vector3(0, 1, -1.7)
+stamina_cost = 16.0
+lunge = 13.0
+tags = PackedStringArray("skill", "precision")

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="ChargedSpellData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/charged_spell_data.gd" id="1_f5cp2"]
+
+[resource]
+script = ExtResource("1_f5cp2")
+id = "life_bloom"
+display_name = "Life Bloom"
+element = "life"
+description = "Charged heal on your HEAL TARGET (T cycles party, 2 picks the most injured, default yourself). Works without enemies."
+partial_text = "Moderate direct heal."
+full_text = "Greater direct heal, better efficiency per mana."
+full_charge = 1.2
+move_mult = 0.65
+mana_partial = 12.0
+mana_full = 22.0
+recovery_partial = 0.25
+recovery_full = 0.4
+power_partial = 1.4
+power_full = 3.4
+max_range = 22.0
+status_power = 0.45

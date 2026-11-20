@@ -1,0 +1,15 @@
+.godot/
+builds/
+exports/
+.env
+.env.*
+!.env.example
+*.pfx
+*.pem
+*.key
+.claude/settings.local.json
+.dev/local.json
+.dev/reports/
+.dev/handoff/
+*.log
+screenshots/

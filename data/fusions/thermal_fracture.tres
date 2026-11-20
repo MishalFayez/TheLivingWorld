@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FusionData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/fusion_data.gd" id="1_baj88"]
+
+[resource]
+script = ExtResource("1_baj88")
+id = "thermal_fracture"
+display_name = "Thermal Fracture"
+key = "fire+frost"
+description = "Thermal explosion: high damage and huge Poise damage."
+mana_cost = 25.0
+power = 3.2
+poise_damage = 120.0

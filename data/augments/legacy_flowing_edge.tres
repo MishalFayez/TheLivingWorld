@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_h60m1"]
+
+[resource]
+script = ExtResource("1_h60m1")
+id = "legacy_flowing_edge"
+display_name = "Flowing Edge (legacy)"
+description = "You can move at 55% speed (and steer) during attacks with 3 or more hits."
+class_id = "reaver"
+category = "enhancement"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Tempest")
+interacts_with = "Split / Splintering Steel sequences."
+params = {
+"legacy_reaver": true,
+"move_fraction": 0.55
+}

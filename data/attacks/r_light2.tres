@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_0md3q"]
+
+[resource]
+script = ExtResource("1_0md3q")
+id = "r_light2"
+display_name = "Back Cut"
+startup = 0.1
+active = 0.1
+recovery = 0.24
+cancel_after = 0.08
+damage_mult = 0.8
+poise_damage = 8.0
+hit_weights = PackedFloat32Array()
+hitbox_size = Vector3(2, 1.6, 2)
+stamina_cost = 8.0
+tags = PackedStringArray("light")

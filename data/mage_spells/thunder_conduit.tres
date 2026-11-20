@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="ChargedSpellData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/charged_spell_data.gd" id="1_icurb"]
+
+[resource]
+script = ExtResource("1_icurb")
+id = "thunder_conduit"
+display_name = "Thunder Conduit"
+element = "storm"
+description = "Charged lightning on your target. Conductivity and distributed attacks."
+partial_text = "Strikes one eligible target with focused Magic Damage."
+full_text = "Strikes the target and CHAINS: max 3 total targets, max 6m per jump, never the same target twice in one chain."
+unlock_id = "m_storm"
+full_charge = 1.2
+move_mult = 0.65
+mana_partial = 12.0
+mana_full = 24.0
+recovery_partial = 0.25
+recovery_full = 0.45
+power_partial = 1.3
+power_full = 1.75
+poise_full = 28.0
+max_range = 22.0
+chains_full = 2
+chain_range = 6.0

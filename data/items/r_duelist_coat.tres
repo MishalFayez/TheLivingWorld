@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_4p7a0"]
+
+[resource]
+script = ExtResource("1_4p7a0")
+id = "r_duelist_coat"
+display_name = "Duelist's Longcoat"
+description = "Reinforced at the shoulders, free at the hips."
+slot = "chest"
+class_id = "reaver"
+rarity = "advanced"
+tier = 2
+icon = "reaver"
+bonuses = {
+"armor": 14,
+"aspd": 0.05,
+"dex": 3
+}
+min_area = 1

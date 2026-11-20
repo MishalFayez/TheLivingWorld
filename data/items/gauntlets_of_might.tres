@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_bcn3h"]
+
+[resource]
+script = ExtResource("1_bcn3h")
+id = "gauntlets_of_might"
+display_name = "Gauntlets of Might"
+description = "Heavy knuckles for heavy blows."
+slot = "hands"
+rarity = "advanced"
+tier = 2
+icon = "heavy"
+bonuses = {
+"armor": 5,
+"str": 3
+}
+drop_weight = 0.8
+min_area = 1

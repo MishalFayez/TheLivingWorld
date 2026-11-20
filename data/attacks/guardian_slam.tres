@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_p74yb"]
+
+[resource]
+script = ExtResource("1_p74yb")
+id = "guardian_slam"
+display_name = "Mace Slam"
+anim_style = "slam"
+startup = 1.25
+active = 0.18
+recovery = 1.2
+damage_mult = 2.0
+poise_damage = 50.0
+hit_weights = PackedFloat32Array()
+hitstop = 0.12
+knockback = 4.0
+hitbox_size = Vector3(2.4, 1.8, 3)
+hitbox_offset = Vector3(0, 1, -1.8)
+tags = PackedStringArray()
+ai_range = Vector2(0, 3)
+ai_cooldown = 5.5

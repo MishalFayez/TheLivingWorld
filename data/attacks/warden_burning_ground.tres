@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_s45id"]
+
+[resource]
+script = ExtResource("1_s45id")
+id = "warden_burning_ground"
+display_name = "Burning Ground"
+anim_style = "cast"
+startup = 1.2
+active = 0.05
+recovery = 0.8
+damage_mult = 0.35
+damage_type = 1
+poise_damage = 0.0
+hits = 0
+hit_weights = PackedFloat32Array()
+tags = PackedStringArray()
+ai_range = Vector2(0, 30)
+ai_weight = 0.8
+ai_cooldown = 10.0
+ai_min_phase = 2
+special = "burning_ground"

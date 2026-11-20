@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_6uowk"]
+
+[resource]
+script = ExtResource("1_6uowk")
+id = "mountainfall"
+display_name = "Mountainfall"
+description = "MUTATION: a fully charged Earthbreaker becomes a delayed OVERHEAD impact at the aimed point (1s warning, larger area, x1.6 Poise Damage)."
+class_id = "mage"
+category = "mutation"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray("stone")
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Primal Sorcery")
+interacts_with = "Earthbreaker (full); still a Stone impact (Shattered Winter)."
+params = {
+"delay": 1.0,
+"poise_mult": 1.6,
+"radius": 3.6,
+"requires_core": "elementalist"
+}

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_xacgu"]
+
+[resource]
+script = ExtResource("1_xacgu")
+id = "guardians_reserve"
+display_name = "Guardian's Reserve"
+description = "After a successful INTERCEPTION, if you have 20 Resolve it is spent to give the intercepted ally brief limited protection (a guard that absorbs up to 12% of their max HP for 3s). Not healing."
+class_id = "vanguard"
+category = "conditional"
+rarity = "advanced"
+requires_skills = PackedStringArray("v_intercept", "v_resolve")
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Interceptor")
+interacts_with = "Interception, Resolve."
+params = {
+"cost": 20.0,
+"duration": 3.0,
+"hp_frac": 0.12
+}

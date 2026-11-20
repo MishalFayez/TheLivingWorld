@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_hn3x0"]
+
+[resource]
+script = ExtResource("1_hn3x0")
+id = "measured_step"
+display_name = "Measured Step"
+description = "After a Piercing Lunge connects, Dodge within 0.6s becomes a short controlled step (no invulnerability, 6 Stamina) instead of a roll."
+class_id = "reaver"
+category = "enhancement"
+requires_skills = PackedStringArray("r_lunge")
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Duelist")
+interacts_with = "Piercing Lunge, Dodge."
+params = {
+"requires_core": "swordmaster",
+"speed": 6.0,
+"stamina": 6.0,
+"window": 0.6
+}

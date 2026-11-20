@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_yb2fe"]
+
+[resource]
+script = ExtResource("1_yb2fe")
+id = "crosswind"
+display_name = "Crosswind"
+description = "Allows a LINKED opposite-direction cut: Lateral Cut left can link into Lateral Cut right (and back), normally an illegal transition."
+class_id = "reaver"
+category = "enhancement"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Flowblade")
+interacts_with = "Lateral Cuts, Blade Continuity."
+params = {
+"requires_core": "swordmaster"
+}

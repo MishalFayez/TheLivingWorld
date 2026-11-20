@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SpellData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/spell_data.gd" id="1_0kgil"]
+
+[resource]
+script = ExtResource("1_0kgil")
+id = "fireball"
+display_name = "Fireball"
+charged = true
+mana_cost = 20.0
+cast_time = 0.35
+recovery = 0.45
+power = 2.0
+radius = 3.5
+speed = 14.0
+max_range = 24.0
+poise_damage = 45.0
+status_power = 0.18
+description = "Slow projectile that EXPLODES in an area, burning everything caught."

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_dlwcy"]
+
+[resource]
+script = ExtResource("1_dlwcy")
+id = "execution_line"
+display_name = "Execution Line"
+description = "MUTATION: Precision attacks become a long, narrow line (x1.8 reach, x0.55 width) that pierces everything on it, with +30% Critical Damage."
+class_id = "reaver"
+category = "mutation"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_bladecraft = true
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Precision")
+interacts_with = "Bladecraft: Precision."
+params = {
+"crit_damage": 0.3,
+"length_mult": 1.8,
+"width_mult": 0.55
+}

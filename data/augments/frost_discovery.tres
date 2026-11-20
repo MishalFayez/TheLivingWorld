@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_ql227"]
+
+[resource]
+script = ExtResource("1_ql227")
+id = "frost_discovery"
+display_name = "Frost Discovery"
+description = "DISCOVERY: unlock the Frost element (Ice Shard / Frost Nova) and the Thermal Fracture (Fire+Frost) and Winter's Embrace (Frost+Life) weaves."
+class_id = "mage"
+category = "enhancement"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray("frost")
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Discovery")
+interacts_with = "Arcane Weave combinations."
+params = {
+"requires_core": "weave",
+"unlock_element": "frost"
+}

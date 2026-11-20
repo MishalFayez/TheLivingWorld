@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_yopp7"]
+
+[resource]
+script = ExtResource("1_yopp7")
+id = "steadfast"
+display_name = "Steadfast"
+description = "Guarding (normal and perfect) costs 25% less Stamina. Stacks additively up to 2 times."
+class_id = "vanguard"
+stackable = true
+max_stacks = 2
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Bulwark")
+interacts_with = "Aegis Guard stamina cost (additive stacking)."
+params = {
+"stamina_reduction": 0.25
+}

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_nwms8"]
+
+[resource]
+script = ExtResource("1_nwms8")
+id = "v_knight_sword"
+display_name = "Knight-Captain's Blade"
+description = "Gold-chased steel of the valley guard."
+class_id = "vanguard"
+rarity = "advanced"
+tier = 2
+bonuses = {
+"power": 0.12,
+"str": 2
+}
+min_area = 1

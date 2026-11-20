@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_qkmy7"]
+
+[resource]
+script = ExtResource("1_qkmy7")
+id = "predators_patience"
+display_name = "Predator's Patience"
+description = "Enemy Openings you can exploit last 50% longer."
+class_id = "reaver"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Precision", "Finality")
+interacts_with = "Sword Sense Openings (recovery / stagger / dodge)."
+params = {
+"duration_mult": 1.5,
+"requires_core": "sense"
+}

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ChargedSpellData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/charged_spell_data.gd" id="1_qtfcd"]
+
+[resource]
+script = ExtResource("1_qtfcd")
+id = "stone_ward"
+display_name = "Stone Ward"
+element = "stone"
+cast_type = "instant"
+description = "ADVANCED utility. Temporary directional stone cover in front of you (aim sets the facing). Destructible, Fortified. Blocks projectiles and line of sight; it does not make anyone invulnerable."
+slot_kind = "utility"
+advanced = true
+places_formation = true
+mana_partial = 16.0
+mana_full = 16.0
+cooldown = 14.0
+max_range = 3.0
+duration_partial = 6.0
+width_partial = 3.5

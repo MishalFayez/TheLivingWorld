@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_wu2jx"]
+
+[resource]
+script = ExtResource("1_wu2jx")
+id = "turning_steel"
+display_name = "Turning Steel"
+description = "After a Lateral Cut's footwork, your next LINKED attack turns toward your movement input instead of staying on the target line."
+class_id = "reaver"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Duelist", "Flowblade")
+interacts_with = "Lateral Cut footwork, Blade Continuity."
+params = {
+"requires_core": "swordmaster"
+}

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_tuyfg"]
+
+[resource]
+script = ExtResource("1_tuyfg")
+id = "living_thunder"
+display_name = "Living Thunder"
+description = "A full Thunder Conduit gains ONE additional chain target that YOU direct: the enemy closest to your aim (screen centre) within 15m."
+class_id = "mage"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray("storm")
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Primal Sorcery")
+interacts_with = "Thunder Conduit (full)."
+params = {
+"range": 15.0,
+"requires_core": "elementalist"
+}

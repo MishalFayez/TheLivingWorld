@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_odkoi"]
+
+[resource]
+script = ExtResource("1_odkoi")
+id = "v_lion_plate"
+display_name = "Lionguard Plate"
+description = "Polished plate with gold lion filigree."
+slot = "chest"
+class_id = "vanguard"
+rarity = "advanced"
+tier = 2
+icon = "shield"
+bonuses = {
+"armor": 22,
+"vit": 3
+}
+min_area = 1

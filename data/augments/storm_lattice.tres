@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_ymp6t"]
+
+[resource]
+script = ExtResource("1_ymp6t")
+id = "storm_lattice"
+display_name = "Storm Lattice"
+description = "Enhances conductive Stone routing: a Conductive formation stays conductive 50% longer (9s) and can relay the same Thunder Conduit one additional time."
+class_id = "mage"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray("m_storm")
+requires_elements = PackedStringArray("storm", "stone")
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Worldcraft")
+interacts_with = "Conductive Anchors (full Thunder Conduit near a Stone formation)."
+params = {
+"duration_mult": 1.5,
+"extra_relays": 1,
+"requires_core": "elementalist"
+}

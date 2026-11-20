@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_qdmy3"]
+
+[resource]
+script = ExtResource("1_qdmy3")
+id = "starter_r_chest"
+display_name = "Leather Jerkin"
+description = "Supple leather that never slows a cut."
+slot = "chest"
+class_id = "reaver"
+icon = "reaver"
+bonuses = {
+"armor": 4
+}

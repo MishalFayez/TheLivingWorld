@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SpellData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/spell_data.gd" id="1_nggdj"]
+
+[resource]
+script = ExtResource("1_nggdj")
+id = "earthen_ward"
+display_name = "Earthen Ward"
+element = "stone"
+charged = true
+mana_cost = 25.0
+cast_time = 0.45
+recovery = 0.4
+power = 0.8
+radius = 7.0
+poise_damage = 30.0
+status_duration = 6.0
+status_power = 0.25
+description = "Stoneskin for nearby allies; shoves adjacent enemies away."

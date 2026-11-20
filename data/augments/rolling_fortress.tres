@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_abulr"]
+
+[resource]
+script = ExtResource("1_abulr")
+id = "rolling_fortress"
+display_name = "Rolling Fortress"
+description = "Modifies Shield Plant: while planted, Dodge becomes a short reposition (about 1.4m) WITHOUT leaving the planted stance. 10 stamina, 0.6s internal cooldown."
+class_id = "vanguard"
+category = "enhancement"
+requires_skills = PackedStringArray("v_shield_plant")
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Sentinel")
+interacts_with = "Shield Plant (Lv12; Build Showcase in the Lv10 prototype)."
+params = {
+"distance_speed": 7.0,
+"icd": 0.6,
+"stamina": 10.0
+}

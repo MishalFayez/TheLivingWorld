@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_i7ga4"]
+
+[resource]
+script = ExtResource("1_i7ga4")
+id = "m_astral_regalia"
+display_name = "Astral Regalia"
+description = "Starlight stitched into living cloth."
+slot = "chest"
+class_id = "mage"
+rarity = "exotic"
+tier = 3
+icon = "storm"
+bonuses = {
+"cdr": 0.08,
+"mas": 4,
+"mres": 28
+}
+drop_weight = 0.4
+min_area = 2

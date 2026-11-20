@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_llnyu"]
+
+[resource]
+script = ExtResource("1_llnyu")
+id = "resonant_ground"
+display_name = "Resonant Ground"
+description = "Ley Sigils are 30% wider and their elemental pulses happen 50% faster."
+class_id = "mage"
+category = "enhancement"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Sigilist")
+interacts_with = "Every Ley Sigil element (passive pulses)."
+params = {
+"pulse_mult": 1.5,
+"radius_mult": 1.3,
+"requires_core": "sigils"
+}

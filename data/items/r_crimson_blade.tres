@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_pp2sv"]
+
+[resource]
+script = ExtResource("1_pp2sv")
+id = "r_crimson_blade"
+display_name = "Crimson Edge"
+description = "A red-lacquered blade that sings on the draw."
+class_id = "reaver"
+rarity = "advanced"
+tier = 2
+bonuses = {
+"crit": 0.05,
+"power": 0.12
+}
+min_area = 1

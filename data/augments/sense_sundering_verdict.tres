@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_yh11d"]
+
+[resource]
+script = ExtResource("1_yh11d")
+id = "sense_sundering_verdict"
+display_name = "Sundering Verdict (Sword Sense)"
+description = "Sunder Cuts (heavy attacks on an Opening) stagger non-boss enemies and refund the attack's Stamina."
+class_id = "reaver"
+category = "conditional"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Finality")
+interacts_with = "Heavy / Charged / Combo Heavy on Openings."
+params = {
+"requires_core": "sense",
+"stagger": 0.8
+}

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="ChargedSpellData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/charged_spell_data.gd" id="1_xnu8p"]
+
+[resource]
+script = ExtResource("1_xnu8p")
+id = "lightning_verdict"
+display_name = "Lightning Verdict"
+element = "storm"
+description = "ADVANCED. Concentrated bolt that cancels an ELIGIBLE enemy preparation (only enemies that expose an interruptible window, e.g. Ash Caster spells). Bosses resist. Not a universal interrupt."
+partial_text = "Lighter bolt; still interrupts eligible preparations."
+full_text = "Stronger bolt; still interrupts eligible preparations."
+advanced = true
+full_charge = 1.2
+move_mult = 0.65
+mana_partial = 14.0
+mana_full = 24.0
+recovery_partial = 0.25
+recovery_full = 0.4
+power_partial = 0.9
+power_full = 1.5
+poise_partial = 15.0

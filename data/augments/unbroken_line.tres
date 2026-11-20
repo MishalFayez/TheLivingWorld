@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_41h4i"]
+
+[resource]
+script = ExtResource("1_41h4i")
+id = "unbroken_line"
+display_name = "Unbroken Line"
+description = "Preserves one attack continuation through a Dodge: dodging out of a sequence keeps your next attack LINKED (within 0.45s after the dodge)."
+class_id = "reaver"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Flowblade", "Duelist")
+interacts_with = "Dodge, Blade Continuity, Slip Cut."
+params = {
+"requires_core": "swordmaster",
+"window": 0.45
+}

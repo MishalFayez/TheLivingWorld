@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_cs3h5"]
+
+[resource]
+script = ExtResource("1_cs3h5")
+id = "crystal_chain"
+display_name = "Crystal Chain"
+description = "A new ice formation CONNECTS to your nearest other ice formation within 8m: ice fills the gap so the two become one extended barrier."
+class_id = "mage"
+category = "synergy"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray("frost")
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Worldcraft")
+interacts_with = "Crystal Formation, Frozen Bastion."
+params = {
+"link_range": 8.0,
+"requires_core": "elementalist"
+}

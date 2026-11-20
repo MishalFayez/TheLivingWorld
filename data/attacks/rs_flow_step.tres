@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_ei17k"]
+
+[resource]
+script = ExtResource("1_ei17k")
+id = "rs_flow_step"
+display_name = "Flow Step"
+anim_style = "lunge"
+startup = 0.02
+active = 0.16
+recovery = 0.08
+cancel_after = 0.0
+damage_mult = 0.0
+poise_damage = 0.0
+hits = 0
+hit_weights = PackedFloat32Array()
+stamina_cost = 12.0
+tags = PackedStringArray("step")

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="SpellData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/spell_data.gd" id="1_devp1"]
+
+[resource]
+script = ExtResource("1_devp1")
+id = "spark"
+display_name = "Spark"
+element = "storm"
+mana_cost = 9.0
+cast_time = 0.15
+recovery = 0.25
+power = 0.7
+max_range = 16.0
+poise_damage = 6.0
+bounces = 1
+description = "Instant arc that jumps to a second target."

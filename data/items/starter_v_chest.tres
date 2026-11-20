@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_r4xic"]
+
+[resource]
+script = ExtResource("1_r4xic")
+id = "starter_v_chest"
+display_name = "Padded Brigandine"
+description = "Quilted cloth over riveted plates."
+slot = "chest"
+class_id = "vanguard"
+icon = "shield"
+bonuses = {
+"armor": 6
+}

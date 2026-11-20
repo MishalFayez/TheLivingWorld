@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_sdkax"]
+
+[resource]
+script = ExtResource("1_sdkax")
+id = "v_iron_sweep"
+display_name = "Iron Sweep"
+anim_style = "spin"
+startup = 0.25
+active = 0.45
+recovery = 0.4
+damage_mult = 1.8
+poise_damage = 36.0
+hits = 3
+hit_weights = PackedFloat32Array()
+threat_mult = 2.0
+hitbox_size = Vector3(4.6, 1.6, 4.6)
+hitbox_offset = Vector3(0, 1, 0)
+stamina_cost = 18.0
+tags = PackedStringArray("skill", "multi")

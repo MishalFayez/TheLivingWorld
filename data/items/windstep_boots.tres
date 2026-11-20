@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_rfito"]
+
+[resource]
+script = ExtResource("1_rfito")
+id = "windstep_boots"
+display_name = "Windstep Boots"
+description = "Light as a breeze."
+slot = "feet"
+rarity = "advanced"
+tier = 2
+icon = "dodge"
+bonuses = {
+"aspd": 0.04,
+"dex": 1
+}
+drop_weight = 0.8
+min_area = 1

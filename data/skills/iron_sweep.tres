@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Resource" path="res://data/attacks/v_iron_sweep_guarded.tres" id="1_febjo"]
+[ext_resource type="Resource" path="res://data/attacks/v_iron_sweep.tres" id="2_72vf5"]
+[ext_resource type="Script" path="res://scripts/data/skill_data.gd" id="3_qlt1r"]
+
+[resource]
+script = ExtResource("3_qlt1r")
+id = "iron_sweep"
+display_name = "Iron Sweep"
+description = "Multi-hit sword-and-shield spin hitting all nearby enemies. Used while holding Guard it becomes a Guarded Sweep (frontal protection). With 25 Resolve: +1 hit and taunts everything hit."
+cooldown = 7.0
+attack = ExtResource("2_72vf5")
+alt_attack = ExtResource("1_febjo")
+resolve_cost = 25.0
+variations = PackedStringArray("Guarded Sweep (hold Guard)", "Resolve Sweep: +1 hit + taunt")

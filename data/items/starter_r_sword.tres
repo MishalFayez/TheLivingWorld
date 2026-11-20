@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_j4t86"]
+
+[resource]
+script = ExtResource("1_j4t86")
+id = "starter_r_sword"
+display_name = "Traveler's Longsword"
+description = "Light, balanced, well cared for."
+class_id = "reaver"

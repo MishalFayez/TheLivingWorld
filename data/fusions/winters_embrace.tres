@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="FusionData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/fusion_data.gd" id="1_y8q8t"]
+
+[resource]
+script = ExtResource("1_y8q8t")
+id = "winters_embrace"
+display_name = "Winter's Embrace"
+key = "frost+life"
+description = "Heals allies, grants Frost Armor, slows nearby enemies."
+mana_cost = 25.0
+power = 0.8
+heal_power = 1.2
+radius = 10.0
+poise_damage = 15.0
+status_power = 0.25
+status_duration = 6.0

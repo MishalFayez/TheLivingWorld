@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_ohqqx"]
+
+[resource]
+script = ExtResource("1_ohqqx")
+id = "splintering_steel"
+display_name = "Splintering Steel"
+description = "MUTATION: Heavy, Combo Heavy and Charged strikes become 3-hit sequences (DEX scales the total instead of STR). Split adds +2 more hits."
+class_id = "reaver"
+category = "mutation"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Tempest")
+interacts_with = "Heavy family. Not applied to Focused attacks. Uncharged Heavy goes to Rising Crescent if owned."
+params = {
+"hits": 3,
+"legacy_reaver": true,
+"total_mult": 1.0
+}

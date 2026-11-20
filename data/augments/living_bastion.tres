@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_6hciy"]
+
+[resource]
+script = ExtResource("1_6hciy")
+id = "living_bastion"
+display_name = "Living Bastion"
+description = "Enhances the Life + Stone interaction: a Vitalized defensive Stone formation stays Vitalized 50% longer and its recovery reaches allies within 4.5m (instead of 3m)."
+class_id = "mage"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray("m_stone")
+requires_elements = PackedStringArray("stone", "life")
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Lifebinding", "Worldcraft")
+interacts_with = "Living Bastion interaction (Life Bloom / Verdant Renewal near a Fortified Stone formation)."
+params = {
+"duration_mult": 1.5,
+"radius": 4.5,
+"requires_core": "elementalist"
+}

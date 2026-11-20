@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FusionData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/fusion_data.gd" id="1_dclhd"]
+
+[resource]
+script = ExtResource("1_dclhd")
+id = "vital_current"
+display_name = "Vital Current"
+key = "life+storm"
+description = "Chain lightning where every jump heals the most wounded ally."
+mana_cost = 25.0
+power = 0.9
+heal_power = 0.6
+poise_damage = 10.0
+bounces = 3

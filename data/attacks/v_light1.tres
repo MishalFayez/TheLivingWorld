@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_np33j"]
+
+[resource]
+script = ExtResource("1_np33j")
+id = "v_light1"
+display_name = "Sword Cut"
+recovery = 0.32
+cancel_after = 0.12
+damage_mult = 0.9
+poise_damage = 12.0
+hit_weights = PackedFloat32Array()
+approach_max = 1.2
+tags = PackedStringArray("light")

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Resource" path="res://data/attacks/v_judgment_riposte.tres" id="1_y3hew"]
+[ext_resource type="Resource" path="res://data/attacks/v_judgment.tres" id="2_7corn"]
+[ext_resource type="Script" path="res://scripts/data/skill_data.gd" id="3_a1eqc"]
+
+[resource]
+script = ExtResource("3_a1eqc")
+id = "judgment_strike"
+display_name = "Judgment Strike"
+description = "Chargeable heavy sword strike with massive Poise damage. Right after a Perfect Guard it becomes an instant Riposte (guaranteed crit). At full charge with 40 Resolve it becomes Verdict (wider shockwave)."
+cooldown = 8.0
+attack = ExtResource("2_7corn")
+alt_attack = ExtResource("1_y3hew")
+resolve_cost = 40.0
+chargeable = true
+variations = PackedStringArray("Riposte (after Perfect Guard)", "Verdict (full charge + 40 Resolve)")

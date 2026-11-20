@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_1p78x"]
+
+[resource]
+script = ExtResource("1_1p78x")
+id = "second_heart"
+display_name = "Second Heart"
+description = "Limited overhealing becomes temporary protection: 30% of the overheal from your heals becomes a shield (max 15% of the target's max HP, 4s)."
+class_id = "mage"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray("life")
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Lifebinding")
+interacts_with = "Life Bloom, Lifeline, Verdant Renewal, Living Bastion."
+params = {
+"conversion": 0.3,
+"duration": 4.0,
+"max_hp_frac": 0.15,
+"requires_core": "elementalist"
+}

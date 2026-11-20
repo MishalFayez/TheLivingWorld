@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_rvxdb"]
+
+[resource]
+script = ExtResource("1_rvxdb")
+id = "sanctified_ward"
+display_name = "Sanctified Ward"
+description = "Consuming a Life Sigil grants allies inside a Ward shield 50% stronger, and cleanses their debuffs."
+class_id = "mage"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray("m_ward")
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Healer", "Sigilist")
+interacts_with = "Life Sigil consume + Ward."
+params = {
+"requires_core": "sigils",
+"ward_mult": 1.5
+}

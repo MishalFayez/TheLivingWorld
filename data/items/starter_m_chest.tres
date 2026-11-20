@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_g7jer"]
+
+[resource]
+script = ExtResource("1_g7jer")
+id = "starter_m_chest"
+display_name = "Novice Robes"
+description = "Simple robes with embroidered sigils."
+slot = "chest"
+class_id = "mage"
+icon = "life"
+bonuses = {
+"mres": 6
+}

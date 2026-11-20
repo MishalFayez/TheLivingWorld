@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="SpellData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/spell_data.gd" id="1_23u5m"]
+
+[resource]
+script = ExtResource("1_23u5m")
+id = "firebolt"
+display_name = "Firebolt"
+mana_cost = 8.0
+cast_time = 0.22
+recovery = 0.25
+power = 0.9
+speed = 24.0
+max_range = 24.0
+poise_damage = 8.0
+status_power = 0.12
+description = "Fast fire projectile, applies Burn."
