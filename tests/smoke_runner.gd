@@ -32,11 +32,43 @@ func kill_all() -> void:
 			e.take_damage(info)
 
 
+## QA-001: the smoke run must never depend on (or touch) the user's real save. Before main.tscn starts
+## (its _ready loads the save), point Save at a disposable fixture holding pre-existing progress on
+## another class, then disable writing. main loads the fixture through the normal startup path.
+const FIXTURE_VANGUARD_LEVEL := 3
+var fixture_path: String
+
+
+func _isolate_save() -> void:
+	var dir := ProjectSettings.globalize_path("res://.dev/reports/qa_fixtures")
+	DirAccess.make_dir_recursive_absolute(dir)
+	fixture_path = dir.path_join("smoke_save.json")
+	_clear_fixture()
+	Save.path = fixture_path
+	Save.reset_settings()
+	Save.enabled = true
+	Game.reset_all_progress()
+	Game.debug_tainted = false
+	Game.create_character("vanguard", "Fixture")
+	Game.set_level("vanguard", FIXTURE_VANGUARD_LEVEL)
+	Save.save_game()
+	Game.reset_all_progress()
+	Save.enabled = false
+
+
+func _clear_fixture() -> void:
+	for f in DirAccess.get_files_at(fixture_path.get_base_dir()):
+		if f.begins_with(fixture_path.get_file()):
+			DirAccess.remove_absolute(fixture_path.get_base_dir().path_join(f))
+
+
 func _ready() -> void:
+	_isolate_save()
 	main = load("res://scenes/main.tscn").instantiate()
 	add_child(main)
 	await wait(0.2)
-	Save.enabled = false
+	var fx := Game.prog("vanguard")
+	check(fx.created and fx.character_name == "Fixture" and fx.level == FIXTURE_VANGUARD_LEVEL and not Game.prog("mage").created, "startup loads the isolated fixture save (pre-existing Vanguard progress)", "vanguard Lv %d" % fx.level)
 	main.start_game("mage", true)
 	await wait(0.5)
 	check(Game.heroes.size() == 3, "party session spawns player + 2 AI companions")
@@ -110,7 +142,9 @@ func _ready() -> void:
 	# class switch keeps progress independent
 	Game.switch_class("vanguard")
 	await wait(0.5)
-	check(Game.player.class_id == "vanguard" and Game.prog("vanguard").level == 1 and Game.prog("mage").level >= 9, "switching class keeps independent progression")
+	# Vanguard must keep exactly its pre-existing (fixture) progress; the Mage run must not leak into it.
+	var vg := Game.prog("vanguard")
+	check(Game.player.class_id == "vanguard" and vg.created and vg.character_name == "Fixture" and vg.level == FIXTURE_VANGUARD_LEVEL and vg.augments.is_empty() and Game.prog("mage").level >= 9, "switching class keeps independent progression", "player %s, vanguard Lv %d (fixture %d), mage Lv %d" % [Game.player.class_id, vg.level, FIXTURE_VANGUARD_LEVEL, Game.prog("mage").level])
 	check(Game.heroes.size() == 3, "companions respawned for the new class lineup")
 	dbg.toggle()
 	await wait(0.2)
@@ -140,5 +174,6 @@ func _ready() -> void:
 	Game.world.teleport_player("training")
 	await wait(0.5)
 	check(get_tree().get_nodes_in_group("training_dummy").size() == 3 and main.get_node("TrainingUI").panel.visible, "training grounds: dummies + training panel")
+	_clear_fixture()
 	print("\n==== SMOKE: %d passed, %d failed ====" % [ok, bad])
 	get_tree().quit(1 if bad > 0 else 0)

@@ -542,7 +542,10 @@ func set_party_mode(on: bool) -> void:
 
 
 func switch_class(class_id: String) -> void:
-	if not CLASSES.has(class_id) or world == null:
+	if not CLASSES.has(class_id):
+		push_warning("switch_class: unknown class id '%s' ignored" % class_id)
+		return
+	if world == null:
 		active_class = class_id
 		return
 	var pos: Vector3 = player.global_position if is_instance_valid(player) else world.checkpoint_position()

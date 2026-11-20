@@ -5,17 +5,24 @@ extends Node
 
 const VERSION := 1
 
-var path: String = "user://living_world_save.json"
-var enabled: bool = true
-var last_error: String = ""
-var settings: Dictionary = {
+const DEFAULT_SETTINGS := {
 	"mouse_sensitivity": 1.0, "invert_y": false, "camera_shake": true, "damage_numbers": true,
 	"fullscreen": false, "vsync": true, "show_fps": false, "party_default": false,
 }
 
+var path: String = "user://living_world_save.json"
+var enabled: bool = true
+var last_error: String = ""
+var settings: Dictionary = DEFAULT_SETTINGS.duplicate()
+
 
 func _ready() -> void:
 	load_settings_only()
+
+
+## Restores default settings in memory (used to isolate test fixtures from the user's settings).
+func reset_settings() -> void:
+	settings = DEFAULT_SETTINGS.duplicate()
 
 
 func has_save() -> bool:
@@ -25,23 +32,82 @@ func has_save() -> bool:
 func _read() -> Dictionary:
 	if not has_save():
 		return {}
-	var f := FileAccess.open(path, FileAccess.READ)
+	var data = _read_file(path)
+	return data if data is Dictionary else {}
+
+
+## Parses a save file. Returns null (and sets last_error) when it cannot be opened or is not a JSON object.
+func _read_file(p: String) -> Variant:
+	var f := FileAccess.open(p, FileAccess.READ)
 	if f == null:
 		last_error = "cannot open save"
-		return {}
+		return null
 	var txt := f.get_as_text()
 	f.close()
-	var data = JSON.parse_string(txt)
-	if typeof(data) != TYPE_DICTIONARY:
+	var json := JSON.new()
+	if json.parse(txt) != OK or typeof(json.data) != TYPE_DICTIONARY:
 		last_error = "corrupt save"
-		return {}
-	return data
+		return null
+	return json.data
+
+
+## Writes `data` to `path` without ever leaving the user with no save:
+## temp file -> verified -> previous file moved to .bak -> temp renamed into place -> .bak removed.
+## Any failure restores the previous file and returns false with last_error set. An existing file that
+## cannot be parsed is moved aside to .corrupt-<unix time> instead of being deleted.
+func _write_atomic(data: Dictionary) -> bool:
+	var abs_path := ProjectSettings.globalize_path(path)
+	var tmp := abs_path + ".tmp"
+	var bak := abs_path + ".bak"
+	var f := FileAccess.open(tmp, FileAccess.WRITE)
+	if f == null:
+		last_error = "cannot write save"
+		return false
+	var stored := f.store_string(JSON.stringify(data, "\t"))
+	f.close()
+	if not stored or not (_read_file(tmp) is Dictionary):
+		DirAccess.remove_absolute(tmp)
+		last_error = "cannot write save"
+		return false
+	var previous := ""
+	var keep_previous := false
+	if FileAccess.file_exists(abs_path):
+		if _read_file(abs_path) is Dictionary:
+			previous = bak
+			if FileAccess.file_exists(bak):
+				FileAccess.set_read_only_attribute(bak, false)
+				if DirAccess.remove_absolute(bak) != OK:
+					DirAccess.remove_absolute(tmp)
+					last_error = "cannot replace save backup"
+					return false
+		else:
+			previous = abs_path + ".corrupt-%d" % int(Time.get_unix_time_from_system())
+			keep_previous = true
+		if DirAccess.rename_absolute(abs_path, previous) != OK:
+			DirAccess.remove_absolute(tmp)
+			last_error = "cannot replace save"
+			return false
+	if DirAccess.rename_absolute(tmp, abs_path) != OK:
+		if previous != "":
+			DirAccess.rename_absolute(previous, abs_path)
+		DirAccess.remove_absolute(tmp)
+		last_error = "cannot replace save"
+		return false
+	last_error = ""
+	if keep_previous:
+		last_error = "unreadable previous save kept as " + previous.get_file()
+		push_warning(last_error)
+	elif previous != "":
+		FileAccess.set_read_only_attribute(previous, false)
+		DirAccess.remove_absolute(previous)
+	return true
 
 
 ## Writes every class + settings. Refuses while the session is debug-tainted.
 func save_game() -> bool:
 	if not enabled:
 		return false
+	last_error = ""
 	if Game.debug_tainted:
 		last_error = "debug session - not saved"
 		return false
@@ -50,34 +116,26 @@ func save_game() -> bool:
 		chars[c] = Game.prog(c).to_dict()
 	var data := {"version": VERSION, "last_class": Game.active_class, "characters": chars, "settings": settings,
 		"saved_at": Time.get_datetime_string_from_system()}
-	var tmp := path + ".tmp"
-	var f := FileAccess.open(tmp, FileAccess.WRITE)
-	if f == null:
-		last_error = "cannot write save"
-		return false
-	f.store_string(JSON.stringify(data, "\t"))
-	f.close()
-	# atomic-ish replace so a crash mid-write never destroys the previous save
-	var dir := DirAccess.open(path.get_base_dir())
-	if dir:
-		if FileAccess.file_exists(path):
-			dir.remove(path.get_file())
-		dir.rename(tmp.get_file(), path.get_file())
-	return true
+	return _write_atomic(data)
 
 
 ## Settings are written on their own (allowed in debug sessions: they never touch characters).
-func save_settings() -> void:
+## Character data is copied from the file on disk; if that file exists but cannot be read, nothing is
+## written (the in-memory settings still apply this session) so character data is never replaced.
+func save_settings() -> bool:
 	if not enabled:
-		return
-	var data := _read()
-	if data.is_empty():
-		data = {"version": VERSION, "characters": {}, "last_class": ""}
+		return false
+	last_error = ""
+	var data := {"version": VERSION, "characters": {}, "last_class": ""}
+	if has_save():
+		var existing = _read_file(ProjectSettings.globalize_path(path))
+		if not (existing is Dictionary):
+			last_error = "existing save unreadable - settings not written"
+			push_warning(last_error)
+			return false
+		data = existing
 	data["settings"] = settings
-	var f := FileAccess.open(path, FileAccess.WRITE)
-	if f:
-		f.store_string(JSON.stringify(data, "\t"))
-		f.close()
+	return _write_atomic(data)
 
 
 func load_game() -> bool:

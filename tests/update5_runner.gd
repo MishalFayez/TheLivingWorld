@@ -16,6 +16,11 @@ func _run_all() -> void:
 	await test_openings_and_cuts()
 	await test_perfect_dodge_opening()
 	await test_training_dummy()
+	await test_qa_save_tmp_write_failure()
+	await test_qa_save_replace_reports_truthfully()
+	await test_qa_save_game_keeps_unreadable_file()
+	await test_qa_settings_keep_characters()
+	await test_qa_switch_class_invalid_id()
 	await teardown()
 
 
@@ -23,7 +28,7 @@ func test_save_roundtrip() -> void:
 	print("\n[Save / load round trip]")
 	await teardown()
 	Save.enabled = true
-	Save.path = "user://test_save_u5.json"
+	Save.path = fixture_path("test_save_u5.json")
 	Save.delete_save()
 	Game.reset_all_progress()
 	Game.debug_tainted = false
@@ -52,11 +57,118 @@ func test_save_roundtrip() -> void:
 	Save.enabled = false
 
 
+# ------------------------------------------------------------------ QA-001 save safety regressions
+# All on disposable files under .dev/reports/qa_fixtures; the user's real save is never opened.
+
+func _qa_begin(file_name: String) -> String:
+	await teardown()
+	var p := fixture_path(file_name)
+	clear_fixture(p)
+	Save.enabled = true
+	Save.path = p
+	Game.reset_all_progress()
+	Game.debug_tainted = false
+	return p
+
+
+func _qa_end(p: String) -> void:
+	clear_fixture(p)
+	Save.enabled = false
+	Game.debug_tainted = false
+	Game.reset_all_progress()
+
+
+func _qa_parse(p: String) -> Variant:
+	return JSON.parse_string(FileAccess.get_file_as_string(p)) if FileAccess.file_exists(p) else null
+
+
+func test_qa_save_tmp_write_failure() -> void:
+	print("\n[QA-001: a failed temp write keeps the previous save]")
+	var p: String = await _qa_begin("qa_tmpfail.json")
+	Game.create_character("vanguard", "Keeper")
+	var before := FileAccess.get_file_as_string(p)
+	DirAccess.make_dir_absolute(p + ".tmp")   # the temp file cannot be created
+	Game.prog("vanguard").set_level(5)
+	var r := Save.save_game()
+	check(not r and Save.last_error != "", "save_game reports the failed write", Save.last_error)
+	check(FileAccess.get_file_as_string(p) == before, "previous save is byte-for-byte intact")
+	_qa_end(p)
+
+
+func test_qa_save_replace_reports_truthfully() -> void:
+	print("\n[QA-001: save_game returns true only when the file really holds the new data]")
+	var p: String = await _qa_begin("qa_readonly.json")
+	Game.create_character("vanguard", "Keeper")
+	FileAccess.set_read_only_attribute(p, true)   # replacing the existing file is obstructed
+	Game.prog("vanguard").set_level(5)
+	var r := Save.save_game()
+	var d = _qa_parse(p)
+	var lvl := int(d.characters.vanguard.level) if d is Dictionary and d.has("characters") else -1
+	check(lvl == 1 or lvl == 5, "a readable save remains on disk", "level on disk %d" % lvl)
+	check(r == (lvl == 5), "return value matches what was written", "returned %s, level on disk %d, error '%s'" % [r, lvl, Save.last_error])
+	_qa_end(p)
+
+
+func test_qa_save_game_keeps_unreadable_file() -> void:
+	print("\n[QA-001: an unreadable existing save is preserved, not deleted, when a new save is written]")
+	var p: String = await _qa_begin("qa_corrupt.json")
+	var junk := "{\"version\": 1, \"characters\": {\"vanguard\": {\"level\": 7"   # truncated JSON
+	var f := FileAccess.open(p, FileAccess.WRITE)
+	f.store_string(junk)
+	f.close()
+	Game.create_character("mage", "Lyra")   # writes a fresh save over the unreadable one
+	var d = _qa_parse(p)
+	check(d is Dictionary and d.characters.mage.created, "new save written and readable")
+	var kept := false
+	for n in DirAccess.get_files_at(p.get_base_dir()):
+		if n.begins_with(p.get_file() + ".corrupt") and FileAccess.get_file_as_string(p.get_base_dir().path_join(n)) == junk:
+			kept = true
+	check(kept, "the unreadable previous file is kept as a .corrupt copy")
+	_qa_end(p)
+
+
+func test_qa_settings_keep_characters() -> void:
+	print("\n[QA-001: writing settings never destroys character data]")
+	var p: String = await _qa_begin("qa_settings.json")
+	Game.create_character("reaver", "Kaelen")
+	Save.settings.invert_y = true
+	Save.save_settings()
+	var d = _qa_parse(p)
+	check(d is Dictionary and d.characters.reaver.created and d.characters.reaver.name == "Kaelen" and bool(d.settings.invert_y), "settings saved alongside intact characters")
+	Save.settings.invert_y = false
+	var junk := "{\"characters\": {\"reaver\": {\"name\": \"Kaelen\", \"level\": 9"   # truncated JSON
+	var f := FileAccess.open(p, FileAccess.WRITE)
+	f.store_string(junk)
+	f.close()
+	Save.settings.camera_shake = false
+	Save.save_settings()
+	check(FileAccess.get_file_as_string(p) == junk, "unreadable save is not overwritten by a settings change", Save.last_error)
+	Save.reset_settings()
+	check(Save.settings == Save.DEFAULT_SETTINGS, "settings can be reset to defaults for isolated fixtures")
+	_qa_end(p)
+
+
+func test_qa_switch_class_invalid_id() -> void:
+	print("\n[QA-001: an invalid class id never corrupts the active class]")
+	var h := await setup("mage", false, false, false)
+	Game.switch_class("paladin")
+	await wait(0.1)
+	check(Game.active_class == "mage" and is_instance_valid(Game.player) and Game.player == h and Game.player.class_id == "mage", "in session: unknown id ignored, Mage still active", Game.active_class)
+	Game.switch_class("vanguard")
+	await wait(0.2)
+	check(Game.active_class == "vanguard" and Game.player.class_id == "vanguard", "valid switch still works")
+	await teardown()
+	Game.switch_class("")
+	check(Game.active_class == "vanguard", "out of session: unknown id ignored", Game.active_class)
+	Game.switch_class("reaver")
+	check(Game.active_class == "reaver", "out of session: valid id still selects the class")
+
+
 func test_debug_taint() -> void:
 	print("\n[Debug testing cannot corrupt a saved character]")
 	await teardown()
 	Save.enabled = true
-	Save.path = "user://test_save_u5.json"
+	Save.path = fixture_path("test_save_u5.json")
 	Save.delete_save()
 	Game.reset_all_progress()
 	Game.debug_tainted = false

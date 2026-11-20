@@ -1098,7 +1098,7 @@ func test_f_ai_and_save() -> void:
 	check(released.any(func(r): return r.c == m and r.id == "flame_cataclysm"), "AI uses offensive magic when healing is stable")
 	w.queue_free()
 	Save.enabled = true
-	Save.path = "user://test_mage_save.json"
+	Save.path = fixture_path("test_mage_save.json")
 	Save.delete_save()
 	Game.reset_all_progress()
 	Game.debug_tainted = false

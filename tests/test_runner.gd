@@ -14,7 +14,8 @@ func _ready() -> void:
 	CombatLog.echo_to_stdout = false
 	Game.auto_open_drafts = false
 	Save.enabled = false       # never touch the user's real save while testing
-	Save.path = "user://test_save.json"
+	Save.path = fixture_path("test_save.json")
+	Save.reset_settings()      # deterministic defaults, not the user's settings read at startup
 	await get_tree().process_frame
 	await _run_all()
 	print("\n==== RESULTS: %d passed, %d failed ====" % [passed, failed])
@@ -36,6 +37,28 @@ func check(cond: bool, name: String, detail: String = "") -> void:
 func wait(sec: float) -> void:
 	for i in int(sec * 60.0):
 		await get_tree().physics_frame
+
+
+## Disposable save path under the project's git-ignored .dev/reports (never the user's real save).
+func fixture_path(file_name: String) -> String:
+	var dir := ProjectSettings.globalize_path("res://.dev/reports/qa_fixtures")
+	DirAccess.make_dir_recursive_absolute(dir)
+	return dir.path_join(file_name)
+
+
+## Removes a fixture save and every sibling the save system may create (.tmp / .bak / .corrupt-*).
+func clear_fixture(p: String) -> void:
+	var dir := DirAccess.open(p.get_base_dir())
+	if dir == null:
+		return
+	for f in dir.get_files():
+		if f == p.get_file() or f.begins_with(p.get_file() + "."):
+			var full := p.get_base_dir().path_join(f)
+			FileAccess.set_read_only_attribute(full, false)
+			DirAccess.remove_absolute(full)
+	for d in dir.get_directories():
+		if d.begins_with(p.get_file() + "."):
+			DirAccess.remove_absolute(p.get_base_dir().path_join(d))
 
 
 ## Legacy tests run with every milestone unlocked and the legacy cores (weave / bladecraft) so the
