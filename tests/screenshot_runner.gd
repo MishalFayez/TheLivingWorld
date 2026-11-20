@@ -1,8 +1,14 @@
 extends Node
-## Captures reference screenshots of the UI (needs a real renderer):
-##   xvfb-run -s "-screen 0 1600x900x24" godot --rendering-driver opengl3 --fixed-fps 60 res://tests/screenshot_runner.tscn
+## Captures reference screenshots of the UI (needs a real renderer; overwrites the PNGs it names in screenshots/):
+##   Windows: godot --path . --fixed-fps 60 res://tests/screenshot_runner.tscn
+##   Linux:   xvfb-run -s "-screen 0 1600x900x24" godot --rendering-driver opengl3 --fixed-fps 60 res://tests/screenshot_runner.tscn
+## REVIEW-003: uses the current title flow (New Character class choice + Character Selection) instead of the
+## removed main._goto_select() / class_cards API, and prints a summary line so a run can be verified.
 
+const EXPECTED := ["01_title", "02_class_select", "02b_character_selection", "03_vanguard_combat", "04_vanguard_skills",
+	"05_pause_menu", "06_mage_hud", "07_reaver_hud", "08_boss", "09_augment_draft", "10_character_sheet", "11_debug_panel"]
 var main: Node
+var saved: Array = []
 
 
 func wait(sec: float) -> void:
@@ -13,8 +19,11 @@ func wait(sec: float) -> void:
 func shot(n: String) -> void:
 	await RenderingServer.frame_post_draw
 	DirAccess.make_dir_recursive_absolute("res://screenshots")
-	get_viewport().get_texture().get_image().save_png("res://screenshots/%s.png" % n)
-	print("saved ", n)
+	if get_viewport().get_texture().get_image().save_png("res://screenshots/%s.png" % n) == OK:
+		saved.append(n)
+		print("saved ", n)
+	else:
+		print("FAILED to save ", n)
 
 
 func _ready() -> void:
@@ -23,10 +32,14 @@ func _ready() -> void:
 	add_child(main)
 	await wait(0.4)
 	await shot("01_title")
-	main._goto_select()
-	main.class_cards["vanguard"].hover = true
-	await wait(0.2)
+	# class choice now lives on the New Character screen (class list + live model)
+	main._goto("create")
+	main._pick_new_class("vanguard")
+	await wait(0.4)
 	await shot("02_class_select")
+	main._goto("select")
+	await wait(0.2)
+	await shot("02b_character_selection")
 	main.start_game("vanguard", true)
 	Game.invincible = true
 	Game.auto_open_drafts = false
@@ -88,4 +101,6 @@ func _ready() -> void:
 	main.get_node("DebugPanel").toggle()
 	await wait(0.2)
 	await shot("11_debug_panel")
-	get_tree().quit()
+	var missing := EXPECTED.filter(func(n): return not saved.has(n))
+	print("==== SCREENSHOTS: %d of %d saved; missing %s ====" % [saved.size(), EXPECTED.size(), str(missing)])
+	get_tree().quit(0 if missing.is_empty() else 1)
