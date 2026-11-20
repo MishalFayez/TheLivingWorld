@@ -21,6 +21,11 @@ func _run_all() -> void:
 	await test_qa_save_game_keeps_unreadable_file()
 	await test_qa_settings_keep_characters()
 	await test_qa_switch_class_invalid_id()
+	await test_rv_recover_interrupted_write()
+	await test_rv_recover_invalid_primary()
+	await test_rv_no_valid_backup_keeps_everything()
+	await test_rv_newest_candidate_and_orphan_tmp()
+	await test_rv_tools_isolate_real_save()
 	await teardown()
 
 
@@ -162,6 +167,123 @@ func test_qa_switch_class_invalid_id() -> void:
 	check(Game.active_class == "vanguard", "out of session: unknown id ignored", Game.active_class)
 	Game.switch_class("reaver")
 	check(Game.active_class == "reaver", "out of session: valid id still selects the class")
+
+
+# ------------------------------------------------------------------ REVIEW-001 crash recovery regressions
+# Simulates the states a crash can leave on disk; every case uses disposable fixtures under .dev/reports.
+
+func _rv_saved(file_name: String, lvl: int) -> String:
+	var p: String = await _qa_begin(file_name)
+	Game.create_character("reaver", "Kaelen")
+	Game.prog("reaver").set_level(lvl)
+	Game.active_class = "reaver"
+	Save.save_game()
+	return p
+
+
+func _rv_bytes(p: String) -> String:
+	return FileAccess.get_file_as_string(p) if FileAccess.file_exists(p) else "<missing>"
+
+
+func _rv_siblings(p: String, prefix: String) -> Array:
+	return Array(DirAccess.get_files_at(p.get_base_dir())).filter(func(n): return n.begins_with(p.get_file() + prefix))
+
+
+func test_rv_recover_interrupted_write() -> void:
+	print("\n[REVIEW-001: crash after the old save moved to .bak, before the new one was installed]")
+	var p: String = await _rv_saved("rv_interrupted.json", 4)
+	var good := _rv_bytes(p)
+	DirAccess.rename_absolute(p, p + ".bak")          # the crash state: no primary, valid backup
+	Game.reset_all_progress()
+	check(Save.has_save(), "has_save() detects recoverable progress", Save.last_error)
+	check(Save.load_game() and Game.prog("reaver").level == 4 and Game.prog("reaver").character_name == "Kaelen", "character progress restored from .bak")
+	check(_rv_bytes(p) == good and _rv_bytes(p + ".bak") == good, "primary restored, backup kept (copied, not moved)")
+	check(Save.recovered_from == p.get_file() + ".bak", "recovery source reported", Save.recovered_from)
+	_qa_end(p)
+
+
+func test_rv_recover_invalid_primary() -> void:
+	print("\n[REVIEW-001: unreadable primary save, valid backup]")
+	var p: String = await _rv_saved("rv_invalid.json", 6)
+	var good := _rv_bytes(p)
+	DirAccess.copy_absolute(p, p + ".bak")
+	var junk := "{\"characters\": {\"reaver\": {\"level\": 6"
+	var f := FileAccess.open(p, FileAccess.WRITE)
+	f.store_string(junk)
+	f.close()
+	Game.reset_all_progress()
+	check(Save.load_game() and Game.prog("reaver").level == 6, "progress loaded from the validated backup")
+	check(_rv_bytes(p) == good, "valid primary reinstalled from the backup")
+	var kept := _rv_siblings(p, ".corrupt").any(func(n): return _rv_bytes(p.get_base_dir().path_join(n)) == junk)
+	check(kept, "the unreadable primary is kept as .corrupt-*, not deleted")
+	_qa_end(p)
+
+
+func test_rv_no_valid_backup_keeps_everything() -> void:
+	print("\n[REVIEW-001: unreadable primary AND unreadable backup: nothing recovered, nothing deleted]")
+	var p: String = await _qa_begin("rv_nothing.json")
+	var junk1 := "{\"characters\": {\"mage\": {\"level\": 9"
+	var junk2 := "not json at all"
+	for pair in [[p, junk1], [p + ".bak", junk2]]:
+		var f := FileAccess.open(pair[0], FileAccess.WRITE)
+		f.store_string(pair[1])
+		f.close()
+	check(not Save.recover_if_needed(), "an invalid backup is never restored")
+	check(not Save.load_game(), "load reports failure instead of inventing data")
+	check(_rv_bytes(p) == junk1 and _rv_bytes(p + ".bak") == junk2, "both files untouched by loading")
+	Game.create_character("vanguard", "Aldric")   # a new save is written over the unreadable state
+	var junk1_kept := _rv_siblings(p, ".corrupt").any(func(n): return _rv_bytes(p.get_base_dir().path_join(n)) == junk1)
+	check(junk1_kept and _rv_bytes(p + ".bak") == junk2, "after a new save both unreadable files still exist")
+	var d = _qa_parse(p)
+	check(d is Dictionary and d.characters.vanguard.created, "the new save is valid")
+	_qa_end(p)
+
+
+func test_rv_newest_candidate_and_orphan_tmp() -> void:
+	print("\n[REVIEW-001: newest valid candidate wins; a finished .tmp is never overwritten]")
+	var p: String = await _rv_saved("rv_newest.json", 3)
+	var older := _rv_bytes(p)
+	Game.prog("reaver").set_level(7)
+	Save.save_game()
+	var newer := _rv_bytes(p)
+	# crash state: older generation in .bak, newer fully written .tmp, no primary
+	DirAccess.remove_absolute(p)
+	for pair in [[p + ".bak", older.replace("\"saved_at\": \"", "\"saved_at\": \"0")], [p + ".tmp", newer]]:
+		var f := FileAccess.open(pair[0], FileAccess.WRITE)
+		f.store_string(pair[1])
+		f.close()
+	Game.reset_all_progress()
+	check(Save.load_game() and Game.prog("reaver").level == 7, "the newer valid .tmp is recovered (saved_at)", "Lv %d from %s" % [Game.prog("reaver").level, Save.recovered_from])
+	# finished .tmp next to a valid primary (crash between verify and install): kept as .orphan-*
+	var f2 := FileAccess.open(p + ".tmp", FileAccess.WRITE)
+	f2.store_string(newer)
+	f2.close()
+	check(Save.save_game(), "the next save succeeds", Save.last_error)
+	check(_rv_siblings(p, ".orphan").any(func(n): return _rv_bytes(p.get_base_dir().path_join(n)) == newer), "the earlier finished .tmp is preserved as .orphan-*")
+	_qa_end(p)
+
+
+func test_rv_tools_isolate_real_save() -> void:
+	print("\n[REVIEW-001: every test / screenshot tool that starts main.tscn isolates the save first]")
+	var bad: Array = []
+	var n := 0
+	for fname in DirAccess.get_files_at("res://tests"):
+		if not fname.ends_with(".gd") or fname == "update5_runner.gd":
+			continue
+		var txt := FileAccess.get_file_as_string("res://tests/" + fname)
+		var at := txt.find("load(\"res://scenes/main.tscn\")")
+		if at < 0:
+			continue
+		n += 1
+		var before := txt.substr(0, at)
+		if not (before.contains("test_save_guard.gd\").isolate(") or before.contains("Save.enabled = false")):
+			bad.append(fname)
+	check(n >= 9 and bad.is_empty(), "all %d scripts that start main.tscn disable / redirect saving first" % n, "unsafe: %s" % str(bad))
+	# and the guard itself really redirects
+	var real := Save.path
+	var gp: String = preload("res://tests/test_save_guard.gd").isolate("selfcheck")
+	check(not Save.enabled and Save.path == gp and gp.contains(".dev/reports") and gp != real, "the guard disables writing and redirects to .dev/reports")
+	Save.path = real
 
 
 func test_debug_taint() -> void:

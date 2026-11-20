@@ -8,6 +8,7 @@ func shot(n: String) -> void:
 	get_viewport().get_texture().get_image().save_png("res://screenshots/%s.png" % n)
 	print("saved ", n)
 func _ready() -> void:
+	preload("res://tests/test_save_guard.gd").isolate("lock_shot")
 	var main = load("res://scenes/main.tscn").instantiate()
 	add_child(main)
 	await wait(0.1)

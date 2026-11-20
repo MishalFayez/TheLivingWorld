@@ -18,6 +18,7 @@ func shot(n: String) -> void:
 
 
 func _ready() -> void:
+	preload("res://tests/test_save_guard.gd").isolate("screenshot_runner")
 	main = load("res://scenes/main.tscn").instantiate()
 	add_child(main)
 	await wait(0.4)

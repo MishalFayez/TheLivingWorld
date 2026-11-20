@@ -26,7 +26,49 @@ func reset_settings() -> void:
 
 
 func has_save() -> bool:
+	recover_if_needed()
 	return FileAccess.file_exists(path)
+
+
+## Crash recovery. While a save is being replaced the previous file lives as <save>.bak and the new one as
+## <save>.tmp. If the primary save is missing or unreadable, the newest VALID candidate (.bak or a fully
+## written .tmp, compared by saved_at) is copied into place. Nothing is deleted: an unreadable primary is
+## moved aside to .corrupt-<time> and the backup itself is kept (copied, not moved). Returns true when a
+## recovery happened; `recovered_from` names the source file.
+var recovered_from: String = ""
+
+
+func recover_if_needed() -> bool:
+	var abs_path := ProjectSettings.globalize_path(path)
+	if FileAccess.file_exists(abs_path) and _read_file(abs_path) is Dictionary:
+		return false
+	var best := ""
+	var best_time := ""
+	for cand in [abs_path + ".bak", abs_path + ".tmp"]:
+		if not FileAccess.file_exists(cand):
+			continue
+		var d = _read_file(cand)
+		if d is Dictionary and d.get("characters") is Dictionary:
+			var t := String(d.get("saved_at", ""))
+			if best == "" or t > best_time:
+				best = cand
+				best_time = t
+	if best == "":
+		return false
+	if FileAccess.file_exists(abs_path):
+		var aside := abs_path + ".corrupt-%d" % int(Time.get_unix_time_from_system())
+		if DirAccess.rename_absolute(abs_path, aside) != OK:
+			last_error = "cannot move unreadable save aside - backup not restored"
+			push_warning(last_error)
+			return false
+	if DirAccess.copy_absolute(best, abs_path) != OK or not (_read_file(abs_path) is Dictionary):
+		last_error = "backup recovery failed"
+		push_warning(last_error)
+		return false
+	recovered_from = best.get_file()
+	last_error = "recovered save from " + recovered_from
+	push_warning(last_error)
+	return true
 
 
 func _read() -> Dictionary:
@@ -59,6 +101,13 @@ func _write_atomic(data: Dictionary) -> bool:
 	var abs_path := ProjectSettings.globalize_path(path)
 	var tmp := abs_path + ".tmp"
 	var bak := abs_path + ".bak"
+	# an interrupted earlier write must be restored first, so it rotates into .bak instead of being lost
+	recover_if_needed()
+	# a fully written .tmp left by a crash may be newer than the primary: keep it, never overwrite it
+	if FileAccess.file_exists(tmp) and _read_file(tmp) is Dictionary:
+		if DirAccess.rename_absolute(tmp, abs_path + ".orphan-%d" % int(Time.get_unix_time_from_system())) != OK:
+			last_error = "cannot preserve an earlier unfinished save"
+			return false
 	var f := FileAccess.open(tmp, FileAccess.WRITE)
 	if f == null:
 		last_error = "cannot write save"

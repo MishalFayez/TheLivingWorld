@@ -7,6 +7,7 @@ func shot(n: String) -> void:
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png("res://screenshots/q_%s.png" % n)
 func _ready() -> void:
+	preload("res://tests/test_save_guard.gd").isolate("quick_shot")
 	var main = load("res://scenes/main.tscn").instantiate()
 	add_child(main)
 	await wait(0.1)

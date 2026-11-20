@@ -263,6 +263,9 @@ func taint(reason: String) -> void:
 func autosave() -> void:
 	if Save.save_game():
 		Events.saved.emit()
+	elif Save.enabled and not debug_tainted:
+		# a real failure (not "saving disabled" / "debug session"): never report it as saved
+		push_warning("autosave failed: " + Save.last_error)
 
 
 func prog(class_id: String = "") -> ClassProgress:
