@@ -21,10 +21,18 @@ if (-not $exists) {
 }
 $verified = & $gh repo view $repo --json nameWithOwner,visibility | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0 -or $verified.visibility -ne 'PRIVATE' -or $verified.nameWithOwner -ne $repo) { throw 'Private visibility not verified. Nothing pushed.' }
-& $gh auth setup-git
-if ($LASTEXITCODE -ne 0) { throw 'Git credential integration failed.' }
+$helper = '!"' + $gh.Replace('\','/') + '" auth git-credential'
+& $git -C $ProjectRoot config --local --replace-all credential.https://github.com.helper ''
+if ($LASTEXITCODE -ne 0) { throw 'Cannot configure repository-local Git credentials.' }
+& $git -C $ProjectRoot config --local --add credential.https://github.com.helper $helper
+if ($LASTEXITCODE -ne 0) { throw 'Repository-local Git credential integration failed.' }
 & $git -C $ProjectRoot push -u origin main
 if ($LASTEXITCODE -ne 0) { throw 'Push failed.' }
+& $git -C $ProjectRoot show-ref --verify --quiet refs/tags/baseline-design-resolution-2026-11-20
+if ($LASTEXITCODE -eq 0) {
+    & $git -C $ProjectRoot push origin refs/tags/baseline-design-resolution-2026-11-20
+    if ($LASTEXITCODE -ne 0) { throw 'Baseline tag push failed.' }
+}
 $local = (& $git -C $ProjectRoot rev-parse main | Out-String).Trim()
 $remoteHead = (& $git -C $ProjectRoot ls-remote origin refs/heads/main | Out-String).Trim().Split()[0]
 if ($local -ne $remoteHead) { throw 'Remote main does not match local main.' }
