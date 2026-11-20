@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_ffaug"]
+
+[resource]
+script = ExtResource("1_ffaug")
+id = "momentum_edge"
+display_name = "Momentum Edge"
+description = "MUTATION: Decisive Cut becomes a moving strike: a controlled rush in your movement direction (forward without input) that stops on collision. Hitting from the flank (60 deg+): +20% damage, +35% Poise. A badly aimed rush can miss. Excludes Precision Edge and Tempest Edge."
+class_id = "reaver"
+category = "mutation"
+rarity = "advanced"
+requires_skills = PackedStringArray("r_decisive_cut")
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Free Flow")
+interacts_with = "Decisive Cut, Pivot Cut, Perfect Dodge."
+params = {
+"exclusive_group": "decisive_transform",
+"position_damage": 1.2,
+"position_poise": 1.35,
+"requires_core": "freeflow",
+"speed": 8.0
+}

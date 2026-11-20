@@ -66,16 +66,20 @@ func clear_fixture(p: String) -> void:
 func setup(class_id: String, party: bool = false, legacy: bool = true, unlock: bool = true) -> Hero:
 	await teardown()
 	Game.reset_all_progress()
+	Game.mage_core = "weave" if legacy else "elementalist"
+	# non-legacy = Worldweaver ("elementalist") and Swordmaster. Since REAVER-FREEFLOW-001 the default
+	# Reaver core is Free Flow (covered by freeflow_runner); these suites keep checking Swordmaster, which
+	# stays available as the comparison core. Retired cores (Sword Sense, Ley Sigils...) are selected
+	# explicitly by the tests that cover them, labelled LEGACY.
+	# The core is chosen BEFORE the unlock loop: Game.track("reaver") depends on it (Free Flow has its
+	# own track).
+	Game.reaver_core = "bladecraft" if legacy else "swordmaster"
 	for c in Game.CLASSES:
 		Game.prog(c).created = true
 		if unlock:
 			for m in Game.track(c).milestones:
 				if m.kind != "stats" and m.kind != "augment":
 					Game.prog(c).debug_unlocks.append(m.id)
-	Game.mage_core = "weave" if legacy else "elementalist"
-	# non-legacy = the APPROVED current cores (Worldweaver "elementalist", Swordmaster). Retired cores
-	# (Sword Sense, Ley Sigils...) are selected explicitly by the tests that cover them, labelled LEGACY.
-	Game.reaver_core = "bladecraft" if legacy else "swordmaster"
 	Game.permadeath = true
 	Game.invincible = false
 	Game.party_mode = false

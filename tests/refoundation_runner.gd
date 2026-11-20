@@ -72,7 +72,9 @@ func test_reaver_blade_lines() -> void:
 	print("\n[Reaver - Blade Lines / Measure / Footwork]")
 	var h := await reaver(1)
 	var kit: ReaverKit = h.kit
-	check(kit.sword_core(), "Swordmaster (Blade Lines) is the default Reaver core")
+	# REAVER-FREEFLOW-001: Free Flow is the default (asserted in freeflow_runner); Blade Lines stays
+	# available as the comparison core and is selected by reaver() for this suite.
+	check(kit.sword_core(), "Swordmaster (Blade Lines) comparison core selected for this suite")
 	var r := dummy("raider", h.global_position + Vector3(0, 0, -2.4))
 	r.max_hp = 99999
 	r.hp = 99999

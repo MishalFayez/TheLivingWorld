@@ -1,0 +1,96 @@
+[gd_resource type="Resource" script_class="ProgressionTrack" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/progression_track.gd" id="1_fftrk"]
+
+[resource]
+script = ExtResource("1_fftrk")
+class_id = "reaver"
+milestones = Array[Dictionary]([{
+"desc": "LMB = Flow Strikes (fast light attacks, three animation variations, no fixed combo). RMB = Heavy Cut. Space = Combat Dodge.",
+"icon": "reaver",
+"id": "r_flow_strikes",
+"input": "LMB / RMB / Space",
+"kind": "ability",
+"level": 1,
+"name": "Flow Strikes, Heavy Cut, Combat Dodge"
+}, {
+"desc": "Move freely between attacks, dodges and skills in any order. Connecting attacks with good timing, a Perfect Dodge, or a Pivot Cut from the flank prepares your next Heavy Cut or Decisive Cut to hit harder.",
+"icon": "split",
+"id": "r_free_flow",
+"input": "",
+"kind": "mechanic",
+"level": 1,
+"name": "Free Flow"
+}, {
+"desc": "Attribute points: spend 2 points per level in the Character screen (C).",
+"icon": "buff",
+"id": "stats_2",
+"input": "C",
+"kind": "stats",
+"level": 2,
+"name": "Attributes"
+}, {
+"desc": "Gap closer: a short forward rush (stops on collision, does not home in) ending in one controlled strike. 5s cooldown.",
+"icon": "lunge",
+"id": "r_pursuit_cut",
+"input": "1",
+"kind": "skill",
+"level": 3,
+"name": "Pursuit Cut"
+}, {
+"desc": "Choose one of three augments.",
+"icon": "passive",
+"id": "draft_4",
+"input": "",
+"kind": "augment",
+"level": 4,
+"name": "First Augment"
+}, {
+"desc": "Short step in your movement direction (backward without input) plus a slash. No invulnerability. Hitting from the flank prepares your next Heavy or Decisive Cut. 4s cooldown.",
+"icon": "precision",
+"id": "r_pivot_cut",
+"input": "2",
+"kind": "skill",
+"level": 5,
+"name": "Pivot Cut"
+}, {
+"desc": "Attribute points: spend 2 points per level in the Character screen (C).",
+"icon": "buff",
+"id": "stats_6",
+"input": "C",
+"kind": "stats",
+"level": 6,
+"name": "Attributes"
+}, {
+"desc": "Powerful single-target strike with strong Poise damage and a committed recovery. 8s cooldown.",
+"icon": "heavy",
+"id": "r_decisive_cut",
+"input": "3",
+"kind": "skill",
+"level": 7,
+"name": "Decisive Cut"
+}, {
+"desc": "Choose an Advanced or Exotic augment.",
+"icon": "mutation",
+"id": "draft_8",
+"input": "",
+"kind": "augment",
+"level": 8,
+"name": "Advanced Augment"
+}, {
+"desc": "A prepared strike stays ready 0.25s longer.",
+"icon": "reaver",
+"id": "r_flow_mastery",
+"input": "",
+"kind": "mastery",
+"level": 9,
+"name": "Free Flow Mastery"
+}, {
+"desc": "Choose an augment.",
+"icon": "passive",
+"id": "draft_10",
+"input": "",
+"kind": "augment",
+"level": 10,
+"name": "Augment"
+}])

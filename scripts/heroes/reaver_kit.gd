@@ -26,22 +26,35 @@ const SKILL_CD := {"r_lunge": 5.0, "r_flurry": 8.0, "r_flow_step": 3.0, "r_cross
 
 
 var sm: ReaverSwordmaster
+var ff: ReaverFreeFlow
 
 
 func sense_core() -> bool:
 	return Game.reaver_core == "sense"
 
 
-## Swordmaster (Blade Lines) is the default Reaver core; Sword Sense / Bladecraft are retired
-## to Debug-only comparison.
+## Swordmaster (Blade Lines) was the default until REAVER-FREEFLOW-001; it stays selectable from the
+## Debug Panel for comparison, like the retired Sword Sense / Bladecraft cores.
 func sword_core() -> bool:
 	return Game.reaver_core == "swordmaster"
+
+
+## Free Flow (REAVER-FREEFLOW-001) is the default Reaver core.
+func flow_core() -> bool:
+	return Game.reaver_core == "freeflow"
 
 
 func setup(h: Hero) -> void:
 	super.setup(h)
 	sm = ReaverSwordmaster.new(self)
+	ff = ReaverFreeFlow.new(self)
 	h.runner.hit_window.connect(_on_hit_window)
+
+
+func restore() -> void:
+	super.restore()
+	if ff:
+		ff.reset()
 
 
 ## Crosscut: the second hit is a NARROWER reverse slash, with limited steering toward the input.
@@ -63,7 +76,7 @@ const LEGACY_UNLOCKS := {"r_openings": 1, "r_charged": 3, "r_perfect_dodge": 5, 
 
 
 func unlocked(id: String) -> bool:
-	if not sword_core() and LEGACY_UNLOCKS.has(id):
+	if not sword_core() and not flow_core() and LEGACY_UNLOCKS.has(id):
 		var p: ClassProgress = hero.prog()
 		return (p.level >= int(LEGACY_UNLOCKS[id]) or p.debug_unlocks.has(id)) and not p.debug_locks.has(id)
 	return hero.unlocked(id)
@@ -75,12 +88,16 @@ func dodge_override() -> bool:
 
 func on_dodge() -> void:
 	super.on_dodge()
-	if sword_core():
+	if flow_core():
+		ff.on_dodge()
+	elif sword_core():
 		sm.on_dodge()
 
 
 func on_hit_landed(target, info: DamageInfo) -> void:
-	if sword_core():
+	if flow_core():
+		ff.on_hit_landed(target, info)
+	elif sword_core():
 		sm.on_hit_landed(target, info)
 
 
@@ -103,7 +120,9 @@ func resource_name() -> String:
 
 func process(delta: float) -> void:
 	super.process(delta)
-	if sword_core():
+	if flow_core():
+		ff.process(delta)
+	elif sword_core():
 		sm.process(delta)
 	combo_timer -= delta
 	if combo_timer <= 0.0:
@@ -113,6 +132,9 @@ func process(delta: float) -> void:
 
 
 func on_press(action: String) -> void:
+	if flow_core():
+		ff.on_press(action)
+		return
 	if sword_core():
 		sm.on_press(action)
 		return
@@ -149,6 +171,8 @@ func on_press(action: String) -> void:
 
 
 func on_release(action: String) -> void:
+	if flow_core():
+		return
 	if sword_core():
 		sm.on_release(action)
 		return
@@ -371,6 +395,8 @@ func _apply_form(d: AttackData, form: String, kind: String) -> void:
 
 
 func situational_crit(d: AttackData, target, ctx: Dictionary) -> float:
+	if flow_core():
+		return 0.0          # Free Flow: no situational / guaranteed crits
 	if sense_core():
 		if _cut_for(d, target, ctx) == "Vital Cut":
 			return 2.0      # guaranteed
@@ -402,6 +428,9 @@ func _cut_for(d: AttackData, target, ctx: Dictionary) -> String:
 
 
 func modify_outgoing(info: DamageInfo, d: AttackData, target, idx: int, ctx: Dictionary) -> void:
+	if flow_core():
+		ff.modify_outgoing(info, d, target, idx, ctx)
+		return
 	var cut := _cut_for(d, target, ctx)
 	if cut == "":
 		return
@@ -442,6 +471,9 @@ func modify_outgoing(info: DamageInfo, d: AttackData, target, idx: int, ctx: Dic
 
 
 func on_perfect_dodge(info: DamageInfo) -> void:
+	if flow_core():
+		ff.on_perfect_dodge(info)
+		return
 	if not sense_core() or not unlocked("r_perfect_dodge"):
 		return
 	var src = info.source
@@ -457,6 +489,9 @@ func on_perfect_dodge(info: DamageInfo) -> void:
 
 
 func on_attack_finished(_d: AttackData, ctx: Dictionary, interrupted: bool) -> void:
+	if flow_core():
+		ff.on_attack_finished(_d, ctx, interrupted)
+		return
 	if sword_core():
 		sm.on_attack_finished(_d, ctx, interrupted)
 		return
@@ -465,6 +500,8 @@ func on_attack_finished(_d: AttackData, ctx: Dictionary, interrupted: bool) -> v
 
 
 func hud_lines() -> Array:
+	if flow_core():
+		return ff.hud_lines()
 	if sword_core():
 		return sm.hud_lines()
 	var out: Array = []

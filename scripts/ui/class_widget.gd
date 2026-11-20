@@ -143,6 +143,8 @@ func _draw_swordmaster(k: ReaverKit) -> void:
 # ------------------------------------------------------------------ Reaver
 func _draw_reaver() -> void:
 	var k: ReaverKit = hero.kit
+	if k.flow_core():
+		return      # Free Flow: no visible Flow meter, stacks or combo counter (REAVER-FREEFLOW-001)
 	if k.sword_core():
 		_draw_swordmaster(k)
 		return

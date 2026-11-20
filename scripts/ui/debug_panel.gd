@@ -181,7 +181,9 @@ func _build() -> void:
 	var rc := HBoxContainer.new()
 	content.add_child(rc)
 	rc.add_child(UIUtil.label("Reaver:"))
-	for c in [["swordmaster", "Swordmaster / Blade Lines (current)"], ["sense", "Sword Sense (retired)"], ["bladecraft", "Bladecraft (retired)"], ["off", "No core"]]:
+	# REAVER-FREEFLOW-001 comparison mode: any core other than Free Flow makes this a Debug session
+	# (never saved), so comparing never changes the saved character.
+	for c in [["freeflow", "Free Flow (current)"], ["swordmaster", "Swordmaster / Blade Lines (previous - comparison, not saved)"], ["sense", "Sword Sense (retired)"], ["bladecraft", "Bladecraft (retired)"], ["off", "No core"]]:
 		var cv: String = c[0]
 		rc.add_child(UIUtil.button(("> " if Game.reaver_core == cv else "") + c[1], func(): _set_core("reaver", cv)))
 	content.add_child(UIUtil.header("Enemy defenses (all living enemies)"))

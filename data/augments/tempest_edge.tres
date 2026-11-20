@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_ffaug"]
+
+[resource]
+script = ExtResource("1_ffaug")
+id = "tempest_edge"
+display_name = "Tempest Edge"
+description = "MUTATION: Decisive Cut becomes 4 rapid hits in a wider arc (x2.0 width, about 2.2m); the final hit carries 55% of the damage and impact. Same total damage, longer commitment (+0.1s recovery): full damage needs the whole sequence to land. Excludes Precision Edge and Momentum Edge."
+class_id = "reaver"
+category = "mutation"
+rarity = "advanced"
+requires_skills = PackedStringArray("r_decisive_cut")
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Free Flow")
+interacts_with = "Decisive Cut, nearby groups."
+params = {
+"arc_mult": 2.0,
+"exclusive_group": "decisive_transform",
+"extra_recovery": 0.1,
+"final_share": 0.55,
+"hits": 4,
+"requires_core": "freeflow"
+}

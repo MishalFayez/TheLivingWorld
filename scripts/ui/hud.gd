@@ -411,7 +411,12 @@ func _make_slots(h: Hero) -> void:
 					["life", "life", "F", "Life: Mend (tap) / Renewal (hold) - heals without attacking"], ["core", "sigil", "E", "Ley Sigil: inscribe the last-cast element / consume"],
 					["skill3", "ward", "3", "Ward: shield the most wounded ally"], ["dodge", "dodge", "SPACE", "Dodge"]]
 		"reaver":
-			if Game.reaver_core == "swordmaster":
+			if Game.reaver_core == "freeflow":
+				# Free Flow: the existing skill bar only (no meter, no combo / opportunity indicator)
+				defs = [["light", "sword", "LMB", "Flow Strikes - free-form light attacks"], ["heavy", "heavy", "RMB", "Heavy Cut"],
+					["skill1", "lunge", "1", "Pursuit Cut (Lv3) - gap closer"], ["skill2", "precision", "2", "Pivot Cut (Lv5) - step + slash, no invulnerability"],
+					["skill3", "reaver", "3", "Decisive Cut (Lv7)"], ["dodge", "dodge", "SPACE", "Combat Dodge"]]
+			elif Game.reaver_core == "swordmaster":
 				var rk0: ReaverKit = h.kit
 				defs = [["light", "sword", "LMB", "Forward Cut · Shift+A/D+LMB Lateral Cut · after a Dodge: Slip Cut"], ["heavy", "heavy", "RMB", "Heavy Cut (Lv7: hold for Draw Cut)"]]
 				var icons := {"r_lunge": "lunge", "r_flow_step": "dodge", "r_crosscut": "split", "r_flurry": "flurry", "r_sunder_edge": "heavy", "r_turning_edge": "precision"}
@@ -617,6 +622,14 @@ func _update_slots(h: Hero) -> void:
 			var rk: ReaverKit = k
 			slots.light.set_state(0.0, 1.0, false, no_stam)
 			slots.heavy.set_state(0.0, 1.0, rk.charging == "heavy", no_stam)
+			if rk.flow_core():
+				for act in ReaverFreeFlow.SLOT_SKILL:
+					if not slots.has(act):
+						continue
+					var fid: String = ReaverFreeFlow.SLOT_SKILL[act]
+					slots[act].set_state(rk.skill_cd(fid), float(ReaverFreeFlow.SKILL_CD[fid]), false, no_stam)
+					slots[act].locked_level = _lock_lv(h, fid)
+				return
 			if rk.sword_core():
 				# minimal continuity feedback: the light slot lights up while a link window is open
 				slots.light.active = rk.sm.last_line != "" and (h.runner.can_cancel() or Game.time <= rk.sm.link_until)

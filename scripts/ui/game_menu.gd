@@ -209,8 +209,18 @@ func _character() -> Control:
 	var core: String = MainMenuText.CLASSES[c].core
 	if c == "mage" and Game.mage_core != "elementalist":
 		core = ("Arcane Weave" if Game.mage_core == "weave" else "Ley Sigils") + " (rejected core - debug comparison)"
-	if c == "reaver" and Game.reaver_core != "sense":
-		core = "Bladecraft (legacy core)" if Game.reaver_core == "bladecraft" else "No core (comparison)"
+	if c == "reaver":
+		match Game.reaver_core:
+			"freeflow":
+				core = "Free Flow"
+			"swordmaster":
+				core = "Swordmaster / Blade Lines (comparison)"
+			"sense":
+				core = "Sword Sense (retired - comparison)"
+			"bladecraft":
+				core = "Bladecraft (legacy core)"
+			_:
+				core = "No core (comparison)"
 	left.add_child(UITheme.text("Core: " + core, 14, UITheme.PARCHMENT))
 	if Game.test_session:
 		left.add_child(UITheme.text("TEST SESSION - nothing is saved (a newer-version save is protected)", 13, Color(1.0, 0.55, 0.4)))
@@ -444,6 +454,8 @@ func _augments() -> Control:
 		var inactive: bool = p.inactive_mutations.has(id)
 		tv.add_child(UITheme.text("%s%s   ·   %s %s%s" % [a.display_name, "  x%d" % p.augment_stacks(id) if p.augment_stacks(id) > 1 else "", a.rarity.to_upper(), a.category.to_upper(),
 			"   ·   INACTIVE (mutation limit %d)" % Game.balance.max_equipped_mutations if inactive else ("   ·   EQUIPPED" if a.category == "mutation" else "")], 17, UITheme.TEXT_DIM if inactive else rc.lightened(0.2), true))
+		if Game.augment_db.freeflow_inactive(a):
+			tv.add_child(UITheme.text("Incompatible with Free Flow - kept, but has no effect (pending an approved migration design)", 13, Color(1.0, 0.6, 0.45)))
 		if inactive:
 			var sw := HFlowContainer.new()
 			for act in p.active_mutations():

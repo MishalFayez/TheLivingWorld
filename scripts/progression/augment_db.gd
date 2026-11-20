@@ -49,10 +49,19 @@ func ineligible_reason(a: AugmentData, p: ClassProgress) -> String:
 		var core: String = a.params["requires_core"]
 		if core in ["sigils", "weave", "elementalist"] and Game.mage_core != core:
 			return "requires Mage core " + core
-		if core in ["sense", "bladecraft", "swordmaster"] and Game.reaver_core != core:
-			return "requires Reaver core " + core
-	if a.params.get("legacy_reaver", false) and Game.reaver_core == "swordmaster":
+		if core in ["sense", "bladecraft", "swordmaster", "freeflow"] and Game.reaver_core != core:
+			# REAVER-FREEFLOW-001: a Swordmaster augment that does not depend on Blade Lines / directional
+			# links is explicitly flagged compatible; every other one is incompatible with Free Flow
+			# pending an approved migration design.
+			if not (core == "swordmaster" and Game.reaver_core == "freeflow" and freeflow_compatible(a)):
+				return ("incompatible with Free Flow (pending migration design)" if Game.reaver_core == "freeflow" else "requires Reaver core " + core)
+	if a.params.get("legacy_reaver", false) and Game.reaver_core in ["swordmaster", "freeflow"]:
 		return "legacy Reaver core only"
+	# REAVER-FREEFLOW-001: the Decisive Cut transformations are mutually exclusive (one per run).
+	if a.params.has("exclusive_group"):
+		var other := owned_in_group(p, String(a.params["exclusive_group"]), a.id)
+		if other != "":
+			return "excluded by " + other
 	if a.params.get("legacy_only", false) and a.class_id == "mage" and Game.mage_core == "elementalist":
 		return "legacy Mage core only"
 	if a.params.has("excludes") and p.augment_stacks(String(a.params["excludes"])) > 0:
@@ -74,6 +83,32 @@ func ineligible_reason(a: AugmentData, p: ClassProgress) -> String:
 		if not ok:
 			return "requires one of " + ", ".join(a.requires_any_augment)
 	return ""
+
+
+static func freeflow_compatible(a: AugmentData) -> bool:
+	return a != null and bool(a.params.get("freeflow_compatible", false))
+
+
+## Id of an augment of `group` that `p` already owns (other than `except_id`), or "".
+func owned_in_group(p: ClassProgress, group: String, except_id: String = "") -> String:
+	for id in p.augments:
+		if id == except_id:
+			continue
+		var o: AugmentData = all.get(id)
+		if o != null and String(o.params.get("exclusive_group", "")) == group:
+			return id
+	return ""
+
+
+## REAVER-FREEFLOW-001: true when an owned Reaver augment has no effect under the Free Flow core
+## (it belongs to another core and is not flagged compatible). Such augments stay in the save.
+func freeflow_inactive(a: AugmentData) -> bool:
+	if a == null or a.class_id != "reaver" or Game.reaver_core != "freeflow":
+		return false
+	if a.params.get("legacy_reaver", false) or a.requires_bladecraft:
+		return true
+	var core := String(a.params.get("requires_core", ""))
+	return core != "" and core != "freeflow" and not freeflow_compatible(a)
 
 
 func eligible(class_id: String, p: ClassProgress) -> Array:

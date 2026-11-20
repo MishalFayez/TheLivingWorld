@@ -64,6 +64,8 @@ func slot_of(h: Hero, id: String) -> String:
 # ------------------------------------------------------------------
 func test_progression_data() -> void:
 	print("\n[Progression data]")
+	# REAVER-FREEFLOW-001: the Reaver track depends on the core; this checks the Swordmaster track
+	Game.reaver_core = "swordmaster"
 	var rt: ProgressionTrack = Game.track("reaver")
 	var want := {"r_lunge": 3, "r_flow_step": 5, "r_crosscut": 7, "r_draw": 7, "r_flurry": 9, "r_discipline": 10, "r_sunder_edge": 12, "r_turning_edge": 15, "r_final_stroke": 18}
 	var ok := true

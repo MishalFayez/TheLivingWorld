@@ -27,9 +27,11 @@ var party_mode: bool = false
 # --- Class cores (new + legacy kept for comparison) ---
 ## Mage core: "sigils" = Ley Sigils (Update 5) | "weave" = legacy Arcane Weave / Elemental Echo
 var mage_core: String = "elementalist"   ## "elementalist" (default) | "sigils" / "weave" (rejected legacy, debug comparison only)
-## Reaver core: "swordmaster" = Blade Lines (refoundation, default) | "sense" = Sword Sense (retired,
-## Debug comparison) | "bladecraft" = legacy | "off" = no core
-var reaver_core: String = "swordmaster"
+## Reaver core: "freeflow" = Free Flow (REAVER-FREEFLOW-001, default) | "swordmaster" = Blade Lines
+## (previous default, Debug comparison) | "sense" = Sword Sense (retired, Debug comparison) |
+## "bladecraft" = legacy | "off" = no core
+const DEFAULT_REAVER_CORE := "freeflow"
+var reaver_core: String = DEFAULT_REAVER_CORE
 var bladecraft_enabled: bool:
 	get:
 		return reaver_core == "bladecraft"
@@ -107,6 +109,11 @@ func _load_tracks_and_items() -> void:
 		var t = load("res://data/progression/%s.tres" % c)
 		if t is ProgressionTrack:
 			tracks[c] = t
+	# REAVER-FREEFLOW-001: the Free Flow core has its own Level 1-10 track; the Swordmaster track stays
+	# for the comparison / legacy cores.
+	var ff = load("res://data/progression/reaver_freeflow.tres")
+	if ff is ProgressionTrack:
+		tracks["reaver_freeflow"] = ff
 	var dir := DirAccess.open("res://data/items")
 	if dir:
 		for f in dir.get_files():
@@ -118,6 +125,8 @@ func _load_tracks_and_items() -> void:
 
 
 func track(c: String) -> ProgressionTrack:
+	if c == "reaver" and reaver_core == "freeflow" and tracks.has("reaver_freeflow"):
+		return tracks["reaver_freeflow"]
 	return tracks.get(c)
 
 
@@ -204,6 +213,10 @@ func set_core(cls_id: String, core: String) -> void:
 		mage_core = core
 	else:
 		reaver_core = core
+		# REAVER-FREEFLOW-001 comparison mode: playing another Reaver core never writes to the save, so
+		# augments / loadouts of the comparison core cannot end up in the Free Flow character.
+		if core != DEFAULT_REAVER_CORE:
+			taint("Reaver comparison core: " + core)
 	for h in heroes:
 		if is_instance_valid(h) and h.class_id == cls_id:
 			h.kit.restore()
@@ -364,6 +377,11 @@ func add_augment(class_id: String, aug_id: String) -> void:
 	if (stacks > 0 and not a.stackable) or (a.stackable and stacks >= a.max_stacks):
 		Events.log_message.emit("%s already owned / at max stacks" % a.display_name, "system")
 		return
+	if a.params.has("exclusive_group"):
+		var other := augment_db.owned_in_group(p, String(a.params["exclusive_group"]), aug_id)
+		if other != "":
+			Events.log_message.emit("%s not added: mutually exclusive with %s" % [a.display_name, other], "system")
+			return
 	p.augments.append(aug_id)
 	if a.category == "mutation" and p.active_mutations().size() > balance.max_equipped_mutations:
 		p.inactive_mutations.append(aug_id)

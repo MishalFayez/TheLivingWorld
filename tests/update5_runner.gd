@@ -795,7 +795,9 @@ func test_openings_and_cuts() -> void:
 	print("\n[LEGACY Reaver Sword Sense (retired core, Debug comparison only): Openings + cuts]")
 	var h := await setup("reaver", false, false, false)
 	var kit: ReaverKit = h.kit
-	check(not kit.sense_core() and Game.reaver_core == "swordmaster", "the approved default Reaver core is Swordmaster")
+	# REAVER-FREEFLOW-001: the default is now Free Flow (asserted in freeflow_runner); this suite runs on
+	# the Swordmaster comparison core and Sword Sense is never active unless selected.
+	check(not kit.sense_core() and Game.reaver_core == "swordmaster", "Sword Sense is not active unless explicitly selected (suite runs on Swordmaster)")
 	Game.reaver_core = "sense"          # explicitly select the retired core for this legacy test
 	check(kit.sense_core(), "LEGACY: Sword Sense selected explicitly for this test")
 	var r := dummy("raider", h.global_position + Vector3(0, 0, -1.8))

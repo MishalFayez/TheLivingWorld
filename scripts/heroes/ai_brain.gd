@@ -409,6 +409,12 @@ func _reaver(_delta: float) -> void:
 		return
 	hero.lock_target = target
 	var dist: float = target.global_position.distance_to(hero.global_position)
+	var kit: ReaverKit = hero.kit
+	# Free Flow companion (REAVER-FREEFLOW-001): minimal use of the same rules as the player.
+	if kit.flow_core() and dist > 2.5 and dist < 5.5 and hero.can_act() and kit.unlocked("r_pursuit_cut") and kit.skill_cd("r_pursuit_cut") <= 0.0 and rng.randf() < 0.05:
+		hero.move_input = Vector3.ZERO
+		tap("skill1")
+		return
 	if dist > 2.0:
 		_move_toward(target.global_position, 1.7)
 		return
@@ -416,7 +422,23 @@ func _reaver(_delta: float) -> void:
 	if think_t > 0.0 or not hero.can_act():
 		return
 	think_t = rng.randf_range(0.12, 0.3)
-	var kit: ReaverKit = hero.kit
+	if kit.flow_core():
+		var ffc: ReaverFreeFlow = kit.ff
+		var tr: AttackRunner = target.runner
+		if kit.unlocked("r_decisive_cut") and kit.skill_cd("r_decisive_cut") <= 0.0 and hero.stamina > 30.0 and (ffc.has_opportunity() or target.is_staggered()):
+			tap("skill3")
+			return
+		if ffc.has_opportunity() or (tr.is_busy() and tr.phase == AttackRunner.Phase.RECOVERY) or target.is_staggered():
+			tap("heavy")
+			return
+		if kit.unlocked("r_pivot_cut") and kit.skill_cd("r_pivot_cut") <= 0.0 and rng.randf() < 0.12:
+			var side: Vector3 = (hero.global_position - target.global_position).cross(Vector3.UP)
+			side.y = 0
+			hero.move_input = side.normalized() * (1.0 if rng.randf() < 0.5 else -1.0)
+			tap("skill2")
+			return
+		tap("light")
+		return
 	if kit.sword_core():
 		# Swordmaster: same Blade Lines rules as the player. Changes lines deliberately (forward <->
 		# lateral, lateral -> heavy) instead of repeating one cut; uses equipped skills when ready.

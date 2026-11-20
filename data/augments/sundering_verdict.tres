@@ -18,5 +18,6 @@ build_tags = PackedStringArray("Breaker")
 interacts_with = "Heavy Cut, Draw Cut vs guarding enemies (only the Shield Guardian has a guard)."
 params = {
 "duration": 4.0,
+"freeflow_compatible": true,
 "requires_core": "swordmaster"
 }

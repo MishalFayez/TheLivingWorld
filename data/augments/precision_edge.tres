@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_ffaug"]
+
+[resource]
+script = ExtResource("1_ffaug")
+id = "precision_edge"
+display_name = "Precision Edge"
+description = "MUTATION: Decisive Cut becomes a single narrow thrust (x0.55 width, x1.25 reach) with x1.3 Poise Damage. Hitting from the flank (60 deg+) or during the enemy's recovery / stagger: +20% damage, +35% Poise. Weaker against groups. Excludes Tempest Edge and Momentum Edge."
+class_id = "reaver"
+category = "mutation"
+rarity = "advanced"
+requires_skills = PackedStringArray("r_decisive_cut")
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Free Flow")
+interacts_with = "Decisive Cut, Pivot Cut, enemy recovery."
+params = {
+"exclusive_group": "decisive_transform",
+"length_mult": 1.25,
+"poise_mult": 1.3,
+"position_damage": 1.2,
+"position_poise": 1.35,
+"requires_core": "freeflow",
+"width_mult": 0.55
+}
