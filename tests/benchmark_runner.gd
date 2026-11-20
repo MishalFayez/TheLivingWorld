@@ -226,6 +226,8 @@ func _encounter(cls: String, scen: String, s: int) -> Dictionary:
 	ai.name = "Brain"
 	h.add_child(ai)
 	ai.rng.seed = s
+	# behave exactly like a Party companion (AI-only kit paths such as ai_lateral check not is_player)
+	h.is_player = false
 	var c := h.global_position + Vector3(0, 0, -9)
 	var spawns: Array = []
 	match scen:
