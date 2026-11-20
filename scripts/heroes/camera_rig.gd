@@ -46,6 +46,9 @@ extends Node3D
 @export var prediction_time: float = 0.3      ## s of pivot motion used to see obstacles coming
 @export var prediction_samples: int = 3       ## points sampled along the prediction horizon
 @export var shoulder_collision: bool = true   ## keep the shoulder / lock pivot offset out of geometry
+## look-ahead only: a wider probe sees an obstacle sweeping toward the boom earlier, so the capped pull-in
+## starts sooner. The camera's own clearance (collision_radius) is unchanged.
+@export var prediction_radius: float = 0.28
 @export var ease_out_speed: float = 4.0
 
 var target = null                 # the Hero
@@ -63,6 +66,7 @@ var lifts: int = 0
 var close_ins: int = 0              ## frames resolved by moving inside min_collision_distance (debug / tests)
 var max_snap: float = 0.0           ## largest anti-clipping snap so far (m, debug / tests)
 var _offset_frac: float = 1.0
+var _pred_sphere: SphereShape3D
 var cam_lift: float = 0.0
 var last_snap_info: String = ""     ## anti-clipping snaps (debug / tests)
 var debug_track_inside: bool = false   ## tests: count frames where the final camera sphere overlaps geometry
@@ -238,7 +242,7 @@ func _apply(hp: Vector3, delta: float, snap: bool) -> void:
 			# pillar on a curved path) is otherwise missed, the camera eases out, and later needs a snap
 			for k in range(1, prediction_samples + 1):
 				var t := prediction_time * float(k) / float(prediction_samples)
-				target = minf(target, _collision_distance(pivot + pv * t, back, frame_dist))
+				target = minf(target, _collision_distance(pivot + pv * t, back, frame_dist, prediction_radius))
 	_last_pivot = pivot
 	_has_last_pivot = true
 	if snap:
@@ -253,7 +257,11 @@ func _apply(hp: Vector3, delta: float, snap: bool) -> void:
 			forced_snaps += 1
 		cur_dist = next_d
 	else:
-		cur_dist = move_toward(cur_dist, target, ease_out_speed * delta)
+		# never ease OUT into geometry: at a wall the eased step would penetrate, be snapped back next
+		# frame and repeat every 2-3 frames (a visible ~7cm oscillation)
+		var out_d := move_toward(cur_dist, target, ease_out_speed * delta)
+		if out_d <= cur_dist or snap or not _penetrating(pivot + back * out_d):
+			cur_dist = out_d
 	var cam_pos := pivot + back * cur_dist
 	# min_collision_distance must never place the near plane inside geometry (hero backed into a tall
 	# boundary wall): the pivot is kept clear above, so first move toward it until clear
@@ -333,11 +341,16 @@ func _clear_fraction(from: Vector3, offset: Vector3) -> float:
 	return 1.0
 
 
-func _collision_distance(pivot: Vector3, back: Vector3, want: float) -> float:
+func _collision_distance(pivot: Vector3, back: Vector3, want: float, radius: float = -1.0) -> float:
 	if not is_inside_tree():
 		return want
 	var q := PhysicsShapeQueryParameters3D.new()
 	q.shape = _sphere
+	if radius > 0.0 and absf(radius - collision_radius) > 0.001:
+		if _pred_sphere == null or absf(_pred_sphere.radius - radius) > 0.001:
+			_pred_sphere = SphereShape3D.new()
+			_pred_sphere.radius = radius
+		q.shape = _pred_sphere
 	q.transform = Transform3D(Basis(), pivot)
 	q.motion = back * want
 	q.collision_mask = Combatant.LAYER_WORLD

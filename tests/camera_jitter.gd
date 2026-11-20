@@ -39,11 +39,16 @@ func measure(rig: CameraRig, h: Hero, n: int) -> Dictionary:
 	var prev := rig.global_position
 	var steps: Array = []
 	var offs: Array = []
+	# process_frame fires BEFORE nodes run _process: the rig read here is the one placed last frame, from the
+	# hero position read last frame. Comparing it with THIS frame's hero position measured one frame of hero
+	# motion (scaling with frame time) instead of camera behaviour, so the previous hero sample is used.
+	var prev_hero := CameraRig.vis_pos(h)
 	for i in n:
 		await tick()
 		steps.append(rig.global_position.distance_to(prev))
-		offs.append((rig.global_position - CameraRig.vis_pos(h)).length())
+		offs.append((rig.global_position - prev_hero).length())
 		prev = rig.global_position
+		prev_hero = CameraRig.vis_pos(h)
 	var mean := 0.0
 	for s in steps:
 		mean += s
@@ -58,6 +63,78 @@ func measure(rig: CameraRig, h: Hero, n: int) -> Dictionary:
 		omin = minf(omin, o)
 		omax = maxf(omax, o)
 	return {"cv": cv, "mean": mean, "offset_range": omax - omin}
+
+
+## Lock-on camera motion, measured per second so the limits hold at any frame rate.
+func _yaw_watch(rig: CameraRig, n: int) -> Dictionary:
+	var prev := rig.yaw
+	var prev_pos := rig.global_position
+	var max_rate := 0.0
+	var max_speed := 0.0
+	for i in n:
+		await tick()
+		var dt := get_physics_process_delta_time() if per_physics else get_process_delta_time()
+		max_rate = maxf(max_rate, absf(wrapf(rig.yaw - prev, -PI, PI)) / maxf(dt, 0.0001))
+		max_speed = maxf(max_speed, rig.global_position.distance_to(prev_pos) / maxf(dt, 0.0001))
+		prev = rig.yaw
+		prev_pos = rig.global_position
+	return {"rate": max_rate, "speed": max_speed}
+
+
+func _in_view(rig: CameraRig, p: Vector3) -> bool:
+	return rig.cam.is_position_in_frustum(p) and not rig.cam.is_position_behind(p)
+
+
+func _lock_checks(h: Hero, rig: CameraRig) -> void:
+	var lock: LockOnSystem = h.get_node("Brain").lock
+	h.teleport(Vector3(0, 0.2, 20))
+	rig.yaw = 0.0
+	rig.snap_to_target()
+	await frames(10)
+	var foes: Array = []
+	for i in 3:
+		var e := Game.spawn_enemy("raider", h.global_position + Vector3(-5.0 + i * 5.0, 0.0, -8.0), "outskirts")
+		e.sm.set_physics_process(false)
+		foes.append(e)
+	rig.yaw = 0.35             # target off-centre: locking must turn the camera, within its speed cap
+	await frames(5)
+	var cap := rig.lock_max_turn_speed * 1.05
+	check(lock.acquire(), "lock-on acquires a target")
+	var enter := await _yaw_watch(rig, 90)
+	check(enter.rate <= cap and _in_view(rig, lock.focus_point(lock.current())), "lock enter: yaw turn speed-capped, target framed", "max %.2f rad/s (cap %.2f)" % [enter.rate, rig.lock_max_turn_speed])
+	var sw0 = lock.current()
+	lock.switch(1)
+	var sw := await _yaw_watch(rig, 60)
+	check(lock.current() != sw0 and sw.rate <= cap, "target switch: no yaw jump", "max %.2f rad/s" % sw.rate)
+	Input.action_press("move_left")
+	var strafe := await _yaw_watch(rig, 90)
+	Input.action_release("move_left")
+	var t = lock.current()
+	check(is_instance_valid(t) and _in_view(rig, lock.focus_point(t)) and strafe.rate <= cap and strafe.speed < 12.0, "strafing while locked: target stays framed, no camera jump", "yaw %.2f rad/s, cam %.1f m/s" % [strafe.rate, strafe.speed])
+	lock.release()
+	var yaw_before := rig.yaw
+	var rel := await _yaw_watch(rig, 30)
+	check(absf(wrapf(rig.yaw - yaw_before, -PI, PI)) < 0.05 and rel.speed < 12.0, "unlock: the view direction is kept (no snap back)", "yaw drift %.3f rad" % absf(wrapf(rig.yaw - yaw_before, -PI, PI)))
+	for e in foes:
+		e.queue_free()
+	# boss framing: the large Warden must stay framed and must not drag the camera upward
+	h.teleport(Vector3(0, 0.2, 20))
+	rig.yaw = 0.0
+	rig.snap_to_target()
+	var boss := Game.spawn_enemy("ashen_warden", h.global_position + Vector3(0, 0, -9), "keep")
+	boss.sm.set_physics_process(false)
+	await frames(10)
+	var got := lock.acquire()
+	var bw := await _yaw_watch(rig, 120)
+	var top := boss.global_position + Vector3(0, 2.2, 0)
+	var locked_boss: bool = got and lock.current() == boss
+	var boss_view := _in_view(rig, lock.focus_point(boss))
+	var hero_view := _in_view(rig, h.global_position + Vector3(0, 1.0, 0))
+	check(locked_boss and boss_view and hero_view and rig.pitch <= -0.2 and bw.rate <= cap, "boss framing: boss and hero in view, comfortable downward pitch",
+		"locked %s, boss %s, hero %s, pitch %.2f, rate %.2f | INFO top of boss in view: %s" % [locked_boss, boss_view, hero_view, rig.pitch, bw.rate, _in_view(rig, top)])
+	lock.release()
+	boss.queue_free()
+	await frames(5)
 
 
 func _ready() -> void:
@@ -119,14 +196,16 @@ func _ready() -> void:
 	Input.action_press("move_left")
 	for i in 120:
 		await tick()
+		var dt := get_physics_process_delta_time() if per_physics else get_process_delta_time()
 		max_jump = maxf(max_jump, absf(rig.cur_dist - prev_d))
 		if rig.forced_snaps == snaps0:
-			max_smooth = maxf(max_smooth, absf(rig.cur_dist - prev_d))
+			max_smooth = maxf(max_smooth, absf(rig.cur_dist - prev_d) / maxf(dt, 0.0001))
 		snaps0 = rig.forced_snaps
 		prev_d = rig.cur_dist
 		min_d = minf(min_d, rig.cur_dist)
 	Input.action_release("move_left")
-	check(min_d < rig.distance - 0.5 and max_smooth < (0.7 if per_physics else 0.35), "near walls: occlusion pull-in is smooth (capped)", "min dist %.2f, max smooth change %.3f m/frame" % [min_d, max_smooth])
+	# frame-rate independent: the pull-in is a SPEED cap (occlusion_pull_speed m/s), so measure m/s
+	check(min_d < rig.distance - 0.5 and max_smooth <= rig.occlusion_pull_speed * 1.05, "near walls: occlusion pull-in is smooth (speed-capped)", "min dist %.2f, max smooth %.1f m/s (cap %.1f)" % [min_d, max_smooth, rig.occlusion_pull_speed])
 	print("  INFO  near walls: anti-clipping snaps this run = %d (largest frame change %.3f m) %s" % [rig.forced_snaps, max_jump, rig.last_snap_info])
 	check(rig.inside_frames == 0, "near walls: the camera near-plane never ends a frame inside geometry", "%d rendered frames" % rig.inside_frames)
 	# extra sweeps: both directions, two speeds, both side walls, two camera yaws (snap census)
@@ -165,5 +244,28 @@ func _ready() -> void:
 			await tick()
 		Input.action_release("move_right")
 	check(rig.inside_frames - oblique_inside == 0, "boundary wall at an oblique camera angle: never a frame inside geometry", "%d rendered frames" % (rig.inside_frames - oblique_inside))
+	# REVIEW-001: at the wall the camera eased out by ~7cm, penetrated and was snapped back every 2-3 frames
+	var osc_snaps: int = rig.forced_snaps
+	h.teleport(Vector3(28.0, 0.2, 0.0))
+	rig.yaw = PI / 4.0
+	rig.snap_to_target()
+	await frames(5)
+	Input.action_press("move_right")
+	var small_snaps := 0
+	var big_snaps := 0
+	var seen: int = rig.forced_snaps
+	var before_d: float = rig.cur_dist
+	for i in 120:
+		await tick()
+		if rig.forced_snaps > seen:
+			if before_d - rig.cur_dist < 0.15:
+				small_snaps += 1       # the oscillation signature: tiny ease-out then snap back
+			else:
+				big_snaps += 1
+		seen = rig.forced_snaps
+		before_d = rig.cur_dist
+	Input.action_release("move_right")
+	check(small_snaps == 0, "hugging a wall: no ease-out / snap-back oscillation", "%d small snap-backs; INFO %d larger snap(s) %s" % [small_snaps, big_snaps, rig.last_snap_info if big_snaps > 0 else ""])
+	await _lock_checks(h, rig)
 	print("\n==== CAMERA: %d passed, %d failed ====" % [ok, bad])
 	get_tree().quit(1 if bad > 0 else 0)

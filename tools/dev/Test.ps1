@@ -1,6 +1,8 @@
 param(
-    [ValidateSet('resolution_runner','refoundation_runner','mage_runner','test_runner','update5_runner','smoke_runner','camera_jitter')]
-    [string[]]$Suite = @('resolution_runner','refoundation_runner','mage_runner','test_runner','update5_runner','smoke_runner','camera_jitter'),
+    # camera_jitter_144 / camera_jitter_30: the camera suite at another fixed frame rate (the camera test
+    # needs rendering faster than physics to expose jitter; 30 fps checks the frame-rate independence)
+    [ValidateSet('resolution_runner','refoundation_runner','mage_runner','test_runner','update5_runner','smoke_runner','camera_jitter','camera_jitter_144','camera_jitter_30')]
+    [string[]]$Suite = @('resolution_runner','refoundation_runner','mage_runner','test_runner','update5_runner','smoke_runner','camera_jitter','camera_jitter_144','camera_jitter_30'),
     [int]$TimeoutSeconds = 240
 )
 . "$PSScriptRoot/Config.ps1"
@@ -13,7 +15,10 @@ foreach ($name in $Suite) {
     $out = Join-Path $run "$name.stdout.log"
     $err = Join-Path $run "$name.stderr.log"
     $engineLog = Join-Path $run "$name.engine.log"
-    $arguments = @('--headless','--path',('"' + $ProjectRoot + '"'),'--log-file',('"' + $engineLog + '"'),'--fixed-fps','60',"res://tests/$name.tscn")
+    $scene = $name
+    $fps = '60'
+    if ($name -match '^(camera_jitter)_(\d+)$') { $scene = $Matches[1]; $fps = $Matches[2] }
+    $arguments = @('--headless','--path',('"' + $ProjectRoot + '"'),'--log-file',('"' + $engineLog + '"'),'--fixed-fps',$fps,"res://tests/$scene.tscn")
     $process = Start-Process -FilePath $godot -ArgumentList $arguments -PassThru -WindowStyle Hidden -RedirectStandardOutput $out -RedirectStandardError $err
     $finished = $process.WaitForExit($TimeoutSeconds * 1000)
     if (-not $finished) { $process.Kill(); $process.WaitForExit() }
