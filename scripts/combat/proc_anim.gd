@@ -137,6 +137,21 @@ static func build_attack(d: AttackData, hold_windup: bool = false) -> Animation:
 		"bite":
 			_k(a, tr, T_MODEL_ROT, s, Vector3(0.4, 0, 0))
 			_k(a, tr, T_MODEL_ROT, e, Vector3(-0.45, 0, 0))
+		# REAVER-FREEFLOW-002 (used only by Free Flow Reaver attacks; temporary procedural motion)
+		"ff_pursuit_slash":   # low forward lean, blade drawn from low-left across to high-right
+			_k(a, tr, T_MODEL_POS, s * 0.5, Vector3(0, -0.22, 0.05))
+			_k(a, tr, T_MODEL_ROT, s, Vector3(0.3, -0.3, 0))
+			_k(a, tr, T_WEAPON_ROT, s, Vector3(1.0, -1.6, 0.4))
+			_k(a, tr, T_MODEL_POS, e, Vector3(0, -0.05, -0.35))
+			_k(a, tr, T_MODEL_ROT, e, Vector3(-0.1, 0.35, 0))
+			_k(a, tr, T_WEAPON_ROT, e, Vector3(-0.9, 1.7, -0.3))
+		"ff_counter":         # sharp turn-in: body snaps round, quick reverse horizontal cut
+			_k(a, tr, T_MODEL_ROT, s, Vector3(0, -0.55, 0))
+			_k(a, tr, T_WEAPON_ROT, s, Vector3(0.1, -1.9, 0))
+			_k(a, tr, T_MODEL_POS, s, Vector3(0, -0.12, 0.1))
+			_k(a, tr, T_MODEL_ROT, e, Vector3(0, 0.45, 0))
+			_k(a, tr, T_WEAPON_ROT, e, Vector3(0.1, 1.9, 0))
+			_k(a, tr, T_MODEL_POS, e, Vector3(0, 0, -0.3))
 	if hold_windup and s > 0.1:
 		_hold_windup(a, s)
 	return a

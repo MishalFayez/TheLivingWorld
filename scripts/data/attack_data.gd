@@ -8,7 +8,7 @@ enum DamageType { PHYSICAL, MAGIC }
 
 @export var id: String = ""
 @export var display_name: String = ""
-@export_enum("slash_h", "slash_v", "thrust", "spin", "rising", "bash", "flurry", "slam", "cast", "lunge", "bite", "sweep") var anim_style: String = "slash_h"
+@export_enum("slash_h", "slash_v", "thrust", "spin", "rising", "bash", "flurry", "slam", "cast", "lunge", "bite", "sweep", "ff_pursuit_slash", "ff_counter") var anim_style: String = "slash_h"
 
 @export_group("Timing")
 @export var startup: float = 0.2

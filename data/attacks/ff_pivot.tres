@@ -16,5 +16,5 @@ hit_weights = PackedFloat32Array()
 hitstop = 0.07
 hitbox_size = Vector3(2.4, 1.6, 2)
 hitbox_offset = Vector3(0, 1, -1.2)
-stamina_cost = 16.0
+stamina_cost = 8.0
 tags = PackedStringArray("skill", "free_flow", "pivot")

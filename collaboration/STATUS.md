@@ -1,5 +1,7 @@
 # حالة العمل
 
+تحديث REAVER-FREEFLOW-002 (21 نوفمبر 2026): نُفّذ على الفرع `feature/reaver-freeflow-002`، بعد رفض 001 كتصميم نهائي في اللعب البشري. أُضيفت Pursuit Slash، وCounter Slash وCounter Pursuit، وPunish، ومتابعة الجنب، وحالات الإيقاع، وتكاليف Stamina الجديدة. الاختبارات: 910 نجاحًا و0 فشل. لا دمج ولا PR، والفرع غير مرفوع. ينتظر مراجعة ChatGPT واللعب البشري حسب `results/REAVER-FREEFLOW-002-PLAYTEST.md`. القرارات المفتوحة في `DESIGN_QUESTIONS.md` (002): ربط الإيقاع، والمراوغة للخلف، وارتفاع DPS بسبب Stamina.
+
 تحديث REAVER-FREEFLOW-001 (21 نوفمبر 2026): الفرع `feature/reaver-freeflow-001` **معتمد للعب البشري وغير معتمد للدمج** (مراجعة ChatGPT). Free Flow هي نواة Reaver الافتراضية في هذا الفرع فقط؛ `main` لم يتغير. لا يوجد PR. الخطوة التالية: تقييم مشعل لإحساس القتال حسب `results/REAVER-FREEFLOW-001-PLAYTEST.md`. لا ترحيل للحفظ ولا تغيير توازن قبل ذلك.
 
 تحديث GitHub (مكتمل، ENV-002): المستودع الخاص https://github.com/MishalFayez/TheLivingWorld مربوط ومرفوع. تحقق gh 2.105.0 المحمول من الحساب MishalFayez والخصوصية PRIVATE قبل الرفع وبعده. رُفع `main` والوسم `baseline-design-resolution-2026-11-20` (`1d5d336`) دون force، وتطابقت البصمات المحلية والبعيدة. الاعتماد عبر مساعد gh محلي للمستودع فقط؛ إعدادات Git العامة لم تتغير. التفاصيل والأدلة في results/GITHUB_SETUP.md. يُقدَّم هذا التحديث على فقرة "الرفع متوقف" وفقرة "لا يوجد مستودع بعيد" أدناه، وتبقيان سجلًا تاريخيًا.

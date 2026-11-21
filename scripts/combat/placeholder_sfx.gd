@@ -12,6 +12,7 @@ static var _cache: Dictionary = {}
 const CUES := {
 	"opportunity": [1320.0, 0.12, -16.0, 9.0],   # restrained high chime: an opportunity is ready
 	"consume": [180.0, 0.2, -10.0, 6.0],          # low thump: a prepared strike was spent
+	"rhythm": [880.0, 0.05, -24.0, 10.0],         # REAVER-FREEFLOW-002: very soft tick, In Rhythm
 }
 
 

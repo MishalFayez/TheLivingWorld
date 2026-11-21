@@ -42,6 +42,9 @@ var weapon_pivot: Node3D
 var shield_pivot: Node3D
 var anim: AnimationPlayer
 var anim_lib: AnimationLibrary
+## Cross-fade into an attack animation. 0.04 for everyone; only the Free Flow Reaver changes it for its
+## own attack-to-attack transitions (REAVER-FREEFLOW-002). Default behavior is unchanged.
+var attack_blend: float = 0.04
 var runner: AttackRunner
 var hitbox: Hitbox
 var statuses: StatusComponent
@@ -130,7 +133,7 @@ func play_attack_anim(d: AttackData, spd: float) -> void:
 	var key := d.anim_key() + ("_h" if hold else "")
 	if not anim_lib.has_animation(key):
 		anim_lib.add_animation(key, ProcAnim.build_attack(d, hold))
-	anim.play(key, 0.04, spd)
+	anim.play(key, attack_blend, spd)
 
 
 func play_anim(n: String, spd: float = 1.0) -> void:

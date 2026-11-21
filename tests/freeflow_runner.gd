@@ -265,25 +265,27 @@ func test_continuation() -> void:
 
 
 # ------------------------------------------------------------------ opportunity
+## REAVER-FREEFLOW-002 changed this source: two consecutive connecting attacks now give the In Rhythm
+## tempo state (responsiveness), not the damage opportunity (Perfect Flow). Checked in freeflow2_runner.
 func test_opportunity_from_attacks() -> void:
-	print("\n[Precision Opportunity from two consecutive connecting attacks]")
+	print("\n[Consecutive connecting attacks -> In Rhythm (002), not Perfect Flow; Perfect Flow timing]")
 	var h := await ff(1)
 	var f := fk(h)
 	var r := target(h)
 	tap(h, "light")
 	await until_idle(h)
-	check(not f.has_opportunity(), "one connecting attack alone creates no opportunity")
+	check(not f.has_opportunity() and f.tempo() == ReaverFreeFlow.Tempo.NEUTRAL, "one connecting attack alone changes nothing")
 	tap(h, "light")
 	await wait(0.3)
-	check(f.has_opportunity() and f.opportunities_created == 1, "the second consecutive connecting attack creates one", f.last_reason)
+	check(not f.has_opportunity() and f.tempo() == ReaverFreeFlow.Tempo.IN_RHYTHM, "the second consecutive connecting attack gives In Rhythm, not a damage opportunity (002)", f.tempo_name())
 	await until_idle(h)
-	tap(h, "light")
-	await until_idle(h)
-	check(f.opportunities_created == 1 and f.opportunities_refreshed >= 1, "a further connecting attack refreshes it (one maximum, no stacking)", "created %d refreshed %d" % [f.opportunities_created, f.opportunities_refreshed])
+	f.grant("test")
+	f.grant("test again")
+	check(f.opportunities_created == 1 and f.opportunities_refreshed == 1, "Perfect Flow: one maximum, a second grant refreshes (no stacking)", "created %d refreshed %d" % [f.opportunities_created, f.opportunities_refreshed])
 	var t0: float = f.opportunity_until
-	check(absf(t0 - Game.time - 1.75) < 0.6, "duration about 1.75s", "%.2fs left" % (t0 - Game.time))
+	check(absf(t0 - Game.time - 1.75) < 0.05, "Perfect Flow lasts 1.75s", "%.2fs left" % (t0 - Game.time))
 	await wait(t0 - Game.time + 0.05)
-	check(not f.has_opportunity(), "the opportunity expires naturally if unused")
+	check(not f.has_opportunity(), "Perfect Flow expires naturally if unused")
 	# misses never generate it
 	await wait(1.0)
 	var c0: int = f.opportunities_created + f.opportunities_refreshed
@@ -329,10 +331,7 @@ func test_opportunity_consumption() -> void:
 	f.grant("test")
 	check(f.has_opportunity(), "opportunity open")
 	var lt0: int = f.opportunities_consumed
-	tap(h, "light")
-	await until_idle(h)
-	check(f.opportunities_consumed == lt0, "a Flow Strike does not consume it")
-	await wait(0.05)
+	# (002: a Light during a Perfect-Dodge Perfect Flow becomes Counter Slash: checked in freeflow2_runner)
 	var boosted := await _heavy_hit(h, r)
 	check(base != null and boosted != null, "both Heavy Cuts connected")
 	if base and boosted:
@@ -427,7 +426,7 @@ func test_pursuit_cut() -> void:
 	tap(h, "skill1")
 	await wait(0.03)
 	check(cur(h) == "ff_pursuit", "1 = Pursuit Cut", cur(h))
-	check(absf(st0 - h.stamina - 16.0) < 0.5, "stamina cost (16)", "%.1f" % (st0 - h.stamina))
+	check(absf(st0 - h.stamina - 10.0) < 0.5, "stamina cost (10, REAVER-FREEFLOW-002)", "%.1f" % (st0 - h.stamina))
 	check(absf(h.kit.skill_cd("r_pursuit_cut") - 5.0) < 0.1, "5s cooldown started")
 	var hp0 := r.hp
 	await until_idle(h)
@@ -477,7 +476,7 @@ func test_pivot_cut() -> void:
 	tap(h, "skill2")
 	await wait(0.02)
 	check(cur(h) == "ff_pivot", "2 = Pivot Cut", cur(h))
-	check(absf(st0 - h.stamina - 16.0) < 0.5 and absf(h.kit.skill_cd("r_pivot_cut") - 4.0) < 0.1, "stamina cost (16) and 4s cooldown")
+	check(absf(st0 - h.stamina - 8.0) < 0.5 and absf(h.kit.skill_cd("r_pivot_cut") - 4.0) < 0.1, "stamina cost (8, REAVER-FREEFLOW-002) and 4s cooldown", "%.1f" % (st0 - h.stamina))
 	var inv := false
 	var hp_before := h.hp
 	var took := false
@@ -542,7 +541,7 @@ func test_decisive_cut() -> void:
 	tap(h, "skill3")
 	await wait(0.03)
 	check(cur(h) == "ff_decisive" and not h.runner.ctx.get("consumed", true), "3 = Decisive Cut, usable without an opportunity")
-	check(absf(st0 - h.stamina - 25.0) < 0.5 and absf(h.kit.skill_cd("r_decisive_cut") - 8.0) < 0.1, "high stamina cost (25) and 8s cooldown")
+	check(absf(st0 - h.stamina - 20.0) < 0.5 and absf(h.kit.skill_cd("r_decisive_cut") - 8.0) < 0.1, "high stamina cost (20, REAVER-FREEFLOW-002) and 8s cooldown", "%.1f" % (st0 - h.stamina))
 	await until_idle(h)
 	var base: DamageInfo = dmg[0] if not dmg.is_empty() else null
 	check(base != null and base.raw_amount > 0.0, "the base Decisive Cut connects")
