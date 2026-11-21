@@ -212,6 +212,11 @@ func cancel_charge() -> void:
 ## Applies charge level to a cloned attack. Charging changes the attack, not only its numbers
 ## (subclasses add mechanical differences on top).
 func apply_charge(d: AttackData, ratio: float) -> AttackData:
+	return charged_attack(d, ratio)
+
+
+## Static form (LEVEL10-FOUNDATION-005: tooltips build the same charged attack the kit builds).
+static func charged_attack(d: AttackData, ratio: float) -> AttackData:
 	var c := d.clone()
 	c.damage_mult += d.charge_damage_bonus * ratio
 	c.poise_damage += d.charge_poise_bonus * ratio

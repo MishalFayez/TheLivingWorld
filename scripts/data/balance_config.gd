@@ -24,7 +24,12 @@ extends Resource
 @export var dodge_speed: float = 11.0
 @export var poise_regen: float = 18.0
 @export var poise_regen_delay: float = 2.5
-@export var stagger_time: float = 0.85
+@export var stagger_time: float = 0.85   ## heroes' Poise Break duration (enemies use the tier values below)
+## LEVEL10-FOUNDATION-005 Part 9: enemy POISE BREAK windows by tier (provisional targets: normal 1.2-1.4s,
+## elite 0.8-1.0s, boss 0.5-0.7s). Minor hit reactions (stagger_on_hit) keep their own short durations.
+@export var poise_break_normal: float = 1.3
+@export var poise_break_elite: float = 0.9
+@export var poise_break_boss: float = 0.6
 @export var input_buffer: float = 0.15   ## provisional (refoundation spec 4): one stored action for 0.15s
 @export var charge_min: float = 0.4
 

@@ -58,6 +58,20 @@ var _known_cache: Array = []
 var _know_t: float = 0.0
 var _interaction_depth: int = 0
 var _cast_serial: int = 0
+## --- LEVEL10-FOUNDATION-005 Part 3: quick spell selection. Hold the wheel key to open a radial selector of
+## the KNOWN charged spells (grouped by element), release to equip the hovered one into that slot; a quick
+## tap swaps back to the slot's previous spell. Never casts, never spends mana, never interrupts a charge
+## (a change requested mid-charge is applied when the charge ends).
+const WHEEL_ACTIONS := {"wheel_primary": 0, "wheel_secondary": 1}
+const WHEEL_HOLD := 0.2
+const ELEMENT_ORDER := ["fire", "life", "frost", "storm", "stone"]
+var wheel_slot: int = -1
+var wheel_t: float = 0.0
+var wheel_open: bool = false
+var wheel_hover: int = -1
+var prev_spell: Dictionary = {0: "", 1: ""}
+var pending_slot: Dictionary = {}
+var wheel_events: Array = []           # diagnostics: [{kind, slot, from, to}]
 
 
 func _init(p_kit) -> void:
@@ -193,6 +207,13 @@ func spell_for_action(action: String) -> String:
 
 # ------------------------------------------------------------------ input
 func on_press(action: String) -> void:
+	if WHEEL_ACTIONS.has(action):
+		if wheel_slot < 0:
+			wheel_slot = int(WHEEL_ACTIONS[action])
+			wheel_t = 0.0
+			wheel_open = false
+			wheel_hover = -1
+		return
 	match action:
 		"light", "heavy", "skill1":
 			begin(action)
@@ -209,6 +230,14 @@ func on_press(action: String) -> void:
 
 
 func on_release(action: String) -> void:
+	if WHEEL_ACTIONS.has(action):
+		if wheel_slot == int(WHEEL_ACTIONS[action]):
+			if wheel_open:
+				wheel_confirm()
+			else:
+				wheel_tap(wheel_slot)
+			_close_wheel()
+		return
 	if action == "skill3" and util_aiming != "":
 		var u := util_aiming
 		util_aiming = ""
@@ -287,8 +316,93 @@ func request_release() -> void:
 		release_queued = true      # a tap still casts: it waits for the minimum release time
 
 
+# ------------------------------------------------------------------ spell wheels (Part 3)
+## Known charged spells offered by the wheels, grouped by element (Fire, Life, Frost, Storm, Stone) and
+## ordered inside a group like the Spellbook. Unknown spells are never offered.
+func wheel_options() -> Array:
+	var out: Array = []
+	for e in ELEMENT_ORDER:
+		for id in known_charged():
+			if spells[id].element == e:
+				out.append(id)
+	return out
+
+
+func _close_wheel() -> void:
+	wheel_slot = -1
+	wheel_open = false
+	wheel_hover = -1
+	if hero.is_player:
+		Game.wheel_open = false
+
+
+## Escape / invalid selection: the wheel closes and nothing changes.
+func wheel_cancel() -> void:
+	if wheel_slot >= 0:
+		wheel_events.append({"kind": "cancel", "slot": wheel_slot})
+	_close_wheel()
+
+
+func wheel_confirm() -> void:
+	var opts := wheel_options()
+	if wheel_hover < 0 or wheel_hover >= opts.size():
+		wheel_events.append({"kind": "cancel", "slot": wheel_slot})
+		return
+	request_slot(wheel_slot, String(opts[wheel_hover]), "wheel")
+
+
+## Quick tap: swap between the slot's current and previous spell. Nothing happens (soft notice) if the
+## previous spell is no longer valid.
+func wheel_tap(slot: int) -> void:
+	var p := String(prev_spell.get(slot, ""))
+	if p == "" or not spell_known(p) or spells[p].slot_kind != "charged" or p == slot_spell(slot):
+		wheel_events.append({"kind": "tap_invalid", "slot": slot})
+		if hero.is_player:
+			Events.notify.emit("%s: no previous spell to swap to" % ["LMB", "RMB"][slot])
+		return
+	request_slot(slot, p, "tap")
+
+
+func request_slot(slot: int, id: String, source: String) -> void:
+	if cur != null:
+		pending_slot = {"slot": slot, "id": id, "source": source}
+		wheel_events.append({"kind": "deferred", "slot": slot, "to": id})
+		if hero.is_player:
+			Events.notify.emit("%s → %s after this cast" % [["LMB", "RMB"][slot], spells[id].display_name])
+		return
+	apply_slot(slot, id, source)
+
+
+## Equip `id` into charged slot `slot`. If it sat in another charged slot, the two swap (no slot is left empty).
+func apply_slot(slot: int, id: String, source: String) -> void:
+	_ensure_loadout()
+	var p := prog()
+	var old := slot_spell(slot)
+	if id == old or not spell_known(id) or spells[id].slot_kind != "charged":
+		return
+	var from := -1
+	for k in 3:
+		if String(p.spell_loadout[k]) == id:
+			from = k
+	p.spell_loadout[slot] = id
+	if from >= 0 and from != slot:
+		p.spell_loadout[from] = old
+	prev_spell[slot] = old
+	wheel_events.append({"kind": source, "slot": slot, "from": old, "to": id})
+	Events.spell_slot_changed.emit(hero, slot, old, id, source)
+	if hero.is_player:
+		Events.notify.emit("%s: %s" % [["LMB", "RMB"][slot], spells[id].display_name])
+		Game.autosave()
+
+
 func process(delta: float) -> void:
 	mastery_cd = maxf(0.0, mastery_cd - delta)
+	if wheel_slot >= 0 and not wheel_open:
+		wheel_t += delta
+		if wheel_t >= WHEEL_HOLD:
+			wheel_open = true
+			if hero.is_player:
+				Game.wheel_open = true
 	if cur != null:
 		charge_t = minf(charge_t + delta * charge_speed(), cur.full_charge + 5.0)
 		if is_instance_valid(fx):
@@ -350,6 +464,10 @@ func _end_charge() -> void:
 	if is_instance_valid(fx):
 		fx.finish()
 	fx = null
+	if not pending_slot.is_empty():
+		var ps := pending_slot
+		pending_slot = {}
+		apply_slot(int(ps.slot), String(ps.id), String(ps.source))
 
 
 func in_sanctum() -> bool:
@@ -550,7 +668,7 @@ func aim_info(s: ChargedSpellData) -> Dictionary:
 
 func dmg_power(s: ChargedSpellData, full: bool) -> float:
 	# STR scales CHARGED attack damage: applied to fully charged damage spells only
-	return s.power_full * hero.stats.heavy_mult() if full else s.power_partial
+	return DamageCalc.charged_power(hero.stats, s, full)
 
 
 ## Earthbreaker / Rising Pillar displacement by enemy weight (light / medium / heavy; bosses resist).
@@ -1315,7 +1433,7 @@ func _bloom(s: ChargedSpellData, ctx: Dictionary) -> bool:
 		if hero.is_player:
 			Events.notify.emit("Heal target out of range")
 		return false
-	var amount := hero.weapon_power * (s.power_full if full else s.power_partial)
+	var amount := DamageCalc.direct_heal(hero.weapon_power, s.power_full if full else s.power_partial)
 	var label := s.display_name + (" (full)" if full else "")
 	var recipients: Array = [t]
 	var each := amount
@@ -1413,7 +1531,7 @@ func lifeline() -> bool:
 	kit.mana -= s.mana_partial
 	kit.set_cd("lifeline", s.cooldown)
 	FX.beam(tip_pos(), t.global_position + Vector3(0, 1.0, 0), COLORS.life)
-	_heal(t, hero.weapon_power * s.power_partial, "Lifeline")
+	_heal(t, DamageCalc.direct_heal(hero.weapon_power, s.power_partial), "Lifeline")
 	_recovery(s, false)
 	Events.spell_released.emit(hero, s.id, "life", false, 0.0, s.mana_partial)
 	return true

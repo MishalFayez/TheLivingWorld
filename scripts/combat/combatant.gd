@@ -201,28 +201,17 @@ func build_damage(d: AttackData, target, idx: int, ctx: Dictionary) -> DamageInf
 	info.damage_type = d.damage_type
 	info.hit_index = idx
 	info.hit_count = maxi(1, d.hits)
-	var weight := 1.0 / float(info.hit_count)
-	if d.hit_weights.size() == info.hit_count:
-		weight = d.hit_weights[idx]
-	var total := weapon_power * d.damage_mult * float(ctx.get("damage_mult", 1.0))
-	if d.is_heavy or d.is_charged:
-		total *= stats.heavy_mult()          # STR: heavy & charged damage
-	if d.hits > 1:
-		total *= stats.multihit_mult()       # DEX: combined total of multi-hit attacks
-	total *= statuses.mult("damage_dealt")
-	var amount := total * weight
+	# LEVEL10-FOUNDATION-005: the deterministic numbers come from DamageCalc (shared with every tooltip)
+	var h := DamageCalc.attack_hit(stats, weapon_power, d, idx, ctx, statuses.mult("damage_dealt"), statuses.mult("poise_damage"))
+	var amount: float = h.amount
 	info.is_heavy = d.is_heavy or (d.final_hit_heavy and idx == info.hit_count - 1)
-	var cc := stats.crit_chance + d.crit_chance_bonus + float(ctx.get("crit_chance_bonus", 0.0))
-	cc += situational_crit(d, target, ctx)
-	var cd := stats.crit_damage_total() + d.crit_damage_bonus + float(ctx.get("crit_damage_bonus", 0.0))
-	if idx == info.hit_count - 1:
-		cd += d.final_hit_crit_damage_bonus
+	var cc: float = h.crit_chance + situational_crit(d, target, ctx)
 	if randf() < cc:
 		info.is_crit = true
-		amount *= cd
+		amount *= h.crit_mult
 	info.amount = amount
 	info.raw_amount = amount
-	info.poise = d.poise_damage * weight * float(ctx.get("poise_mult", 1.0)) * statuses.mult("poise_damage")
+	info.poise = h.poise
 	info.guard_break = d.guard_break
 	info.hitstop = d.hitstop * Game.balance.hitstop_scale
 	info.knockback = d.knockback
@@ -240,10 +229,11 @@ func spell_damage(target, power: float, poise_dmg: float, attack_name: String, o
 	info.target = target
 	info.attack_name = attack_name
 	info.damage_type = int(opts.get("type", AttackData.DamageType.MAGIC))
-	var amount := weapon_power * power * statuses.mult("damage_dealt")
-	if randf() < stats.crit_chance + float(opts.get("crit_bonus", 0.0)):
+	var h := DamageCalc.spell_hit(stats, weapon_power, power, float(opts.get("crit_bonus", 0.0)), statuses.mult("damage_dealt"))
+	var amount: float = h.amount
+	if randf() < h.crit_chance:
 		info.is_crit = true
-		amount *= stats.crit_damage_total()
+		amount *= h.crit_mult
 	info.amount = amount
 	info.raw_amount = amount
 	info.poise = poise_dmg
@@ -305,8 +295,8 @@ func take_damage(info: DamageInfo) -> DamageInfo:
 		info.killed = true
 		on_zero_hp(info)
 		return info
-	# poise
-	if info.poise > 0.0 and not info.is_dot:
+	# poise (no Poise accumulates during a Poise Break window: a break can never chain into another)
+	if info.poise > 0.0 and not info.is_dot and not is_poise_broken():
 		var p := info.poise * statuses.mult("poise_taken")
 		if is_attacking_now() and runner.data:
 			p *= 1.0 - runner.data.poise_armor
@@ -314,7 +304,8 @@ func take_damage(info: DamageInfo) -> DamageInfo:
 		poise_delay = Game.balance.poise_regen_delay
 		if poise <= 0.0:
 			info.staggered = true
-			stagger(Game.balance.stagger_time)
+			info.tags["poise_break"] = true
+			poise_break()
 		elif info.stagger_on_hit > 0.0 and can_be_launched():
 			info.staggered = true
 			stagger(info.stagger_on_hit)
@@ -355,14 +346,43 @@ func _update_shield_visual() -> void:
 
 
 func take_poise(amount: float) -> void:
-	if dead or downed:
+	if dead or downed or is_poise_broken():
 		return
 	poise -= amount
 	poise_delay = Game.balance.poise_regen_delay
 	if poise <= 0.0:
-		if not is_staggered():
-			Events.combat_notice.emit("POISE BROKEN", self)
-		stagger(Game.balance.stagger_time)
+		poise_break()
+
+
+# ------------------------------------------------------------------ Poise Break (LEVEL10-FOUNDATION-005 Part 9)
+var poise_break_until: float = -10.0
+var poise_breaks: int = 0
+
+
+## Duration of a full Poise Break (heroes: BalanceConfig.stagger_time; enemies override by tier).
+func poise_break_time() -> float:
+	return Game.balance.stagger_time
+
+
+func is_poise_broken() -> bool:
+	return Game.time < poise_break_until and stagger_timer > 0.0
+
+
+## Poise reached 0: a real Poise Break opening (separate from minor hit reactions).
+func poise_break() -> void:
+	if dead or downed:
+		return
+	var was := is_staggered()
+	stagger(poise_break_time(), true)
+	poise_break_until = Game.time + stagger_timer
+	poise_breaks += 1
+	if not was:
+		Events.combat_notice.emit("POISE BROKEN", self)
+	on_poise_broken()
+
+
+func on_poise_broken() -> void:
+	pass
 
 
 func heal(amount: float, source = null, tags: Dictionary = {}) -> float:
@@ -379,7 +399,7 @@ func heal(amount: float, source = null, tags: Dictionary = {}) -> float:
 	return over
 
 
-func stagger(duration: float) -> void:
+func stagger(duration: float, _is_break: bool = false) -> void:
 	if dead or downed:
 		return
 	runner.interrupt()

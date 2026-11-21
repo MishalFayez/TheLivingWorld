@@ -22,7 +22,7 @@ milestones = Array[Dictionary]([{
 "level": 1,
 "name": "Edge"
 }, {
-"desc": "Blade Weaving: choose where you stand and how you strike - hold position, advance, circle, or switch to Edge to punish. Combat Weave dodge: side 1.3m, forward 1.5m, back 2.5m.",
+"desc": "Blade Weaving: choose where you stand and how you strike - hold position, advance, circle, or switch to Edge to punish. Combat Weave dodge: side 2.0m, forward 2.0m, back 2.7m.",
 "icon": "split",
 "id": "bd_weave",
 "input": "Space",

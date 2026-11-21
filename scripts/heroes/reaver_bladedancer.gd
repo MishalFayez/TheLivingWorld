@@ -18,11 +18,23 @@ const HOLD_THRESHOLD := 0.35          ## LMB held this long in Edge = Committed 
 const COMMIT_MAX := 0.75              ## longer holds add nothing
 const COMMIT_DMG_BONUS := 0.4         ## damage_mult added at a full (0.75s) hold, linear from 0.35s
 const COMMIT_POISE_BONUS := 10.0      ## poise added at a full hold
-const FORWARD_V := 5.7                ## knock impulse: ~0.9m forward (decel 18 m/s^2 -> d = v^2 / 36)
-const LATERAL_V := 4.85               ## ~0.65m sideways
-const WITHDRAW_V := 5.4               ## ~0.8m back
-const ORBIT_SPEED := 5.6              ## m/s along the circle during Orbit Step startup (~1.5m of arc)
+## --- BLADE DANCER 004 refinement (LEVEL10-FOUNDATION-005 Part 2). Movement is a knock impulse through
+## move_and_slide (decel 18 m/s^2 -> free-space distance d = v^2 / 36); collision always applies.
+const FORWARD_MAX := 1.3              ## forward Dance travel with room to close (003: ~0.9m)
+const FORWARD_MIN := 0.35             ## already inside weapon range: a short step only
+const FORWARD_STOP := 1.15            ## centre distance the forward step aims to stop at (bodies collide at ~0.9m)
+const LATERAL_DIST := 1.0             ## lateral Dance travel (003: ~0.65m)
+const WITHDRAW_DIST := 1.5            ## Withdraw & Thrust retreat (003: ~0.8m)
+const FORWARD_V := 6.84               ## sqrt(36 x 1.3): no-target forward impulse
+const LATERAL_V := 6.0                ## sqrt(36 x 1.0)
+const WITHDRAW_V := 7.35              ## sqrt(36 x 1.5)
+const ORBIT_SPEED := 6.4              ## m/s along the circle during Orbit Step startup
+const ORBIT_ANGLE := 75.0             ## target sweep (003: ~40 deg); owner range 70-80
+const ORBIT_MIN_T := 0.24             ## Orbit Step startup bounds (duration follows the arc length)
+const ORBIT_MAX_T := 0.42
 const ORBIT_FREE_V := 7.1             ## no target: straight lateral step ~1.4m
+const WHIRL_ENGAGE_GAP := 2.0         ## Whirling Assault: beyond this gap to the locked target ...
+const WHIRL_ENGAGE_SPEED := 1.2       ## ... drift toward it at up to this speed during the hits (never through it)
 const RELENTLESS_TRAVEL := 1.4        ## Relentless Dance: travel x1.4 (neutral: 0.5m forward)
 const FORWARD_ANGLE := 50.0           ## input within this angle of the reference = forward
 const BACK_ANGLE := 130.0             ## beyond this = backward input (no backward Dance: neutral)
@@ -35,7 +47,9 @@ const CHAIN_BLEND := 0.10
 const DEFAULT_BLEND := 0.04
 ## Combat Weave target distances (the shared dodge covers 3.465m; its speed is scaled, its timing and
 ## i-frames are not touched)
-const WEAVE_DIST := {"side": 1.3, "forward": 1.5, "back": 2.5}
+const WEAVE_DIST := {"side": 2.0, "forward": 2.0, "back": 2.7}    ## 004 targets (003: 1.3 / 1.5 / 2.5)
+const WEAVE_ANIM := "bd_weave"
+const FULL_POSE_ANIM := "bd_charge_full"
 const SHARED_DODGE_DIST := 3.465
 const STANCE_ANIM := "bd_edge_stance"
 
@@ -48,11 +62,19 @@ var last_dodge_kind: String = ""
 var _lmb_in_edge: bool = false
 var _chaining: bool = false
 var _orbit: Dictionary = {}
+var _lateral: Dictionary = {}          ## Phantom Footwork curved lateral state (Dance Mastery augment)
+var _weave: bool = false
+var _cfx: ChargeFX = null
+var _blade_glow: MeshInstance3D = null
+var _full_cued: bool = false
 # diagnostics (tests / measurement only; never shown as a meter)
 var started: Dictionary = {}
 var mode_switches: int = 0
 var stamina_refunded: float = 0.0
 var last_attack: String = ""
+var full_charge_cues: int = 0
+var last_orbit: Dictionary = {}        ## {radius, startup, target_angle, swept}
+var last_forward_plan: float = 0.0
 
 
 func _init(p_kit) -> void:
@@ -67,6 +89,9 @@ func reset() -> void:
 	_lmb_in_edge = false
 	_chaining = false
 	_orbit = {}
+	_lateral = {}
+	_weave = false
+	_end_charge_fx()
 	if hero:
 		if "attack_blend" in hero:
 			hero.attack_blend = DEFAULT_BLEND
@@ -75,6 +100,35 @@ func reset() -> void:
 
 
 # ------------------------------------------------------------------ queries
+## Free-space travel of a knock impulse (Combatant decelerates knock_velocity at 18 m/s^2: d = v^2 / 36).
+static func impulse_distance(v: float) -> float:
+	return v * v / 36.0
+
+
+static func forward_distance() -> float:
+	return FORWARD_MAX
+
+
+static func lateral_distance() -> float:
+	return LATERAL_DIST
+
+
+## Forward Dance travel for a centre-to-centre gap (no target: the full step).
+static func forward_travel(gap: float) -> float:
+	if gap < 0.0:
+		return FORWARD_MAX
+	return clampf(gap - FORWARD_STOP, FORWARD_MIN, FORWARD_MAX)
+
+
+## Lateral direction with a locked target: the chord of the circle around it, so a step of LATERAL_DIST
+## starts and ends at the same radius (repeated lateral attacks do not drift out of range). Straight line,
+## no steering, no snapping.
+static func lateral_chord(tangent: Vector3, to_target: Vector3, radius: float, dist: float) -> Vector3:
+	var r := maxf(radius, 0.8)
+	var half := asin(clampf(dist / (2.0 * r), 0.0, 1.0))
+	return (tangent * cos(half) + to_target * sin(half)).normalized()
+
+
 func in_edge() -> bool:
 	return mode == "edge"
 
@@ -241,7 +295,24 @@ func _technique(action: String, unlock_id: String) -> void:
 		if hero.is_player:
 			Events.notify.emit("Not enough stamina")
 		return
+	if id == "bd_orbit":
+		# 004: the circling time follows the arc needed for ORBIT_ANGLE at the current radius (bounded)
+		var t = engaged_target()
+		if t != null:
+			var rad: float = maxf(_flat(hero.global_position - t.global_position).length(), 1.4)
+			# 0.88: the circling starts one physics tick late and collision / radius correction cost some
+			# arc; the sweep itself stops at the target angle (process), so the margin never over-rotates
+			d.startup = clampf(deg_to_rad(orbit_angle()) * rad / (ORBIT_SPEED * 0.88), ORBIT_MIN_T, ORBIT_MAX_T)
 	_go(d, id.trim_prefix("bd_"))
+
+
+static func _flat(v: Vector3) -> Vector3:
+	return Vector3(v.x, 0.0, v.z)
+
+
+## Orbit Step sweep target (Extended Orbit augment adds to it; see augment_runtime).
+func orbit_angle() -> float:
+	return ORBIT_ANGLE * float(kit.hero.get_meta("orbit_angle_mult", 1.0))
 
 
 # ------------------------------------------------------------------ attacks
@@ -267,10 +338,17 @@ func _precision() -> void:
 	_go(kit.load_attack("bd_precision").clone(), "precision")
 
 
-func _committed(ratio: float) -> void:
-	var d: AttackData = kit.load_attack("bd_committed").clone()
+## Committed Cut at a charge ratio (0 = 0.35s hold, 1 = 0.75s), before transformations. Shared with the
+## tooltips (LEVEL10-FOUNDATION-005) so the displayed value is the attack the kit actually starts.
+static func committed_attack(base: AttackData, ratio: float) -> AttackData:
+	var d: AttackData = base.clone()
 	d.damage_mult += COMMIT_DMG_BONUS * ratio
 	d.poise_damage += COMMIT_POISE_BONUS * ratio
+	return d
+
+
+func _committed(ratio: float) -> void:
+	var d: AttackData = committed_attack(kit.load_attack("bd_committed"), ratio)
 	var tr := ""
 	if kit.aug("perfect_edge") > 0:
 		tr = "perfect_edge"
@@ -326,17 +404,37 @@ func _go(d: AttackData, kind: String, extra: Dictionary = {}) -> bool:
 func _apply_motion(kind: String, ctx: Dictionary) -> void:
 	var ref := ref_dir()
 	var mult := RELENTLESS_TRAVEL if ctx.get("relentless", false) else 1.0
+	mult *= float(ctx.get("travel_mult", 1.0))      # Close Pursuit / Dancer's Reversal (augment_runtime)
+	var lt = hero.lock_target if hero.lock_target != null and is_instance_valid(hero.lock_target) and hero.lock_target.is_targetable() else null
 	match kind:
 		"dance_neutral":
 			if ctx.get("relentless", false):
 				hero.knock_velocity += ref * sqrt(36.0 * 0.5)
 		"dance_forward":
 			hero.attack_turn_dir = ref
-			hero.knock_velocity += ref * FORWARD_V * sqrt(mult)
+			# 004: meaningful travel when there is room, a short step when already in weapon range
+			var gap := -1.0
+			var t = lt if lt != null else engaged_target()
+			if t != null:
+				var to := _flat(t.global_position - hero.global_position)
+				if lt != null or rad_to_deg(ref.angle_to(to.normalized())) <= FORWARD_ANGLE:
+					gap = to.length()
+			var dist := forward_travel(gap) * mult
+			last_forward_plan = dist
+			hero.knock_velocity += ref * sqrt(36.0 * dist)
 		"dance_lateral":
 			var side := ref.cross(Vector3.UP).normalized() * float(ctx.get("side", 1))
 			hero.attack_turn_dir = ref
-			hero.knock_velocity += side * LATERAL_V * sqrt(mult)
+			var dist := LATERAL_DIST * mult
+			var dir := side
+			if lt != null:
+				var rv := _flat(hero.global_position - lt.global_position)
+				if ctx.get("phantom", false):
+					# Phantom Footwork: a curved path around the target (steered in process(), radius kept)
+					_lateral = {"target": lt, "radius": maxf(rv.length(), 1.2), "sign": float(ctx.get("side", 1))}
+				else:
+					dir = lateral_chord(side, -rv.normalized(), rv.length(), dist)
+			hero.knock_velocity += dir * sqrt(36.0 * dist)
 		"withdraw":
 			hero.attack_turn_dir = ref
 			hero.knock_velocity -= ref * WITHDRAW_V
@@ -354,7 +452,8 @@ func _apply_motion(kind: String, ctx: Dictionary) -> void:
 			else:
 				var rv: Vector3 = hero.global_position - t.global_position
 				rv.y = 0
-				_orbit = {"target": t, "sign": sgn, "radius": maxf(rv.length(), 1.4)}
+				_orbit = {"target": t, "sign": sgn, "radius": maxf(rv.length(), 1.4), "start": rv.normalized(), "angle": orbit_angle()}
+				last_orbit = {"radius": rv.length(), "startup": hero.runner.data.startup, "target_angle": orbit_angle(), "swept": 0.0}
 
 
 func _mastery_blocks(action: String) -> bool:
@@ -383,6 +482,10 @@ func on_hit_landed(target, info: DamageInfo) -> void:
 	var ctx: Dictionary = hero.runner.ctx
 	if not ctx.get("bd", false) or not (target is Enemy):
 		return
+	if String(ctx.get("kind", "")) == "whirl" and not ctx.get("whirl_cue_%d" % info.hit_index, false):
+		ctx["whirl_cue_%d" % info.hit_index] = true
+		PlaceholderSfx.play(hero, "bd_whirl_hit")
+		VFX.sword_arc(hero, Color(0.85, 0.92, 1.0), 1.5, 160.0, 1.0, 0.25 * float(info.hit_index % 2 * 2 - 1), 0.14)
 	if not ctx.get("refunded", false):
 		ctx["refunded"] = true
 		var before: float = hero.stamina
@@ -403,6 +506,7 @@ func on_hit_landed(target, info: DamageInfo) -> void:
 
 func on_attack_finished(_d: AttackData, _ctx: Dictionary, _interrupted: bool) -> void:
 	_orbit = {}
+	_lateral = {}
 
 
 ## Combat Weave: the shared dodge (same timing, i-frames and stamina) travels a Reaver distance chosen
@@ -415,6 +519,8 @@ func on_dodge() -> void:
 		kind = "forward" if a <= 45.0 else ("back" if a >= 135.0 else "side")
 	last_dodge_kind = kind
 	hero.dodge_scale = float(WEAVE_DIST[kind]) / SHARED_DODGE_DIST
+	_weave = true
+	_end_charge_fx()
 	if mode == "edge":
 		mode = "dance"
 		mode_switches += 1
@@ -422,12 +528,112 @@ func on_dodge() -> void:
 	_lmb_in_edge = false
 
 
+## Combat Weave pose: low crouch, blade swept back along the body (temporary procedural pose).
+static func _build_weave() -> Animation:
+	var a := Animation.new()
+	a.length = 0.42
+	var keys := {
+		ProcAnim.T_MODEL_POS: [Vector3(0, 0, 0), Vector3(0, -0.3, 0), Vector3(0, -0.08, 0)],
+		ProcAnim.T_MODEL_ROT: [Vector3(0, 0, 0), Vector3(-0.25, 0.0, 0.18), Vector3(0, 0, 0)],
+		ProcAnim.T_WEAPON_ROT: [Vector3(0.3, 0.6, 0.2), Vector3(1.2, 1.4, 0.4), Vector3(0.4, 0.7, 0.2)],
+		ProcAnim.T_WEAPON_POS: [Vector3(0.3, 1.0, -0.2), Vector3(0.35, 0.8, 0.25), Vector3(0.3, 0.95, -0.15)],
+	}
+	for path in keys:
+		var i := a.add_track(Animation.TYPE_VALUE)
+		a.track_set_path(i, NodePath(path))
+		a.track_insert_key(i, 0.0, keys[path][0])
+		a.track_insert_key(i, 0.16, keys[path][1])
+		a.track_insert_key(i, 0.42, keys[path][2])
+	return a
+
+
+## Committed Cut at full charge: blade drawn high and back, weight on the rear foot.
+static func _build_full_pose() -> Animation:
+	var a := Animation.new()
+	a.length = 0.6
+	a.loop_mode = Animation.LOOP_LINEAR
+	var keys := {
+		ProcAnim.T_WEAPON_ROT: [Vector3(-0.6, 1.1, 0.5), Vector3(-0.65, 1.1, 0.5)],
+		ProcAnim.T_WEAPON_POS: [Vector3(0.38, 1.35, 0.18), Vector3(0.38, 1.37, 0.18)],
+		ProcAnim.T_MODEL_POS: [Vector3(0, -0.2, 0.06), Vector3(0, -0.21, 0.06)],
+		ProcAnim.T_MODEL_ROT: [Vector3(0, -0.55, 0), Vector3(0, -0.55, 0)],
+	}
+	for path in keys:
+		var i := a.add_track(Animation.TYPE_VALUE)
+		a.track_set_path(i, NodePath(path))
+		a.track_insert_key(i, 0.0, keys[path][0])
+		a.track_insert_key(i, 0.3, keys[path][1])
+		a.track_insert_key(i, 0.6, keys[path][0])
+	return a
+
+
+## Committed Cut charge feedback (004 Part 2.7): a restrained glow grows from the 0.35s threshold; at the
+## 0.75s maximum ONE short cue, a blade highlight and the drawn pose. Cancelling clears everything. Purely
+## presentational: damage still comes only from the existing charge ratio.
+func _update_charge_fx() -> void:
+	if kit.charging != "edge_lmb":
+		_end_charge_fx()
+		return
+	var t: float = kit.charge_t
+	if t < HOLD_THRESHOLD:
+		return
+	if not is_instance_valid(_cfx):
+		_cfx = ChargeFX.attach(hero, "steel")
+	var full := t >= COMMIT_MAX
+	_cfx.set_ratio(clampf((t - HOLD_THRESHOLD) / (COMMIT_MAX - HOLD_THRESHOLD), 0.0, 1.0) * 0.6, full)
+	if full and not _full_cued:
+		_full_cued = true
+		full_charge_cues += 1
+		PlaceholderSfx.play(hero, "bd_full_charge")
+		_blade_glow = MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(0.05, 0.05, 1.15)
+		_blade_glow.mesh = bm
+		var m := StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.albedo_color = Color(1.0, 0.92, 0.75, 0.75)
+		m.emission_enabled = true
+		m.emission = Color(1.0, 0.85, 0.6)
+		m.emission_energy_multiplier = 4.0
+		_blade_glow.material_override = m
+		_blade_glow.position = Vector3(0, 0, -0.78)
+		hero.weapon_pivot.add_child(_blade_glow)
+		if not hero.anim_lib.has_animation(FULL_POSE_ANIM):
+			hero.anim_lib.add_animation(FULL_POSE_ANIM, _build_full_pose())
+		hero.anim.play(FULL_POSE_ANIM, 0.08)
+
+
+func _end_charge_fx() -> void:
+	if is_instance_valid(_cfx):
+		_cfx.finish()
+	_cfx = null
+	if is_instance_valid(_blade_glow):
+		_blade_glow.queue_free()
+	_blade_glow = null
+	_full_cued = false
+
+
+func charge_fx_active() -> bool:
+	return is_instance_valid(_cfx)
+
+
+func blade_highlight_active() -> bool:
+	return is_instance_valid(_blade_glow)
+
+
 func process(_delta: float) -> void:
 	var r: AttackRunner = hero.runner
 	# Orbit Step: circle the target during the startup (collision still applies)
 	if not _orbit.is_empty():
 		var t = _orbit.get("target")
-		if r.is_busy() and r.ctx.get("kind", "") == "orbit" and r.phase == AttackRunner.Phase.STARTUP and is_instance_valid(t) and t.is_targetable():
+		var swept := 0.0
+		if is_instance_valid(t):
+			var cur := _flat(hero.global_position - t.global_position)
+			if cur.length() > 0.05:
+				swept = rad_to_deg(Vector3(_orbit.start).angle_to(cur.normalized()))
+				last_orbit["swept"] = swept
+		if r.is_busy() and r.ctx.get("kind", "") == "orbit" and r.phase == AttackRunner.Phase.STARTUP and is_instance_valid(t) and t.is_targetable() and swept < float(_orbit.angle):
 			var rv: Vector3 = hero.global_position - t.global_position
 			rv.y = 0
 			if rv.length() > 0.05:
@@ -439,6 +645,37 @@ func process(_delta: float) -> void:
 			if r.is_busy() and r.ctx.get("kind", "") == "orbit":
 				hero.knock_velocity = Vector3.ZERO
 			_orbit = {}
+	# Phantom Footwork: keep the lateral impulse on the circle (its speed still decays normally)
+	if not _lateral.is_empty():
+		var lt = _lateral.get("target")
+		var sp := _flat(hero.knock_velocity).length()
+		if r.is_busy() and r.ctx.get("kind", "") == "dance_lateral" and is_instance_valid(lt) and lt.is_targetable() and sp > 0.2:
+			var rv := _flat(hero.global_position - lt.global_position)
+			if rv.length() > 0.05:
+				var tangent := Vector3.UP.cross(rv.normalized()) * -float(_lateral.sign)
+				var radial: Vector3 = rv.normalized() * (float(_lateral.radius) - rv.length()) * 3.0
+				hero.knock_velocity = tangent * sp + radial
+		else:
+			_lateral = {}
+	# Whirling Assault: stay engaged - a bounded drift toward the locked target while the hits run
+	if r.is_busy() and r.ctx.get("kind", "") == "whirl" and r.phase == AttackRunner.Phase.ACTIVE:
+		var wt = hero.lock_target
+		if wt != null and is_instance_valid(wt) and wt.is_targetable():
+			var to := _flat(wt.global_position - hero.global_position)
+			if to.length() > WHIRL_ENGAGE_GAP and to.length() < ENGAGE_RADIUS:
+				hero.knock_velocity = hero.knock_velocity.move_toward(to.normalized() * WHIRL_ENGAGE_SPEED, 30.0 * _delta)
+	# Combat Weave: its own defensive motion (crouched slip, blade held back) instead of the generic dodge
+	if _weave:
+		if hero.dodging:
+			if hero.anim.current_animation == "dodge":
+				if not hero.anim_lib.has_animation(WEAVE_ANIM):
+					hero.anim_lib.add_animation(WEAVE_ANIM, _build_weave())
+				hero.anim.play(WEAVE_ANIM, 0.05, 1.0)
+				VFX.particles(hero.global_position + Vector3(0, 0.15, 0), VFX._quad(0.12), VFX._billboard(Color(0.62, 0.78, 1.0), 2.0), 10, 0.35,
+					{"shape": CPUParticles3D.EMISSION_SHAPE_SPHERE, "radius": 0.35, "vmin": 0.2, "vmax": 0.8, "gravity": Vector3(0, 0.6, 0)})
+		else:
+			_weave = false
+	_update_charge_fx()
 	if r.is_busy() and r.ctx.get("bd", false) and r.phase == AttackRunner.Phase.RECOVERY:
 		# Breaking Point: a connecting strike recovers at once; a miss keeps its long recovery
 		if r.ctx.get("kind", "") == "break" and r.ctx.get("hit", false):

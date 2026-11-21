@@ -41,5 +41,7 @@ signal element_choice_needed(class_id: String)   ## retired (Worldweaver has no 
 ## Worldweaver: a real elemental interaction happened (Thermal Fracture, Conductive Anchors, ...)
 signal elemental_interaction(caster, interaction_id: String, detail: String)
 signal formation_changed(formation, change: String)
+## Worldweaver spell slot changed by the spell wheel / tap swap (source: "wheel" / "tap" / "restore")
+signal spell_slot_changed(caster, slot: int, old_spell: String, new_spell: String, source: String)
 ## Reaver Blade Continuity: attempted link between two Blade Lines (legal or refused)
 signal blade_transition(hero, from_line: String, to_line: String, legal: bool)

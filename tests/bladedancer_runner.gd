@@ -159,7 +159,7 @@ func test_dance_directions() -> void:
 	mv = await act(h, "light", toward)
 	check(f.last_attack == "dance_forward", "W + LMB = Forward Dance", f.last_attack)
 	var fwd := mv.dot(toward)
-	check(fwd >= 0.6 and fwd <= 0.95, "visible forward travel up to 0.9m", "%.2fm" % fwd)
+	check(fwd >= 1.1 and fwd <= 1.45, "visible forward travel ~1.3m with room to close (004; 003 was 0.9m)", "%.2fm" % fwd)
 	# lateral right / left
 	place(h, r, 2.2)
 	await wait(0.3)
@@ -167,7 +167,7 @@ func test_dance_directions() -> void:
 	mv = await act(h, "light", right)
 	check(f.last_attack == "dance_lateral", "D + LMB = Lateral Dance", f.last_attack)
 	var lat := mv.dot(right)
-	check(lat >= 0.5 and lat <= 0.8, "lateral travel ~0.5-0.8m", "%.2fm" % lat)
+	check(lat >= 0.85 and lat <= 1.15, "lateral travel ~1.0m (004; 003 was ~0.65m)", "%.2fm" % lat)
 	check(absf(flat(h, r) - d0) < 0.35, "the sidestep changes the angle, not the range", "%.2f -> %.2fm" % [d0, flat(h, r)])
 	place(h, r, 2.2)
 	await wait(0.3)
@@ -466,20 +466,20 @@ func _dodge_travel(h: Hero, input: Vector3) -> float:
 
 
 func test_combat_weave() -> void:
-	print("\n[Combat Weave: side ~1.3m, forward ~1.5m, back ~2.5m; i-frames unchanged; Edge dodge leaves Edge]")
+	print("\n[Combat Weave (004): side ~2.0m, forward ~2.0m, back ~2.7m; i-frames unchanged; Edge dodge leaves Edge]")
 	var h := await bd(1)
 	var f := bk(h)
 	var r := target(h, 9.0)     # reference direction only (far away)
 	var toward := (r.global_position - h.global_position).normalized()
 	var right := toward.cross(Vector3.UP).normalized()
 	var side := await _dodge_travel(h, right)
-	check(f.last_dodge_kind == "side" and absf(side - 1.3) < 0.15, "side dodge ~1.3m (stays close)", "%.2fm" % side)
+	check(f.last_dodge_kind == "side" and absf(side - 2.0) < 0.15, "side dodge ~2.0m (004)", "%.2fm" % side)
 	var fw := await _dodge_travel(h, toward)
-	check(f.last_dodge_kind == "forward" and absf(fw - 1.5) < 0.15, "forward dodge ~1.5m", "%.2fm" % fw)
+	check(f.last_dodge_kind == "forward" and absf(fw - 2.0) < 0.15, "forward dodge ~2.0m (004)", "%.2fm" % fw)
 	var back := await _dodge_travel(h, -toward)
-	check(f.last_dodge_kind == "back" and absf(back - 2.5) < 0.15 and back > side, "backward disengagement ~2.5m, farther than a side dodge", "%.2fm" % back)
+	check(f.last_dodge_kind == "back" and absf(back - 2.7) < 0.15 and back > side, "backward disengagement ~2.7m (004), farther than a side dodge", "%.2fm" % back)
 	var none := await _dodge_travel(h, Vector3.ZERO)
-	check(f.last_dodge_kind == "back" and absf(none - 2.5) < 0.15, "no input = backward disengagement (shared rule: dodge away)", "%.2fm" % none)
+	check(f.last_dodge_kind == "back" and absf(none - 2.7) < 0.15, "no input = backward disengagement (shared rule: dodge away)", "%.2fm" % none)
 	# defensive i-frames unchanged
 	h.try_dodge()
 	await wait(0.1)
@@ -493,8 +493,11 @@ func test_combat_weave() -> void:
 	h.try_dodge()
 	h.move_input = Vector3.ZERO
 	await until_idle(h)
-	check(flat(h, r) < 2.8, "after a side dodge the Reaver is still close (melee range kept)", "%.2fm" % flat(h, r))
-	h.move_input = -right
+	# 004: a 2.0m side dodge from 2.0m ends ~2.83m away (geometry), one forward Dance step from weapon range
+	check(flat(h, r) < 3.0, "after a side dodge the Reaver is still close (one Dance step from melee range)", "%.2fm" % flat(h, r))
+	var t2 := (r.global_position - h.global_position)
+	t2.y = 0
+	h.move_input = -t2.normalized().cross(Vector3.UP)
 	tap(h, "light")
 	await wait(0.03)
 	h.move_input = Vector3.ZERO

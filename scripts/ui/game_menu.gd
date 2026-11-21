@@ -18,6 +18,10 @@ var tab: String = "Character"
 var pending: Dictionary = {}
 var selected_item: String = ""
 var tab_buttons: Dictionary = {}
+## LEVEL10-FOUNDATION-005: live skill tooltips ({label, entry, adv}); Shift switches them to DETAILED
+var skill_labels: Array = []
+var advanced_open: Dictionary = {}
+var _shift_was: bool = false
 
 
 func _ready() -> void:
@@ -89,6 +93,34 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+func _process(_delta: float) -> void:
+	if not is_open or skill_labels.is_empty():
+		return
+	var sh := Input.is_key_pressed(KEY_SHIFT)
+	if sh != _shift_was:
+		_shift_was = sh
+		_update_skill_labels()
+
+
+func _tooltip_level(adv: bool) -> int:
+	if adv:
+		return TooltipText.LEVEL_ADVANCED
+	return TooltipText.LEVEL_DETAILED if Input.is_key_pressed(KEY_SHIFT) else TooltipText.LEVEL_SIMPLE
+
+
+func _calc_source() -> Dictionary:
+	if is_instance_valid(Game.player) and Game.player.class_id == cls():
+		return TooltipText.source_for_hero(Game.player)
+	return TooltipText.source_for_progress(cls(), prog())
+
+
+func _update_skill_labels() -> void:
+	var src := _calc_source()
+	for s in skill_labels:
+		if is_instance_valid(s.label):
+			s.label.text = TooltipText.skill(s.entry, src, _tooltip_level(bool(advanced_open.get(s.entry.id, false))))
+
+
 func open_tab(t: String) -> void:
 	var draft = get_parent().get_node_or_null("DraftUI")
 	if draft and draft.is_open:
@@ -125,6 +157,7 @@ func show_tab(t: String) -> void:
 	tab_buttons.Spellbook.visible = cls() == "mage" and Game.mage_core == "elementalist"
 	for c in body.get_children():
 		c.queue_free()
+	skill_labels.clear()
 	var content: Control
 	match t:
 		"Character":
@@ -240,7 +273,7 @@ func _character() -> Control:
 		row.add_theme_constant_override("separation", 8)
 		var nv := _col(250)
 		nv.add_theme_constant_override("separation", 0)
-		nv.add_child(UITheme.text(StatPreview.STAT_NAMES[k], 17, UITheme.PARCHMENT, true))
+		nv.add_child(UITheme.text("%s  ·  %s" % [StatStyle.STAT[k].abbr, StatPreview.STAT_NAMES[k]], 17, StatStyle.stat_color(k), true))
 		nv.add_child(UITheme.text(StatPreview.STAT_ROLE[k], 12, UITheme.TEXT_DIM))
 		row.add_child(nv)
 		var add := int(pending.get(k, 0))
@@ -318,6 +351,24 @@ func _character() -> Control:
 		if changed:
 			dl = ("+" if b > a else "") + StatPreview.fmt(key, b - a)
 		grid.add_child(UITheme.text(dl, 15, Color(0.5, 1.0, 0.5) if b > a else Color(1.0, 0.5, 0.45)))
+	# LEVEL10-FOUNDATION-005 (Part 8.5): every unlocked skill, before -> after the pending points
+	var rows := TooltipText.preview_rows(c, p, StatPreview.clone_with_pending(p, pending))
+	if not rows.is_empty():
+		right.add_child(UITheme.title("SKILLS  (before crit and armor)", 16))
+		var sg := RichTextLabel.new()
+		sg.bbcode_enabled = true
+		sg.fit_content = true
+		sg.scroll_active = false
+		sg.custom_minimum_size = Vector2(580, 0)
+		sg.add_theme_font_size_override("normal_font_size", 14)
+		sg.add_theme_color_override("default_color", UITheme.PARCHMENT)
+		var lines: Array = []
+		for r in rows:
+			var changed: bool = absf(float(r.after) - float(r.before)) >= 0.5
+			lines.append("%s: %s%s" % [StatStyle.fx(String(r.kind), String(r.name)), StatStyle.num(r.before),
+				("  →  [b]%s[/b] %s" % [StatStyle.num(r.after), StatStyle.delta(r.before, r.after)]) if changed else ""])
+		sg.text = "\n".join(lines)
+		right.add_child(sg)
 	right.add_child(UITheme.title("EQUIPMENT BONUSES", 16))
 	var eq_lines: Array = []
 	for it in p.equipped_items():
@@ -382,6 +433,8 @@ func _skills() -> Control:
 				show_tab("Skills"))
 			box.add_child(ob)
 			row0.add_child(box)
+	_skill_values(v, c, p)
+	v.add_child(UITheme.title("PROGRESSION", 18))
 	for m in t.milestones:
 		var learned: bool = m.kind == "stats" and p.level >= int(m.level) or (m.kind == "augment" and p.level >= int(m.level)) or (m.kind != "stats" and m.kind != "augment" and p.has_unlock(m.id))
 		var pc := _card(UITheme.CLASS_ACCENT[c].darkened(0.2) if learned else Color(0.3, 0.28, 0.26))
@@ -409,6 +462,54 @@ func _skills() -> Control:
 		row.add_child(UITheme.text(state, 14, Color(0.55, 1.0, 0.55) if learned else UITheme.TEXT_DIM, true))
 		v.add_child(pc)
 	return sc
+
+
+## LEVEL10-FOUNDATION-005 (Part 8.3): every skill with its REAL current values (DamageCalc). SIMPLE by
+## default, DETAILED while Shift is held, ADVANCED per card ("Formula & timing").
+func _skill_values(v: VBoxContainer, c: String, p: ClassProgress) -> void:
+	var entries := SkillCatalog.entries(c, p)
+	if entries.is_empty():
+		return
+	v.add_child(UITheme.title("SKILL VALUES  ·  hold Shift for the calculation", 18))
+	var tgt_note := ""
+	if is_instance_valid(Game.player) and Game.player.lock_target != null and is_instance_valid(Game.player.lock_target):
+		tgt_note = "Locked target: %s (estimates after its armor are shown)" % Game.player.lock_target.display_name
+	else:
+		tgt_note = "Lock on to an enemy (Tab) to also see estimates after its armor / magic resist."
+	v.add_child(UITheme.text("Values use the game's real formulas and your current stats, gear and level. Critical hits are random. " + tgt_note, 13, UITheme.TEXT_DIM))
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 12)
+	v.add_child(grid)
+	var src := _calc_source()
+	for e in entries:
+		var learned: bool = (String(e.get("unlock", "")) == "" or p.has_unlock(String(e.unlock))) if not e.has("known") else bool(e.known)
+		var pc := _card(UITheme.CLASS_ACCENT[c].darkened(0.25) if learned else Color(0.3, 0.28, 0.26))
+		var col := _col(690)
+		col.add_theme_constant_override("separation", 4)
+		pc.add_child(col)
+		var rt := RichTextLabel.new()
+		rt.bbcode_enabled = true
+		rt.fit_content = true
+		rt.scroll_active = false
+		rt.custom_minimum_size = Vector2(690, 0)
+		rt.add_theme_font_size_override("normal_font_size", 15)
+		rt.add_theme_font_size_override("bold_font_size", 17)
+		rt.add_theme_color_override("default_color", UITheme.PARCHMENT if learned else UITheme.TEXT_DIM)
+		rt.text = ("" if learned else "[color=#9a8f80]LOCKED[/color]  ") + TooltipText.skill(e, src, _tooltip_level(bool(advanced_open.get(e.id, false))))
+		col.add_child(rt)
+		var eid: String = e.id
+		var adv := Button.new()
+		adv.text = "Hide formula & timing" if advanced_open.get(eid, false) else "Formula & timing"
+		adv.focus_mode = Control.FOCUS_ALL
+		adv.pressed.connect(func():
+			advanced_open[eid] = not bool(advanced_open.get(eid, false))
+			show_tab("Skills"))
+		col.add_child(adv)
+		if learned:
+			skill_labels.append({"label": rt, "entry": e})
+		grid.add_child(pc)
 
 
 # ------------------------------------------------------------------ Augments

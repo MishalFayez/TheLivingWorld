@@ -58,10 +58,14 @@ static func clone(p: ClassProgress) -> ClassProgress:
 
 ## Derived values if `pending` ({stat: points}) were allocated on top of the current allocation.
 static func with_pending(class_id: String, p: ClassProgress, pending: Dictionary) -> Dictionary:
+	return derived(class_id, clone_with_pending(p, pending))
+
+
+static func clone_with_pending(p: ClassProgress, pending: Dictionary) -> ClassProgress:
 	var c := clone(p)
 	for k in pending:
 		c.allocated[k] = int(c.allocated.get(k, 0)) + int(pending[k])
-	return derived(class_id, c)
+	return c
 
 
 ## Derived values if `item_id` were equipped instead of the current item in its slot.

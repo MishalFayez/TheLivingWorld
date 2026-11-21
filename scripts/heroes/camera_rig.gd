@@ -121,7 +121,7 @@ func snap_to_target() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not (event is InputEventMouseMotion) or Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or Game.ui_block > 0:
+	if not (event is InputEventMouseMotion) or Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or Game.ui_block > 0 or Game.wheel_open:
 		return
 	var sens: float = mouse_sensitivity * float(Save.settings.get("mouse_sensitivity", 1.0))
 	var dx: float = event.relative.x * sens

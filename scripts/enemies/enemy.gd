@@ -486,8 +486,23 @@ func can_be_launched() -> bool:
 	return not is_boss
 
 
-func stagger(duration: float) -> void:
-	super.stagger(duration * stagger_mult)
+## Minor reactions keep the per-type multiplier; a Poise Break uses the tier window (Part 9).
+func stagger(duration: float, is_break: bool = false) -> void:
+	super.stagger(duration if is_break else duration * stagger_mult, is_break)
+
+
+func poise_break_time() -> float:
+	var b := Game.balance
+	if is_boss:
+		return b.poise_break_boss
+	return b.poise_break_elite if is_elite else b.poise_break_normal
+
+
+## Readable opening: gold impact burst, low thud, and the stagger pose for the whole window.
+func on_poise_broken() -> void:
+	VFX.shell(global_position + Vector3(0, 1.0, 0), 1.1, Color(1.0, 0.75, 0.25), 0.3, 0.8)
+	VFX.hit_sparks(global_position + Vector3(0, 1.2, 0), Color(1.0, 0.8, 0.3), 18, true)
+	PlaceholderSfx.play(self, "poise_break")
 
 
 # ------------------------------------------------------------------ Openings (Reaver Sword Sense)

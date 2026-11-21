@@ -56,6 +56,8 @@ var player: Hero
 var heroes: Array = []
 var world: Node3D
 var ui_block: int = 0
+## Worldweaver spell wheel open: mouse motion moves the wheel cursor instead of the camera (game keeps running)
+var wheel_open: bool = false
 var time: float = 0.0
 var rng := RandomNumberGenerator.new()
 var _respawn_queue: Array = []
@@ -553,6 +555,7 @@ func end_session() -> void:
 	player = null
 	world = null
 	ui_block = 0
+	wheel_open = false
 	_respawn_queue.clear()
 	get_tree().paused = false
 
@@ -698,6 +701,11 @@ func _setup_inputs() -> void:
 	# Blade Dancer Reaver footwork technique (REAVER-BLADEDANCER-003). Q was unbound; no other class uses
 	# this action, so no existing mapping changes.
 	_key("footwork", [KEY_Q])
+	# Worldweaver spell wheels (LEVEL10-FOUNDATION-005 Part 3): Q = LMB slot, V = RMB slot. Q is only read by
+	# the Reaver ("footwork") and V was unbound; Mage keys (1 / 2 / 3 / F / E / T) are untouched. Separate
+	# actions, so each can be rebound on its own.
+	_key("wheel_primary", [KEY_Q])
+	_key("wheel_secondary", [KEY_V])
 	_key("skill1", [KEY_1])
 	_key("skill2", [KEY_2])
 	_key("skill3", [KEY_3])

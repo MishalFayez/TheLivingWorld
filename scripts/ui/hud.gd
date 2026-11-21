@@ -65,6 +65,10 @@ func _ready() -> void:
 	overlay = WorldOverlay.new()
 	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.add_child(overlay)
+	var wheel := SpellWheel.new()
+	wheel.name = "SpellWheel"
+	wheel.visible = false
+	root.add_child(wheel)
 	_build_bottom()
 	_build_boss()
 	_build_banner()

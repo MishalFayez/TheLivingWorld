@@ -13,6 +13,11 @@ const CUES := {
 	"opportunity": [1320.0, 0.12, -16.0, 9.0],   # restrained high chime: an opportunity is ready
 	"consume": [180.0, 0.2, -10.0, 6.0],          # low thump: a prepared strike was spent
 	"rhythm": [880.0, 0.05, -24.0, 10.0],         # REAVER-FREEFLOW-002: very soft tick, In Rhythm
+	# LEVEL10-FOUNDATION-005 (temporary tones, same rule: placeholders until real audio exists)
+	"bd_full_charge": [990.0, 0.14, -14.0, 8.0],  # Committed Cut reached its 0.75s maximum (once per charge)
+	"bd_whirl_hit": [150.0, 0.07, -15.0, 12.0],   # weight of each Whirling Assault hit
+	"augment": [660.0, 0.08, -20.0, 10.0],        # an augment effect activated (restrained)
+	"poise_break": [95.0, 0.28, -9.0, 5.0],       # Poise Break opening starts
 }
 
 
