@@ -766,11 +766,8 @@ func _setup_inputs() -> void:
 	# Blade Dancer Reaver footwork technique (REAVER-BLADEDANCER-003). Q was unbound; no other class uses
 	# this action, so no existing mapping changes.
 	_key("footwork", [KEY_Q])
-	# Worldweaver spell wheels (LEVEL10-FOUNDATION-005 Part 3): Q = LMB slot, V = RMB slot. Q is only read by
-	# the Reaver ("footwork") and V was unbound; Mage keys (1 / 2 / 3 / F / E / T) are untouched. Separate
-	# actions, so each can be rebound on its own.
-	_key("wheel_primary", [KEY_Q])
-	_key("wheel_secondary", [KEY_V])
+	# (006: the Q / V spell-wheel actions of package 005 are removed - the casting wheels open on LMB / RMB)
+
 	_key("skill1", [KEY_1])
 	_key("skill2", [KEY_2])
 	_key("skill3", [KEY_3])

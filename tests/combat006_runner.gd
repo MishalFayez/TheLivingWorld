@@ -19,8 +19,6 @@ func _run_all() -> void:
 	await teardown()
 
 
-func _extra() -> void:
-	pass
 
 
 func _rig() -> CameraRig:
@@ -160,3 +158,156 @@ func test_camera_heading_blend() -> void:
 		maxacc = maxf(maxacc, absf(wrapf(yaws[i] - yaws[i - 1], -PI, PI) - wrapf(yaws[i - 1] - yaws[i - 2], -PI, PI)) * 3600.0)
 	check(flat(h, e) > 2.2 and maxacc < 120.0, "crossing the hold distance: yaw acceleration max %.0f rad/s^2 (was ~1100 with the hard switch), ended %.2fm away" % [maxacc, flat(h, e)])
 	check(rig.limit_rise_rate > 0.0 and rig.hold_blend_width > 0.0, "smoothing parameters present")
+
+
+func _extra() -> void:
+	await test_casting_wheels()
+	await test_wheel_cancellations()
+
+
+func castw(level: int) -> Hero:
+	var h := await ww(level)
+	h.stats.crit_chance = 0.0
+	h.kit.mana = 100.0
+	return h
+
+
+func test_casting_wheels() -> void:
+	print("\n[Casting wheels: hold LMB / RMB = charge + wheel; point = switch (charge restarts); release = cast; tap = last spell]")
+	check(not InputMap.has_action("wheel_primary") and not InputMap.has_action("wheel_secondary"), "the Q / V spell-wheel actions are gone")
+	var h := await castw(9)
+	var el: MageElementalist = h.kit.el
+	var released: Array = []
+	var cb := func(c, sid, _e, full, _t, _m): if c == h: released.append([sid, full])
+	Events.spell_released.connect(cb)
+	var lmb0 := el.slot_spell(0)
+	# quick tap: last LMB spell, no wheel flash
+	var opened := false
+	h.press("light")
+	for i in 3:
+		await get_tree().physics_frame
+		opened = opened or el.wheel_open
+	h.release("light")
+	for i in 40:
+		await get_tree().physics_frame
+		opened = opened or el.wheel_open
+	check(not opened and released.size() == 1 and released[0][0] == lmb0, "quick tap casts the last LMB spell (%s) without showing the wheel" % lmb0)
+	await until_idle(h)
+	h.kit.mana = 100.0
+	# hold: charging at once, wheel after the short delay
+	h.press("light")
+	await get_tree().physics_frame
+	check(el.cur != null and el.cur.id == lmb0 and not el.wheel_open, "hold: the LMB spell starts charging at once")
+	await wait(0.2)
+	check(el.wheel_open and Game.wheel_open and el.wheel_slot == 0, "the LMB wheel is open while held (camera input paused)")
+	var opts := el.wheel_options(0)
+	var other := -1
+	for i in opts.size():
+		if opts[i] != lmb0 and el.spells[opts[i]].element != "life":
+			other = i
+	await wait(0.3)
+	var mana0: float = h.kit.mana
+	var t_before := el.charge_t
+	el.wheel_select(other)
+	check(el.cur != null and el.cur.id == opts[other] and el.charge_t < 0.05 and t_before > 0.3, "pointing at another spell switches to it; charge restarts from zero (was %.2fs)" % t_before)
+	check(absf(h.kit.mana - mana0) < 0.01 and released.size() == 1, "switching casts nothing and spends no mana")
+	check(el.slot_spell(0) == opts[other], "the button remembers the new spell (next tap)")
+	await wait(0.2)
+	var t_mid := el.charge_t
+	el.wheel_select(other)
+	await wait(0.1)
+	check(el.charge_t > t_mid, "staying on the same sector keeps charging")
+	await wait(1.6)
+	h.release("light")
+	await wait(0.05)
+	check(released.size() == 2 and released[1][0] == opts[other] and released[1][1], "release casts the selected spell (full charge)")
+	check(not el.wheel_open and not Game.wheel_open, "the wheel closes and the camera is restored")
+	await until_idle(h)
+	# min charge after a switch cannot be skipped
+	h.kit.mana = 100.0
+	h.press("light")
+	await wait(0.25)
+	el.wheel_select(opts.find(lmb0))
+	h.release("light")
+	await get_tree().physics_frame
+	check(el.cur != null, "releasing right after a switch waits for the new spell's minimum charge (no instant cast)")
+	await wait(0.6)
+	check(released.size() == 3 and released[2][0] == lmb0 and not released[2][1], "... then casts the partial version")
+	await until_idle(h)
+	# RMB has its own wheel and set; healing can be in either wheel
+	var pr := Game.prog("mage")
+	pr.wheel_sets = {"0": [lmb0]}
+	check(el.wheel_options(0).size() == 1 and el.wheel_options(1).size() == el.known_charged().size(), "LMB and RMB wheels have independent spell sets (Spellbook)")
+	pr.wheel_sets = {}
+	check(el.wheel_options(0).has("life_bloom") and el.wheel_options(1).has("life_bloom"), "healing is available in both wheels (no damage-only / heal-only split)")
+	h.kit.mana = 100.0
+	h.press("heavy")
+	await wait(0.2)
+	check(el.wheel_slot == 1 and el.cur_action == "heavy", "RMB opens the RMB wheel")
+	h.release("heavy")
+	await wait(1.0)
+	Events.spell_released.disconnect(cb)
+
+
+func test_wheel_cancellations() -> void:
+	print("\n[Wheel cancellations: dodge, stagger, UI, mana, no double cast, no stuck wheel]")
+	var h := await castw(9)
+	var el: MageElementalist = h.kit.el
+	var released := [0]
+	var cb := func(c, _sid, _e, _f, _t, _m): if c == h: released[0] += 1
+	Events.spell_released.connect(cb)
+	var cases := ["dodge", "stagger", "ui", "mana"]
+	for k in cases:
+		h.kit.mana = 100.0
+		await until_idle(h)
+		var r0: int = released[0]
+		h.press("light")
+		await wait(0.3)
+		var mana0: float = h.kit.mana
+		match k:
+			"dodge":
+				h.try_dodge()
+			"stagger":
+				h.stagger(0.3)
+			"ui":
+				Game.ui_block += 1
+				h.release("light")
+				Game.ui_block -= 1
+			"mana":
+				h.kit.mana = 0.0
+				var o := el.wheel_options(0)
+				el.wheel_select((o.find(el.cur.id) + 1) % o.size())
+		await wait(0.1)
+		if k == "mana":
+			check(el.cur != null, "mana: switching to a spell you cannot afford is refused (current keeps charging)")
+			h.release("light")
+			await wait(0.6)
+			check(released[0] == r0, "mana: releasing without enough mana casts nothing")
+		else:
+			check(el.cur == null and released[0] == r0 and absf(h.kit.mana - mana0) < 0.01, "%s during the charge: cancelled, no cast, no mana spent" % k)
+		h.release("light")
+		await wait(0.5)
+		check(not el.wheel_open and not Game.wheel_open and el.wheel_slot == -1, "%s: no stuck wheel" % k)
+	Events.spell_released.disconnect(cb)
+	# no double cast on release
+	h.kit.mana = 100.0
+	await until_idle(h)
+	var n0: int = released[0]
+	Events.spell_released.connect(cb)
+	h.press("light")
+	await wait(0.6)
+	h.release("light")
+	h.release("light")
+	await wait(0.5)
+	check(released[0] == n0 + 1, "one release = one cast")
+	Events.spell_released.disconnect(cb)
+	# F / E / heal target untouched
+	h.hp = h.max_hp * 0.4
+	h.kit.mana = 100.0
+	h.kit.cooldowns.clear()
+	await until_idle(h)
+	var hp0 := h.hp
+	h.press("life")
+	h.release("life")
+	await wait(0.1)
+	check(h.hp > hp0, "F (Lifeline) still heals")

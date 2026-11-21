@@ -827,7 +827,8 @@ func _on_healed(source, target, amount: float, over: float, tags: Dictionary) ->
 				var cur: String = el.slot_spell(slot)
 				var prev := String(el.prev_spell.get(slot, ""))
 				if cur != "" and el.spells[cur].element == "life" and prev != "" and el.spells.has(prev) and el.spells[prev].element != "life":
-					el.prev_spell[slot] = prev    # kept for a one-tap restoration (counts as a spell switch)
+					# 006: the next press of that button starts the kept offensive spell again (counts as a switch)
+					el.restore_spell = {"slot": slot, "spell": prev, "until": Game.time + float(pv("ma06_emergency_thread", "window", 4.0))}
 		fire("ma06_emergency_thread", "Ally saved: offensive spell kept for a quick swap back, next offensive cast recovers faster")
 	# M-F05 Living Confluence (ally-targeted follow-up)
 	if effective and active("mf05") and String(windows["mf05"].get("armed", "")) == _last_spell_id:

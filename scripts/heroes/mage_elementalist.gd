@@ -58,12 +58,13 @@ var _known_cache: Array = []
 var _know_t: float = 0.0
 var _interaction_depth: int = 0
 var _cast_serial: int = 0
-## --- LEVEL10-FOUNDATION-005 Part 3: quick spell selection. Hold the wheel key to open a radial selector of
-## the KNOWN charged spells (grouped by element), release to equip the hovered one into that slot; a quick
-## tap swaps back to the slot's previous spell. Never casts, never spends mana, never interrupts a charge
-## (a change requested mid-charge is applied when the charge ends).
-const WHEEL_ACTIONS := {"wheel_primary": 0, "wheel_secondary": 1}
-const WHEEL_HOLD := 0.2
+## --- COMBAT-BALANCE-UX-006 Part 7: CASTING WHEELS. Holding LMB / RMB charges that button's last spell at once;
+## after WHEEL_SHOW_DELAY (no flash on quick taps) its wheel appears and mouse motion picks a spell from that
+## button's set. Picking another spell restarts the charge from zero (charge never carries over); the same
+## sector keeps charging; releasing casts the selected spell with its own min / full charge rules. A quick tap
+## casts the last selected spell. Never casts by itself, never spends mana on a switch or a cancel.
+const WHEEL_SLOTS := {"light": 0, "heavy": 1}
+const WHEEL_SHOW_DELAY := 0.12
 const ELEMENT_ORDER := ["fire", "life", "frost", "storm", "stone"]
 var wheel_slot: int = -1
 var wheel_t: float = 0.0
@@ -71,6 +72,7 @@ var wheel_open: bool = false
 var wheel_hover: int = -1
 var prev_spell: Dictionary = {0: "", 1: ""}
 var pending_slot: Dictionary = {}
+var restore_spell: Dictionary = {}     # Emergency Thread: {slot, spell, until} restored by the next press
 var wheel_events: Array = []           # diagnostics: [{kind, slot, from, to}]
 var cur_mods: Dictionary = {"min": 1.0, "full": 1.0}
 
@@ -208,16 +210,16 @@ func spell_for_action(action: String) -> String:
 
 # ------------------------------------------------------------------ input
 func on_press(action: String) -> void:
-	if WHEEL_ACTIONS.has(action):
-		if wheel_slot < 0:
-			wheel_slot = int(WHEEL_ACTIONS[action])
-			wheel_t = 0.0
-			wheel_open = false
-			wheel_hover = -1
-		return
 	match action:
 		"light", "heavy", "skill1":
+			if WHEEL_SLOTS.has(action) and not ai_spell.has(action):
+				_restore_if_pending(int(WHEEL_SLOTS[action]))
 			begin(action)
+			if cur != null and cur_action == action and WHEEL_SLOTS.has(action) and hero.is_player and not ai_spell.has(action):
+				wheel_slot = int(WHEEL_SLOTS[action])
+				wheel_t = 0.0
+				wheel_open = false
+				wheel_hover = wheel_options(wheel_slot).find(cur.id)
 		"life":
 			lifeline()
 		"core":
@@ -231,14 +233,12 @@ func on_press(action: String) -> void:
 
 
 func on_release(action: String) -> void:
-	if WHEEL_ACTIONS.has(action):
-		if wheel_slot == int(WHEEL_ACTIONS[action]):
-			if wheel_open:
-				wheel_confirm()
-			else:
-				wheel_tap(wheel_slot)
-			_close_wheel()
-		return
+	if WHEEL_SLOTS.has(action) and wheel_slot == int(WHEEL_SLOTS[action]):
+		_close_wheel()
+		# opening a menu / UI while charging releases the inputs: that is a cancel, never a cast
+		if Game.ui_block > 0 and cur != null and cur_action == action:
+			cancel("ui")
+			return
 	if action == "skill3" and util_aiming != "":
 		var u := util_aiming
 		util_aiming = ""
@@ -328,14 +328,18 @@ func request_release() -> void:
 		release_queued = true      # a tap still casts: it waits for the minimum release time
 
 
-# ------------------------------------------------------------------ spell wheels (Part 3)
-## Known charged spells offered by the wheels, grouped by element (Fire, Life, Frost, Storm, Stone) and
-## ordered inside a group like the Spellbook. Unknown spells are never offered.
-func wheel_options() -> Array:
+# ------------------------------------------------------------------ casting wheels (006 Part 7)
+## Spells offered by a button's wheel: the known charged spells in that button's set (Spellbook; empty set =
+## every known charged spell), grouped by element. The button's current spell is always included.
+func wheel_options(slot: int = -1) -> Array:
 	var out: Array = []
+	var set: Array = []
+	if slot >= 0:
+		set = prog().wheel_set(slot)
+	var cur_id := slot_spell(slot) if slot >= 0 else ""
 	for e in ELEMENT_ORDER:
 		for id in known_charged():
-			if spells[id].element == e:
+			if spells[id].element == e and (set.is_empty() or set.has(id) or id == cur_id):
 				out.append(id)
 	return out
 
@@ -348,32 +352,43 @@ func _close_wheel() -> void:
 		Game.wheel_open = false
 
 
-## Escape / invalid selection: the wheel closes and nothing changes.
-func wheel_cancel() -> void:
-	if wheel_slot >= 0:
-		wheel_events.append({"kind": "cancel", "slot": wheel_slot})
-	_close_wheel()
-
-
-func wheel_confirm() -> void:
-	var opts := wheel_options()
-	if wheel_hover < 0 or wheel_hover >= opts.size():
-		wheel_events.append({"kind": "cancel", "slot": wheel_slot})
-		return
-	request_slot(wheel_slot, String(opts[wheel_hover]), "wheel")
-
-
-## Quick tap: swap between the slot's current and previous spell. Nothing happens (soft notice) if the
-## previous spell is no longer valid.
-func wheel_tap(slot: int) -> void:
-	var p := String(prev_spell.get(slot, ""))
-	if p == "" or not spell_known(p) or spells[p].slot_kind != "charged" or p == slot_spell(slot):
-		wheel_events.append({"kind": "tap_invalid", "slot": slot})
+## The wheel's pointer moved onto sector `index`. Another spell: the current charge is dropped (nothing spent)
+## and the new spell starts charging from zero; the button remembers it. Refused (current spell keeps
+## charging) when the new spell cannot start: not enough mana, or a Life spell without a heal target.
+func wheel_select(index: int) -> bool:
+	if wheel_slot < 0 or cur == null:
+		return false
+	var opts := wheel_options(wheel_slot)
+	if index < 0 or index >= opts.size():
+		return false
+	var id: String = opts[index]
+	wheel_hover = index
+	if id == cur.id:
+		return false
+	var s: ChargedSpellData = spells[id]
+	if kit.mana < s.mana_partial or (s.element == "life" and current_heal_target() == null):
+		wheel_events.append({"kind": "refused", "slot": wheel_slot, "to": id})
 		if hero.is_player:
-			Events.notify.emit("%s: no previous spell to swap to" % ["LMB", "RMB"][slot])
-		return
-	request_slot(slot, p, "tap")
+			Events.notify.emit("%s: %s" % [s.display_name, "not enough mana" if kit.mana < s.mana_partial else "heal target out of range"])
+		return false
+	var action := cur_action
+	var slot := wheel_slot
+	_end_charge()
+	apply_slot(slot, id, "wheel")
+	begin(action)
+	wheel_slot = slot
+	wheel_open = true
+	wheel_hover = index
+	return true
 
+
+func _restore_if_pending(slot: int) -> void:
+	if restore_spell.is_empty() or int(restore_spell.slot) != slot:
+		return
+	var r := restore_spell
+	restore_spell = {}
+	if Game.time <= float(r.until) and spell_known(String(r.spell)):
+		apply_slot(slot, String(r.spell), "restore")
 
 func request_slot(slot: int, id: String, source: String) -> void:
 	if cur != null:
@@ -397,24 +412,26 @@ func apply_slot(slot: int, id: String, source: String) -> void:
 		if String(p.spell_loadout[k]) == id:
 			from = k
 	p.spell_loadout[slot] = id
-	if from >= 0 and from != slot:
+	if from >= 0 and from != slot and source != "wheel" and source != "restore":
 		p.spell_loadout[from] = old
 	prev_spell[slot] = old
 	wheel_events.append({"kind": source, "slot": slot, "from": old, "to": id})
 	Events.spell_slot_changed.emit(hero, slot, old, id, source)
-	if hero.is_player:
+	if hero.is_player and source != "wheel":
 		Events.notify.emit("%s: %s" % [["LMB", "RMB"][slot], spells[id].display_name])
-		Game.autosave()
 
 
 func process(delta: float) -> void:
 	mastery_cd = maxf(0.0, mastery_cd - delta)
-	if wheel_slot >= 0 and not wheel_open:
-		wheel_t += delta
-		if wheel_t >= WHEEL_HOLD:
-			wheel_open = true
-			if hero.is_player:
-				Game.wheel_open = true
+	if wheel_slot >= 0:
+		if cur == null:
+			_close_wheel()           # cast / dodge / stagger / death ended the charge
+		elif not wheel_open:
+			wheel_t += delta
+			if wheel_t >= WHEEL_SHOW_DELAY:
+				wheel_open = true
+				if hero.is_player:
+					Game.wheel_open = true
 	if cur != null:
 		charge_t = minf(charge_t + delta * charge_speed(), cur.full_charge + 5.0)
 		if is_instance_valid(fx):

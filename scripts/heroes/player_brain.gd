@@ -4,7 +4,7 @@ extends Node
 ## exactly like the AI brains, so player and AI share one combat implementation.
 ## Owns the CameraRig (sole camera authority) and the LockOnSystem.
 
-const ACTIONS := ["light", "heavy", "dodge", "guard", "blade_modifier", "life", "core", "skill1", "skill2", "skill3", "heal_target", "footwork", "wheel_primary", "wheel_secondary"]
+const ACTIONS := ["light", "heavy", "dodge", "guard", "blade_modifier", "life", "core", "skill1", "skill2", "skill3", "heal_target", "footwork"]
 
 var hero: Hero
 var rig: CameraRig

@@ -786,7 +786,7 @@ func _spellbook() -> Control:
 	sc.add_child(v)
 	var known: Array = Game.prog().known_elements()
 	v.add_child(UITheme.title("SPELLBOOK  ·  known elements: " + ", ".join(known.map(func(x): return String(x).capitalize())), 20))
-	v.add_child(_wrap("Hold a spell's key to charge it. Release before full charge for the PARTIAL version (a tap waits for the 0.25s minimum); release at full charge for the FULL version. Holding longer adds nothing. Dodge cancels a charge and spends no mana. Formation spells show a placement preview where you aim; the formation's orientation follows your aim.", 14, UITheme.TEXT_DIM, 1400))
+	v.add_child(_wrap("Hold LMB or RMB to charge; while held, that button's casting wheel appears - point the mouse at another spell to switch (its charge starts again from zero). Release before full charge for the PARTIAL version (a tap casts the last spell and waits for the minimum charge); release at full charge for the FULL version. Holding longer adds nothing. Dodge cancels a charge and spends no mana. Formation spells show a placement preview where you aim; the formation's orientation follows your aim.", 14, UITheme.TEXT_DIM, 1400))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 22)
 	v.add_child(row)
@@ -812,6 +812,32 @@ func _spellbook() -> Control:
 			show_tab("Spellbook"))
 		box.add_child(ob)
 		row.add_child(box)
+	# COMBAT-BALANCE-UX-006: which known spells each casting wheel offers (LMB / RMB). The slot above is the
+	# wheel's current (last cast) spell; healing may sit in either wheel.
+	v.add_child(UITheme.title("CASTING WHEELS  ·  hold LMB / RMB, point to a spell, release to cast", 16))
+	var wgrid := GridContainer.new()
+	wgrid.columns = 3
+	wgrid.add_theme_constant_override("h_separation", 26)
+	v.add_child(wgrid)
+	for hd in ["Spell", "LMB wheel", "RMB wheel"]:
+		wgrid.add_child(UITheme.text(hd, 14, UITheme.GOLD, true))
+	var pr := Game.prog()
+	for sid in e.wheel_options():
+		var s: ChargedSpellData = e.spells[sid]
+		wgrid.add_child(UITheme.text("%s  (%s)" % [s.display_name, s.element.capitalize()], 14, MageElementalist.COLORS.get(s.element, UITheme.PARCHMENT)))
+		for slot in [0, 1]:
+			var cb := CheckBox.new()
+			cb.focus_mode = Control.FOCUS_ALL
+			var set: Array = pr.wheel_set(slot)
+			cb.button_pressed = set.is_empty() or set.has(sid) or e.slot_spell(slot) == sid
+			cb.disabled = e.slot_spell(slot) == sid      # the wheel's current spell stays in it
+			var sl: int = slot
+			var id: String = sid
+			cb.toggled.connect(func(on):
+				pr.set_wheel_member(sl, id, on, e.wheel_options())
+				Game.autosave()
+				show_tab("Spellbook"))
+			wgrid.add_child(cb)
 	if e.bloom_modes_known():
 		var bm := CheckButton.new()
 		bm.focus_mode = Control.FOCUS_NONE

@@ -39,6 +39,8 @@ var bloom_shared: bool = false
 var reaver_loadout: Array = ["", "", "", ""]
 ## Elemental Crossroads (Worldweaver Fusion anchor): the interaction the player chose to enhance ("" = default)
 var crossroads_choice: String = ""
+## COMBAT-BALANCE-UX-006: spells in each casting wheel ("0" = LMB, "1" = RMB). Empty = every known charged spell.
+var wheel_sets: Dictionary = {}
 var debug_elements: Array[String] = []
 var shrine_elements: Array[String] = []
 var discipline_casts: Dictionary = {}
@@ -75,6 +77,7 @@ func _clear() -> void:
 	bloom_shared = false
 	reaver_loadout = ["", "", "", ""]
 	crossroads_choice = ""
+	wheel_sets = {}
 	play_time = 0.0
 
 
@@ -271,7 +274,7 @@ func to_dict() -> Dictionary:
 		"allocated": allocated, "life_number": life_number, "seen_unlocks": seen_unlocks,
 		"equipment": equipment, "inventory": inventory, "elements": Array(elements), "slots": Array(slots),
 		"shrine_elements": Array(shrine_elements), "discipline_casts": discipline_casts, "play_time": play_time, "spell_loadout": spell_loadout.duplicate(), "bloom_shared": bloom_shared, "reaver_loadout": reaver_loadout.duplicate(),
-		"crossroads_choice": crossroads_choice,
+		"crossroads_choice": crossroads_choice, "wheel_sets": wheel_sets.duplicate(true),
 	}
 
 
@@ -311,3 +314,26 @@ func from_dict(d: Dictionary) -> void:
 	play_time = float(d.get("play_time", 0.0))
 	var cc = d.get("crossroads_choice", "")
 	crossroads_choice = cc if cc is String else ""     # tolerate damaged / foreign saves
+	var ws = d.get("wheel_sets", {})
+	wheel_sets = {}
+	if ws is Dictionary:
+		for k in ["0", "1"]:
+			if ws.get(k) is Array:
+				wheel_sets[k] = Array(ws[k]).filter(func(x): return x is String)
+
+## Spells assigned to a casting wheel (0 = LMB, 1 = RMB); empty = every known charged spell.
+func wheel_set(slot: int) -> Array:
+	return Array(wheel_sets.get(str(slot), []))
+
+
+func set_wheel_member(slot: int, id: String, on: bool, all_known: Array) -> void:
+	var cur: Array = wheel_set(slot)
+	if cur.is_empty():
+		cur = all_known.duplicate()
+	if on and not cur.has(id):
+		cur.append(id)
+	elif not on:
+		cur.erase(id)
+	if cur.is_empty():
+		return      # a wheel always keeps at least one spell
+	wheel_sets[str(slot)] = cur

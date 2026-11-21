@@ -19,7 +19,7 @@ func _run_all() -> void:
 	await test_bd004_orbit()
 	await test_bd004_withdraw_whirl()
 	await test_bd004_charge_feedback()
-	await test_spell_wheels()
+	# (006: the Q / V wheel test is replaced by the LMB / RMB casting-wheel tests in combat006_runner)
 	await test_poise_break_windows()
 	await teardown()
 
