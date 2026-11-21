@@ -18,3 +18,5 @@ hitbox_offset = Vector3(0, 1, -1.4)
 lunge = 3.0
 tags = PackedStringArray()
 ai_range = Vector2(99, 99)
+track_full = 0.3
+commit_at = 0.6

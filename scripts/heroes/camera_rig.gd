@@ -36,6 +36,7 @@ extends Node3D
 @export var lock_extra_distance: float = 1.1     ## max extra pull-back for far targets
 @export var lock_pivot_shift: float = 1.2        ## pivot moves toward the target to frame both
 @export var behind_hold_distance: float = 1.9    ## target closer than this: hold last heading
+@export var hold_blend_width: float = 0.7        ## 006: hold -> follow blends over [1.2m, 2.2m] (no hard switch)
 @export_group("Collision")
 @export var collision_radius: float = 0.28
 @export var pull_in_speed: float = 12.0        ## proportional pull-in (1/s)
@@ -81,6 +82,11 @@ var shake_t: float = 0.0
 var use_interpolation: bool = false
 var _sphere := SphereShape3D.new()
 var _last_lock = null
+var _limit_smooth: float = 5.2
+@export var limit_rise_rate: float = 5.0   ## 1/s: how fast a RISING collision limit is followed (006)
+var dbg_want: float = 0.0          ## diagnostics (006 probe)
+var dbg_target: float = 0.0
+var dbg_blocked: bool = false
 
 
 static func interpolation_available() -> bool:
@@ -185,8 +191,15 @@ func _update(delta: float) -> void:
 		if _last_lock != lock:
 			lock_heading = yaw if d < behind_hold_distance else atan2(-to.x, -to.z)
 			_last_lock = lock
-		if d >= behind_hold_distance:
+		# COMBAT-BALANCE-UX-006 jitter root cause: the heading used to switch HARD between "hold" (< 1.9m) and
+		# "follow" (>= 1.9m). Blade Dancer fights at 1.2-2.2m, so lateral Dance / Orbit crossed that line and
+		# the camera got a sudden yaw acceleration (measured ~1100 rad/s^2 spikes). Now the follow strength
+		# blends smoothly across hold_blend_width around the threshold; far targets behave exactly as before.
+		var w := smoothstep(behind_hold_distance - hold_blend_width, behind_hold_distance + 0.3, d)
+		if w >= 0.999:
 			lock_heading = atan2(-to.x, -to.z)
+		elif w > 0.0:
+			lock_heading = lerp_angle(lock_heading, atan2(-to.x, -to.z), 1.0 - exp(-12.0 * w * delta))
 		# manual offset recentres smoothly
 		var decay := exp(-lock_offset_decay * delta)
 		lock_offset_yaw *= decay
@@ -245,6 +258,17 @@ func _apply(hp: Vector3, delta: float, snap: bool) -> void:
 				target = minf(target, _collision_distance(pivot + pv * t, back, frame_dist, prediction_radius))
 	_last_pivot = pivot
 	_has_last_pivot = true
+	# COMBAT-BALANCE-UX-006 jitter fix: cast_motion returns a QUANTIZED safe fraction, so while the boom is
+	# limited by geometry the limit rises in 2-3 cm steps on alternate frames and the camera copied that
+	# staircase (measured: position acceleration spikes on 70% of frames while locked). Decreases still apply
+	# at once (never clip); increases are low-passed, so easing out is smooth. Never above the real limit.
+	if snap or target < _limit_smooth - 0.05 or (target < _limit_smooth and _penetrating(pivot + back * _limit_smooth)):
+		_limit_smooth = target
+	elif target < _limit_smooth:
+		pass    # a quantization dip of a few cm that would not put the camera inside geometry: hold
+	else:
+		_limit_smooth = minf(target, lerpf(_limit_smooth, target, 1.0 - exp(-limit_rise_rate * delta)))
+	target = _limit_smooth
 	if snap:
 		cur_dist = want
 	elif target < cur_dist:
@@ -260,6 +284,9 @@ func _apply(hp: Vector3, delta: float, snap: bool) -> void:
 		# never ease OUT into geometry: at a wall the eased step would penetrate, be snapped back next
 		# frame and repeat every 2-3 frames (a visible ~7cm oscillation)
 		var out_d := move_toward(cur_dist, target, ease_out_speed * delta)
+		dbg_want = want
+		dbg_target = target
+		dbg_blocked = not (out_d <= cur_dist or snap or not _penetrating(pivot + back * out_d))
 		if out_d <= cur_dist or snap or not _penetrating(pivot + back * out_d):
 			cur_dist = out_d
 	var cam_pos := pivot + back * cur_dist

@@ -47,7 +47,10 @@ const CHAIN_BLEND := 0.10
 const DEFAULT_BLEND := 0.04
 ## Combat Weave target distances (the shared dodge covers 3.465m; its speed is scaled, its timing and
 ## i-frames are not touched)
-const WEAVE_DIST := {"side": 2.0, "forward": 2.0, "back": 2.7}    ## 004 targets (003: 1.3 / 1.5 / 2.5)
+## 006 (from measured enemy reach; 004 was 2.0 / 2.0 / 2.7): side clears the widest frontal hitbox half-width
+## + body (~1.95m) with margin, back clears a wolf / execution lunge started at ~1.9m. Same 0.42s timing and
+## the same i-frames: only the speed curve is scaled.
+const WEAVE_DIST := {"side": 2.8, "forward": 2.6, "back": 3.6}
 const WEAVE_ANIM := "bd_weave"
 const FULL_POSE_ANIM := "bd_charge_full"
 const SHARED_DODGE_DIST := 3.465
@@ -73,6 +76,9 @@ var mode_switches: int = 0
 var stamina_refunded: float = 0.0
 var last_attack: String = ""
 var full_charge_cues: int = 0
+var evades: int = 0
+var weave_completions: int = 0
+var _last_evade_fx: float = -10.0
 var last_orbit: Dictionary = {}        ## {radius, startup, target_angle, swept}
 var last_forward_plan: float = 0.0
 
@@ -545,6 +551,10 @@ func on_dodge() -> void:
 		kind = "forward" if a <= 45.0 else ("back" if a >= 135.0 else "side")
 	last_dodge_kind = kind
 	hero.dodge_scale = float(WEAVE_DIST[kind]) / SHARED_DODGE_DIST
+	if _weave and not hero.dodging:
+		# chained Weave: the previous one ended this same frame, before process() saw it - still mark it
+		weave_completions += 1
+		VFX.ground_ring(hero.global_position, 0.7, Color(0.62, 0.78, 1.0), 0.25)
 	_weave = true
 	_end_charge_fx()
 	if mode == "edge":
@@ -648,6 +658,20 @@ func blade_highlight_active() -> bool:
 	return is_instance_valid(_blade_glow)
 
 
+## 006 dodge clarity: a real enemy attack passed through the Combat Weave i-frames. One short, restrained cue
+## (afterimage burst + "EVADED" + soft tone); no meter, no reward state.
+func on_evade(info: DamageInfo) -> void:
+	evades += 1
+	if Game.time - _last_evade_fx < 0.25:
+		return
+	_last_evade_fx = Game.time
+	VFX.particles(hero.global_position + Vector3(0, 1.0, 0), VFX._quad(0.18), VFX._billboard(Color(0.7, 0.85, 1.0), 2.5), 14, 0.3,
+		{"shape": CPUParticles3D.EMISSION_SHAPE_SPHERE, "radius": 0.45, "vmin": 0.5, "vmax": 1.5, "gravity": Vector3.ZERO})
+	if hero.is_player:
+		FX.number(hero, "EVADED", Color(0.7, 0.9, 1.0), 0.8)
+		PlaceholderSfx.play(hero, "evade")
+
+
 func process(_delta: float) -> void:
 	var r: AttackRunner = hero.runner
 	# Orbit Step: circle the target during the startup (collision still applies)
@@ -701,6 +725,9 @@ func process(_delta: float) -> void:
 					{"shape": CPUParticles3D.EMISSION_SHAPE_SPHERE, "radius": 0.35, "vmin": 0.2, "vmax": 0.8, "gravity": Vector3(0, 0.6, 0)})
 		else:
 			_weave = false
+			# completion: control is back - a small dust ring where the Weave ended
+			weave_completions += 1
+			VFX.ground_ring(hero.global_position, 0.7, Color(0.62, 0.78, 1.0), 0.25)
 	_update_charge_fx()
 	# Twin Verdict: the second impact may correct its angle slightly toward the locked target (not homing)
 	if r.is_busy() and r.ctx.get("transform", "") == "twin_verdict" and r.phase == AttackRunner.Phase.ACTIVE and r.hit_index == 1 and not r.ctx.get("tv_corrected", false):

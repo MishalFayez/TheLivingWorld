@@ -19,3 +19,5 @@ tags = PackedStringArray()
 ai_range = Vector2(2.5, 7.5)
 ai_weight = 1.5
 ai_cooldown = 3.5
+track_full = 0.3
+commit_at = 0.6

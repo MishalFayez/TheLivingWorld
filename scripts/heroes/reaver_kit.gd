@@ -503,7 +503,8 @@ func modify_outgoing(info: DamageInfo, d: AttackData, target, idx: int, ctx: Dic
 
 func on_perfect_dodge(info: DamageInfo) -> void:
 	if dancer_core():
-		return              # Blade Dancer: evasion is positioning + the shared i-frames, no reward state
+		bd.on_evade(info)   # Blade Dancer: readable feedback only (no reward state, no counter mechanic)
+		return
 	if flow_core():
 		ff.on_perfect_dodge(info)
 		return

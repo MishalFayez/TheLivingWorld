@@ -18,6 +18,7 @@ const CUES := {
 	"bd_whirl_hit": [150.0, 0.07, -15.0, 12.0],   # weight of each Whirling Assault hit
 	"augment": [660.0, 0.08, -20.0, 10.0],        # an augment effect activated (restrained)
 	"poise_break": [95.0, 0.28, -9.0, 5.0],       # Poise Break opening starts
+	"evade": [1180.0, 0.07, -18.0, 11.0],         # 006: a real attack passed through the Combat Weave
 }
 
 

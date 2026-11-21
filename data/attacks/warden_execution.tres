@@ -25,3 +25,5 @@ ai_cooldown = 14.0
 ai_min_phase = 3
 telegraph_color = Color(0.6, 0, 0, 0.7)
 special = "execution"
+track_full = 0.35
+commit_at = 0.6

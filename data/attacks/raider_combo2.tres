@@ -15,3 +15,5 @@ lunge = 3.0
 tags = PackedStringArray()
 ai_range = Vector2(99, 99)
 chain_next = "raider_combo3"
+track_full = 0.3
+commit_at = 0.6

@@ -321,9 +321,31 @@ func combat_process(delta: float) -> void:
 		else:
 			stop_moving(delta)
 		if runner.phase == AttackRunner.Phase.STARTUP and target != null and is_instance_valid(target):
-			turn_toward(dir_to_target(), turn_speed * 0.6, delta)
+			var k := tracking_factor()
+			if k > 0.0:
+				turn_toward(dir_to_target(), turn_speed * runner.data.track_rate * k, delta)
+			elif telegraph != null and is_instance_valid(telegraph):
+				telegraph.commit()
 	elif stagger_timer > 0.0 or dead:
 		stop_moving(delta)
+
+
+## COMBAT-BALANCE-UX-006: how strongly the current attack still tracks its target (1 early telegraph, fading
+## in the late telegraph, 0 once committed). Rotation only - a lunge keeps moving along its locked facing.
+func tracking_factor() -> float:
+	if not runner.is_busy() or runner.phase != AttackRunner.Phase.STARTUP or runner.data == null:
+		return 0.0
+	var d: AttackData = runner.data
+	var f: float = runner.t / maxf(d.startup, 0.01)
+	if f <= d.track_full:
+		return 1.0
+	if f >= d.commit_at:
+		return 0.0
+	return 1.0 - (f - d.track_full) / maxf(d.commit_at - d.track_full, 0.01)
+
+
+func is_committed() -> bool:
+	return runner.is_busy() and (runner.phase != AttackRunner.Phase.STARTUP or tracking_factor() <= 0.0)
 
 
 func _update_glow() -> void:

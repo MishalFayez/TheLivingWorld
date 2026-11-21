@@ -55,6 +55,19 @@ static func circle(pos: Vector3, radius: float, p_duration: float, color: Color)
 	return tg
 
 
+var committed: bool = false
+
+
+## COMBAT-BALANCE-UX-006: the attacker's direction is now locked - the area stops turning and brightens.
+func commit() -> void:
+	if committed or mat == null:
+		return
+	committed = true
+	var c := mat.albedo_color
+	mat.albedo_color = Color(lerpf(c.r, 1.0, 0.5), lerpf(c.g, 0.85, 0.4), lerpf(c.b, 0.5, 0.3), c.a)
+	base_alpha = minf(base_alpha + 0.2, 0.85)
+
+
 func _process(delta: float) -> void:
 	t += delta
 	var k := clampf(t / maxf(duration, 0.01), 0.0, 1.0)

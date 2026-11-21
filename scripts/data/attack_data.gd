@@ -74,6 +74,13 @@ enum DamageType { PHYSICAL, MAGIC }
 @export var chain_next: String = ""
 ## Enemy preparation (STARTUP) that Lightning Verdict may cancel. Must be set explicitly per attack.
 @export var interruptible: bool = false
+## COMBAT-BALANCE-UX-006: enemy attack commitment (fractions of STARTUP).
+##   0 .. track_full   early telegraph: full tracking (turn_speed x track_rate)
+##   track_full .. commit_at   late telegraph: tracking fades linearly to 0
+##   commit_at .. impact / active   committed: the direction is locked (lunges keep moving along it)
+@export var track_full: float = 0.4
+@export var commit_at: float = 0.7
+@export var track_rate: float = 0.6
 @export var telegraph_color: Color = Color(1.0, 0.15, 0.1, 0.5)
 ## Free-form hook consumed by enemy/boss scripts (projectile, ground_burst, burning_ground, execution...).
 @export var special: String = ""
