@@ -45,6 +45,14 @@ static func for_class(class_id: String, p: ClassProgress, balance: BalanceConfig
 	return s
 
 
+## Copy (COMBAT-BALANCE-UX-006 tooltips: "+1 STR" previews run the real formulas on a copy).
+func copy() -> StatBlock:
+	var s := StatBlock.new(b)
+	for k in ["strength", "dexterity", "vitality", "fortitude", "mastery", "base_hp", "crit_chance", "crit_damage", "attack_speed", "cdr", "armor", "magic_resist"]:
+		s.set(k, get(k))
+	return s
+
+
 func max_hp() -> float:
 	return base_hp + vitality * b.hp_per_vit
 

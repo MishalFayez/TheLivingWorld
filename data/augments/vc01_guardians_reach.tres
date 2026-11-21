@@ -29,6 +29,7 @@ synergy_kind = {
 }
 requires_party = true
 trigger_summary = "Interception (Shield Rush toward an endangered ally)"
+short_text = "Interception reaches {chg:range_mult:utility} farther; it costs {chg:cost_mult:negative} Stamina."
 mechanical_tradeoff = "+10% interception stamina cost."
 scaling_sources = PackedStringArray()
 params = {

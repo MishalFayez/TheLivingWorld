@@ -22,6 +22,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Apply Burning or Chill"
+short_text = "Your Burning and Chill last {chg:duration_mult:utility} longer (max +{s:cap})."
 scaling_sources = PackedStringArray()
 params = {
 "cap": 1.5,

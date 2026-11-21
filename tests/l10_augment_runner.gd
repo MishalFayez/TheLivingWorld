@@ -965,7 +965,7 @@ func test_presentation_review() -> void:
 	var want := w.weapon_power * DamageCalc.chain_power(w.stats, DamageCalc.charged_power(w.stats, tc, true), tc.chain_falloff, 0)
 	check(chain.size() >= 1 and absf(chain[0].raw_amount - want) < 0.05, "Thunder Conduit first chain jump: tooltip %.1f = dealt %.1f" % [want, chain[0].raw_amount if chain.size() > 0 else -1.0])
 	var tt := TooltipText.skill({"id": "thunder_conduit", "name": "Thunder Conduit", "spell": tc}, TooltipText.source_for_hero(w), TooltipText.LEVEL_SIMPLE)
-	check(tt.contains("DEX") and tt.contains("Chain"), "spell tooltip shows the DEX-scaled chain")
+	check(tt.contains("+1 DEX") and tt.contains("per chain jump"), "spell tooltip shows the DEX-scaled chain")
 	e1.queue_free()
 	e2.queue_free()
 

@@ -23,6 +23,7 @@ synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 requires_party = true
 trigger_summary = "Successful interception"
+short_text = "After an interception, you take {pct:share:negative} of that ally's damage for {s:window}."
 cooldown = 8.0
 mechanical_tradeoff = "You really take the redirected damage."
 scaling_sources = PackedStringArray()

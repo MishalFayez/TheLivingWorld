@@ -59,6 +59,8 @@ extends Resource
 ## Needs an ally to protect / support (interception, ally-targeted support): only offered in party play.
 @export var requires_party: bool = false
 @export var trigger_summary: String = ""
+## COMBAT-BALANCE-UX-006: the one-sentence card text (tokens {pct|chg|s|m|n|pp:key[:effect]}, values from params)
+@export var short_text: String = ""
 @export var cooldown: float = 0.0
 @export var mechanical_tradeoff: String = ""
 ## Stats / sources that change this card's effect (shown only when real): str / dex / vit / for / mas / weapon_power / max_hp

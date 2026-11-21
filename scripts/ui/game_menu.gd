@@ -586,8 +586,18 @@ func _augments() -> Control:
 			rtl.custom_minimum_size = Vector2(1180, 0)
 			rtl.add_theme_font_size_override("normal_font_size", 14)
 			rtl.add_theme_color_override("default_color", UITheme.PARCHMENT)
-			rtl.text = AugmentText.inspect(a, cls(), p)
+			# 006: the short sentence by default, everything else behind "Details"
+			var det_key := "aug:" + id
+			rtl.add_theme_font_size_override("normal_font_size", 16)
+			rtl.text = AugmentText.inspect(a, cls(), p) if advanced_open.get(det_key, false) else AugmentText.short(a)
 			tv.add_child(rtl)
+			var db := Button.new()
+			db.text = "Hide details" if advanced_open.get(det_key, false) else "Details"
+			db.focus_mode = Control.FOCUS_ALL
+			db.pressed.connect(func():
+				advanced_open[det_key] = not bool(advanced_open.get(det_key, false))
+				show_tab("Augments"))
+			tv.add_child(db)
 			if a.id == "mf01_elemental_crossroads" and not inactive:
 				tv.add_child(_crossroads_picker(a, p))
 			row.add_child(tv)

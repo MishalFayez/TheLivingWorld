@@ -21,6 +21,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Hit, then the enemy steps just out of range"
+short_text = "If your target steps just out of range, your next Forward Dance travels {pct:travel_bonus:utility} farther."
 scaling_sources = PackedStringArray()
 params = {
 "gap_max": 3.6,

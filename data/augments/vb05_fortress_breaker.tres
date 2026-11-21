@@ -30,6 +30,7 @@ synergy_kind = {
 "vb04_heavy_anchor": "mechanical"
 }
 trigger_summary = "Block a heavy attack"
+short_text = "After blocking a heavy attack, your next shield strike deals {pct:poise_bonus:poise} more Poise."
 cooldown = 6.0
 mechanical_tradeoff = "Cooldown 6s."
 scaling_sources = PackedStringArray()

@@ -29,6 +29,7 @@ synergy_kind = {
 "mf01_elemental_crossroads": "visual"
 }
 trigger_summary = "Interaction, then a different-element spell"
+short_text = "After an elemental interaction, your next different-element spell adds a {pct:dmg_share:magic} echo or {pct:heal_share:heal} extra healing."
 cooldown = 10.0
 scaling_sources = PackedStringArray("weapon_power")
 params = {

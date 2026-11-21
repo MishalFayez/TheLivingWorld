@@ -22,6 +22,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Charging Committed Cut"
+short_text = "While charging Committed Cut, take {pct:poise_resist:poise} less Poise damage."
 scaling_sources = PackedStringArray()
 params = {
 "poise_resist": 0.2

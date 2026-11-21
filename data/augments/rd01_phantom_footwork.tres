@@ -31,6 +31,7 @@ synergy_kind = {
 "rd03_circling_predator": "rule"
 }
 trigger_summary = "Lateral Dance with lock-on"
+short_text = "With lock-on, Lateral Dance curves around the target and travels {chg:travel_mult:utility} farther."
 scaling_sources = PackedStringArray()
 params = {
 "travel_mult": 1.15

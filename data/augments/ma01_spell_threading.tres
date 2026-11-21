@@ -31,6 +31,7 @@ synergy_kind = {
 "mc05_dual_invocation": "mechanical"
 }
 trigger_summary = "Release, then a different spell"
+short_text = "Cast a different spell within {s:window} of the last: {pct:min_off:utility} shorter minimum charge."
 cooldown = 5.0
 scaling_sources = PackedStringArray()
 params = {

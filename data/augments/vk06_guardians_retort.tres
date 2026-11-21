@@ -30,6 +30,7 @@ synergy_kind = {
 }
 requires_party = true
 trigger_summary = "Counter right after an interception"
+short_text = "A counter after an interception turns {pct:share:heal} of its damage into an ally shield."
 cooldown = 8.0
 scaling_sources = PackedStringArray("weapon_power")
 params = {

@@ -22,6 +22,7 @@ blocked_classes = PackedStringArray("mage")
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Start a tagged committed action"
+short_text = "Committed strikes deal {chg:power_mult:physical} damage; a miss recovers {chg:fail_recovery_mult:negative} slower."
 mechanical_tradeoff = "A miss recovers 20% longer."
 scaling_sources = PackedStringArray("str")
 params = {

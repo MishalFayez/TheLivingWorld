@@ -31,6 +31,7 @@ synergy_kind = {
 "vk05_judgment_echo": "visual"
 }
 trigger_summary = "Perfect Guard, then RMB"
+short_text = "After a Perfect Guard, your next Heavy becomes a counter with {pct:poise_bonus:poise} more Poise."
 mechanical_tradeoff = "-10% reach."
 scaling_sources = PackedStringArray()
 params = {

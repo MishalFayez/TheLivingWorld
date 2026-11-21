@@ -67,7 +67,8 @@ func _draw() -> void:
 	if el == null or not el.wheel_open or el.wheel_slot < 0:
 		return
 	var opts: Array = el.wheel_options(el.wheel_slot)
-	var c := size * 0.5
+	# centred on the reticle (screen centre); the hollow ring keeps the target visible
+	var c := get_viewport_rect().size * 0.5 - global_position
 	var font := get_theme_default_font()
 	var n := opts.size()
 	if n == 0:

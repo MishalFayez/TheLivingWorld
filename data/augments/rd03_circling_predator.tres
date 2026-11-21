@@ -23,6 +23,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Flank hit after a lateral move"
+short_text = "A flank hit after a lateral step readies a Predator Cut: {pct:damage_share:physical} damage, faster start."
 cooldown = 7.0
 mechanical_tradeoff = "85% damage - the reward is position and tempo."
 scaling_sources = PackedStringArray()

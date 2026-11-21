@@ -163,6 +163,7 @@ func test_camera_heading_blend() -> void:
 func _extra() -> void:
 	await test_casting_wheels()
 	await test_wheel_cancellations()
+	await test_ui_clarity()
 
 
 func castw(level: int) -> Hero:
@@ -311,3 +312,46 @@ func test_wheel_cancellations() -> void:
 	h.release("life")
 	await wait(0.1)
 	check(h.hp > hp0, "F (Lifeline) still heals")
+
+func test_ui_clarity() -> void:
+	print("\n[UI clarity: short skill tooltips with real +1 previews; one-sentence augment cards]")
+	var h := await bd(10)
+	var p := Game.prog("reaver")
+	p.free_points = 2
+	h.refresh_stats(true)
+	var src := TooltipText.source_for_hero(h)
+	var ent: Dictionary = {}
+	for e in SkillCatalog.entries("reaver"):
+		if e.id == "bd_committed":
+			ent = e
+	var full: AttackData = ent.variants[1].attack
+	var predicted: float = TooltipText.breakdown_attack(TooltipText.with_stat(src, "str", 1.0), full).noncrit
+	p.allocate("str")
+	h.refresh_stats(true)
+	var real: float = TooltipText.breakdown_attack(TooltipText.source_for_hero(h), full).noncrit
+	check(absf(predicted - real) < 0.01, "'+1 STR' preview %.2f = value after really allocating the point %.2f" % [predicted, real])
+	var simple := TooltipText.skill(ent, TooltipText.source_for_hero(h), TooltipText.LEVEL_SIMPLE)
+	check(simple.split("\n").size() <= 7, "Committed Cut simple tooltip: %d lines" % simple.split("\n").size())
+	check(simple.contains("[color=#%s]STR" % StatStyle.hex(StatStyle.stat_color("str"))), "the STR scaling numbers are written in the STR colour (with the STR label)")
+	check(not simple.contains("Phases") and not simple.contains("Formula") and not simple.contains("Critical"), "no formula / phases / crit text in the default tooltip")
+	var det := TooltipText.skill(ent, TooltipText.source_for_hero(h), TooltipText.LEVEL_DETAILED)
+	check(det.contains("Weapon Power") and det.length() > simple.length(), "Shift adds the calculation")
+	var bad := 0
+	var long := 0
+	for a in Game.augment_db.all.values():
+		if a.pool != "l10":
+			continue
+		var s := AugmentText.short(a, false)
+		if a.short_text == "" or s.contains("{"):
+			bad += 1
+		if s.split(" ").size() > 24:
+			long += 1
+			print("    long: ", a.id, " (", s.split(" ").size(), " words)")
+	check(bad == 0, "every card has a resolved one-sentence text")
+	check(long == 0, "every card sentence is 24 words or fewer")
+	var g01: AugmentData = Game.augment_db.get_augment("g01_second_wind")
+	var col := AugmentText.short(g01)
+	check(col.contains(StatStyle.hex(StatStyle.EFFECT.stamina)) and col.contains("25%") and col.contains("Stamina"), "values are coloured by meaning (Stamina value in the Stamina colour) and still labelled")
+	g01.params["stamina_off"] = 0.3
+	check(AugmentText.short(g01, false).contains("30%"), "the card number comes from the resource (30% after changing it)")
+	g01.params["stamina_off"] = 0.25

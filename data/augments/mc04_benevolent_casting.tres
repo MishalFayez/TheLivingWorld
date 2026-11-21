@@ -21,6 +21,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Heal an ally below 40% HP"
+short_text = "Healing an ally below {pct:hp_threshold:negative} HP: your next support spell costs {pct:mana_off:mana} less Mana."
 cooldown = 8.0
 scaling_sources = PackedStringArray()
 params = {

@@ -6,6 +6,69 @@ extends SceneTree
 ## {n:k} plain number, {pp:k} percentage points.
 
 const OUT := "res://data/augments/"
+## COMBAT-BALANCE-UX-006 Part 9: one concise card sentence; {kind:key:effect} colours the value by its meaning.
+const SHORT := {
+	"g01_second_wind": "After dodging a real attack, your next attack costs {pct:stamina_off:stamina} less Stamina ({pct:mana_off:mana} less Mana for a spell).",
+	"g02_measured_recovery": "Hitting an enemy during its recovery restores {n:stamina:stamina} Stamina or {n:mana:mana} Mana.",
+	"g03_echoing_impact": "Every 3rd hit on the same target echoes for {pct:share:physical} of its damage.",
+	"g04_calculated_risk": "Committed strikes deal {chg:power_mult:physical} damage; a miss recovers {chg:fail_recovery_mult:negative} slower.",
+	"g05_near_miss": "Avoid an attack by moving (not rolling): {chg:speed_mult:utility} move speed for {s:duration}.",
+	"g06_resolute_spirit": "After a Stagger, take {pct:poise_resist:poise} less Poise damage for {s:duration}.",
+	"vc01_guardians_reach": "Interception reaches {chg:range_mult:utility} farther; it costs {chg:cost_mult:negative} Stamina.",
+	"vc02_steel_foundation": "After a successful Guard, the next hit knocks you back {pct:knock_off:utility} less.",
+	"vc03_shared_aegis": "A successful interception shields the ally for {pct:shield_frac:heal} of your max HP.",
+	"vc04_unyielding_footing": "Move {chg:guard_move_mult:utility} faster while guarding.",
+	"vc05_defenders_oath": "After an interception, you take {pct:share:negative} of that ally's damage for {s:window}.",
+	"vc06_last_barrier": "Guarding below {pct:hp_threshold:negative} HP gives you a shield of {pct:shield_frac:heal} max HP.",
+	"vb01_living_fortress": "Walk forward while guarding at {pct:forward_mult:utility} speed; Guard Stamina recovery {pct:regen_off:negative} lower.",
+	"vb02_shielded_advance": "Shield Rush travels {pct:travel_mult:utility} as far but blocks {pp:frontal_add_pp:heal} more from the front.",
+	"vb03_bastion_pulse": "Perfect Guard releases a {m:radius} pulse that slows enemies {pct:slow:utility} for {s:duration}.",
+	"vb04_heavy_anchor": "While guarding, take {pct:poise_resist:poise} less Poise damage; Guard movement {chg:move_mult:negative}.",
+	"vb05_fortress_breaker": "After blocking a heavy attack, your next shield strike deals {pct:poise_bonus:poise} more Poise.",
+	"vb06_sheltering_counter": "A counter right after protecting an ally shields them for {pct:shield_frac:heal} of your max HP.",
+	"vk01_aegis_reversal": "After a Perfect Guard, your next Heavy becomes a counter with {pct:poise_bonus:poise} more Poise.",
+	"vk02_precise_defense": "After a Perfect Guard, your next Perfect Guard window is {s:extra_window} wider.",
+	"vk03_redirected_force": "Perfect-Guard a charging attack, then counter with A / D to step {m:distance} aside first.",
+	"vk04_retaliation_window": "After a connecting counter, raise Guard {pct:faster:utility} sooner.",
+	"vk05_judgment_echo": "A connecting counter unlocks one Echo Strike (LMB) for {pct:damage_share:physical} damage.",
+	"vk06_guardians_retort": "A counter after an interception turns {pct:share:heal} of its damage into an ally shield.",
+	"mc01_merciful_conduit": "Every {s:cooldown}, an attack spell heals the most injured ally for {pct:share:heal} of its damage.",
+	"mc02_gentle_current": "Your heals give the target {chg:speed_mult:utility} move speed for {s:duration}.",
+	"mc03_elemental_memory": "Return to an element within {s:memory}: that spell costs {pct:mana_off:mana} less Mana.",
+	"mc04_benevolent_casting": "Healing an ally below {pct:hp_threshold:negative} HP: your next support spell costs {pct:mana_off:mana} less Mana.",
+	"mc05_dual_invocation": "A heal makes your next attack spell charge {pct:prep_off:utility} faster - and an attack spell does the same for your next heal.",
+	"mc06_woven_protection": "{pct:share:heal} of your overhealing becomes a shield (up to {pct:cap_frac:heal} max HP).",
+	"mf01_elemental_crossroads": "Your chosen elemental interaction is {chg:magnitude:magic} stronger.",
+	"mf02_lingering_essence": "Your Burning and Chill last {chg:duration_mult:utility} longer (max +{s:cap}).",
+	"mf03_thermal_fracture": "Fire shattering your ice deals {pct:poise_bonus:poise} more Poise ({pct:boss_bonus:poise} vs bosses).",
+	"mf04_healing_ember": "(Design backlog) A Fire support effect would add {pct:damage_bonus:physical} weapon damage.",
+	"mf05_living_confluence": "After an elemental interaction, your next different-element spell adds a {pct:dmg_share:magic} echo or {pct:heal_share:heal} extra healing.",
+	"mf06_purifying_confluence": "(Design backlog) Ally interactions would remove one minor debuff.",
+	"ma01_spell_threading": "Cast a different spell within {s:window} of the last: {pct:min_off:utility} shorter minimum charge.",
+	"ma02_arcane_relay": "After you heal an ally, your next projectile launches from that ally.",
+	"ma03_rewoven_spell": "A focused Thunder Conduit also hits a second enemy for {pct:share:magic} of its damage.",
+	"ma04_swift_invocation": "Switching spells on a casting wheel makes the next spell charge {pct:prep_off:utility} faster.",
+	"ma05_sympathetic_link": "Healing an ally links them to an enemy: your next heal on them also deals {pct:share:magic} of it as damage.",
+	"ma06_emergency_thread": "Saving an ally below {pct:hp_threshold:negative} HP: your next attack spell recovers {pct:rec_off:utility} faster.",
+	"rc01_seamless_steel": "After a Dance hit, your next Precision Cut starts {pct:startup_off:utility} sooner.",
+	"rc02_swordsmans_breath": "A connecting Precision Cut restores {n:stamina:stamina} Stamina.",
+	"rc03_measured_blade": "Hitting a recovering enemy: your next attack recovers {pct:rec_off:utility} faster.",
+	"rc04_close_pursuit": "If your target steps just out of range, your next Forward Dance travels {pct:travel_bonus:utility} farther.",
+	"rc05_blade_reflex": "A perfect dodge turns your next LMB into a Reflex strike.",
+	"rc06_clean_execution": "Precision Cut on a recovering enemy deals {pct:poise_bonus:poise} more Poise.",
+	"rd01_phantom_footwork": "With lock-on, Lateral Dance curves around the target and travels {chg:travel_mult:utility} farther.",
+	"rd02_flowing_steps": "After a perfect dodge, your next directional Dance costs {pct:stamina_off:stamina} less Stamina.",
+	"rd03_circling_predator": "A flank hit after a lateral step readies a Predator Cut: {pct:damage_share:physical} damage, faster start.",
+	"rd04_extended_orbit": "Orbit Step circles {chg:angle_mult:utility} farther; it commits {chg:commit_mult:negative} longer.",
+	"rd05_tempest_waltz": "Redirect Whirling Assault once, and move {chg:speed_mult:utility} faster during it.",
+	"rd06_dancers_reversal": "After a perfect side dodge, your next directional Dance travels {chg:travel_mult:utility} farther.",
+	"re01_perfect_draw": "Release Committed Cut within {s:window} of full charge: it recovers {pct:rec_off:utility} faster.",
+	"re02_steel_focus": "While charging Committed Cut, take {pct:poise_resist:poise} less Poise damage.",
+	"re03_fracturing_edge": "Breaking Point on a recovering enemy: {pct:poise_bonus:poise} more Poise, {pct:width_off:negative} narrower.",
+	"re04_executioners_distance": "Precision Cut reaches {chg:range_mult:utility} farther but is {pct:width_off:negative} narrower.",
+	"re05_twin_verdict": "Committed Cut becomes two hits ({pct:first:physical} + {pct:second:physical}) with {chg:exposure_mult:negative} exposure.",
+	"re06_patient_blade": "A fully charged Committed Cut that lands restores {n:stamina:stamina} Stamina.",
+}
 
 
 func _init() -> void:
@@ -29,6 +92,7 @@ func _init() -> void:
 		a.synergy_partners = PackedStringArray(e.get("partners", {}).keys())
 		a.synergy_text = e.get("partners", {})
 		a.synergy_kind = e.get("kinds", {})
+		a.short_text = String(SHORT.get(e.id, ""))
 		a.requires_party = e.get("party", false)
 		a.synergy_tags = PackedStringArray(e.get("tags", []))
 		a.requires_unlocks = PackedStringArray(e.get("req", []))

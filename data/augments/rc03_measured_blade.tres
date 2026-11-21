@@ -22,6 +22,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Hit a recovering enemy"
+short_text = "Hitting a recovering enemy: your next attack recovers {pct:rec_off:utility} faster."
 cooldown = 6.0
 scaling_sources = PackedStringArray()
 params = {

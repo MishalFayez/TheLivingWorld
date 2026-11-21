@@ -23,6 +23,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Precision Cut"
+short_text = "Precision Cut reaches {chg:range_mult:utility} farther but is {pct:width_off:negative} narrower."
 mechanical_tradeoff = "-20% width."
 scaling_sources = PackedStringArray()
 params = {

@@ -22,6 +22,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Dance hit, then Precision Cut"
+short_text = "After a Dance hit, your next Precision Cut starts {pct:startup_off:utility} sooner."
 cooldown = 5.0
 scaling_sources = PackedStringArray()
 params = {

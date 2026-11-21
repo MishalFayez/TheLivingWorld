@@ -28,6 +28,7 @@ synergy_kind = {
 "ma01_spell_threading": "mechanical"
 }
 trigger_summary = "Alternate healing and offensive spells"
+short_text = "A heal makes your next attack spell charge {pct:prep_off:utility} faster - and an attack spell does the same for your next heal."
 cooldown = 6.0
 scaling_sources = PackedStringArray()
 params = {

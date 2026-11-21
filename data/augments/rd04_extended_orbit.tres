@@ -29,6 +29,7 @@ synergy_kind = {
 "rd06_dancers_reversal": "rule"
 }
 trigger_summary = "Orbit Step"
+short_text = "Orbit Step circles {chg:angle_mult:utility} farther; it commits {chg:commit_mult:negative} longer."
 mechanical_tradeoff = "+15% movement commitment."
 scaling_sources = PackedStringArray()
 params = {

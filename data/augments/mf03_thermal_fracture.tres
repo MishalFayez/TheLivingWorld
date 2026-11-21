@@ -29,6 +29,7 @@ synergy_kind = {
 "mf01_elemental_crossroads": "mechanical"
 }
 trigger_summary = "Fire / Frost interaction hits an enemy"
+short_text = "Fire shattering your ice deals {pct:poise_bonus:poise} more Poise ({pct:boss_bonus:poise} vs bosses)."
 cooldown = 6.0
 scaling_sources = PackedStringArray()
 params = {

@@ -38,15 +38,33 @@ func _ready() -> void:
 		bt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		content.add_child(bt)
 	content.add_child(UITheme.divider(content.size.x))
-	var d := UITheme.text(AugmentText.describe(aug), 15, UITheme.PARCHMENT)
-	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# COMBAT-BALANCE-UX-006 Part 9: ONE concise sentence with the key numbers coloured by meaning
+	var d := RichTextLabel.new()
+	d.bbcode_enabled = true
+	d.fit_content = true
+	d.scroll_active = false
 	d.custom_minimum_size = Vector2(content.size.x, 0)
+	d.add_theme_font_size_override("normal_font_size", 17)
+	d.add_theme_font_size_override("bold_font_size", 17)
+	d.add_theme_color_override("default_color", UITheme.PARCHMENT)
+	d.text = AugmentText.short(aug) if aug.pool == "l10" else AugmentText.describe(aug)
 	content.add_child(d)
-	# LEVEL10-FOUNDATION-005 7.2: synergy with an owned card / replacement warning, before choosing
+	if aug.is_anchor:
+		var pb := UITheme.text("%s path: %s" % [AugmentDB.PATH_NAMES.get(aug.path_id, aug.path_id), AugmentDB.PATH_BLURB.get(aug.path_id, "")], 14, UITheme.GOLD)
+		pb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		pb.custom_minimum_size = Vector2(content.size.x, 0)
+		content.add_child(pb)
+	var cond := _condition_line()
+	if cond != "":
+		var cl := UITheme.text(cond, 13, UITheme.TEXT_DIM)
+		cl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		cl.custom_minimum_size = Vector2(content.size.x, 0)
+		content.add_child(cl)
+	# synergy: only a real MECHANICAL benefit with a card you own, in one sentence
 	var p := Game.prog(aug.class_id if aug.class_id != "global" else Game.active_class)
-	var syn := Game.augment_db.synergy_text(aug, p)
+	var syn := _synergy_sentence(p)
 	if syn != "":
-		var sl := UITheme.text("SYNERGY AVAILABLE  ·  " + syn, 13, Color(0.55, 0.9, 1.0), true)
+		var sl := UITheme.text("SYNERGY  ·  " + syn, 14, Color(0.55, 0.9, 1.0), true)
 		sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		sl.custom_minimum_size = Vector2(content.size.x, 0)
 		content.add_child(sl)
@@ -64,6 +82,35 @@ func _ready() -> void:
 		content.add_child(it)
 	for c in content.get_children():
 		c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+## Cooldown / requirement / tradeoff in a few words (only what matters for the choice).
+func _condition_line() -> String:
+	if aug.pool != "l10":
+		return ""
+	var parts: Array = []
+	if aug.cooldown > 0.0:
+		parts.append("Cooldown %ss" % AugmentText._num(aug.cooldown, 1))
+	if aug.requires_party:
+		parts.append("Party")
+	if aug.transforms != "":
+		parts.append("Replaces " + aug.transforms.replace("bd_", "").replace("_", " ").capitalize())
+	return "  ·  ".join(parts)
+
+
+## "With Bastion Pulse: ..." for a mechanical pair with an owned card, else "".
+func _synergy_sentence(p: ClassProgress) -> String:
+	for id in p.augments:
+		if p.augment_stacks(id) <= 0:
+			continue
+		var o: AugmentData = Game.augment_db.get_augment(id)
+		if Game.augment_db.pair_kind(aug, o) != "mechanical":
+			continue
+		var txt := String(aug.synergy_text.get(id, ""))
+		if txt == "" and o != null:
+			txt = String(o.synergy_text.get(aug.id, ""))
+		return "With %s: %s" % [o.display_name, txt]
+	return ""
 
 
 func _gui_input(event: InputEvent) -> void:

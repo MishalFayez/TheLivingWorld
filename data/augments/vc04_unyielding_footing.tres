@@ -21,6 +21,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Passive while guarding"
+short_text = "Move {chg:guard_move_mult:utility} faster while guarding."
 scaling_sources = PackedStringArray()
 params = {
 "guard_move_mult": 1.15

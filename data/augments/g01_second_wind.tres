@@ -22,6 +22,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Dodge i-frames avoid a real enemy attack"
+short_text = "After dodging a real attack, your next attack costs {pct:stamina_off:stamina} less Stamina ({pct:mana_off:mana} less Mana for a spell)."
 cooldown = 6.0
 mechanical_tradeoff = "Internal cooldown 6s; only real dodges count."
 scaling_sources = PackedStringArray()

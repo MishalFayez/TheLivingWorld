@@ -23,6 +23,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Connecting counter, then LMB"
+short_text = "A connecting counter unlocks one Echo Strike (LMB) for {pct:damage_share:physical} damage."
 cooldown = 10.0
 mechanical_tradeoff = "Echo recovers 20% longer."
 scaling_sources = PackedStringArray("weapon_power")

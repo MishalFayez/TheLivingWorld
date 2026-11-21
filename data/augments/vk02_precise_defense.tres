@@ -22,6 +22,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Perfect Guard"
+short_text = "After a Perfect Guard, your next Perfect Guard window is {s:extra_window} wider."
 cooldown = 10.0
 scaling_sources = PackedStringArray()
 params = {

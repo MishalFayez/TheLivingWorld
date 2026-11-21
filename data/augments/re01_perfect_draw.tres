@@ -31,6 +31,7 @@ synergy_kind = {
 "re02_steel_focus": "rule"
 }
 trigger_summary = "Release at full charge (watch the blade highlight)"
+short_text = "Release Committed Cut within {s:window} of full charge: it recovers {pct:rec_off:utility} faster."
 scaling_sources = PackedStringArray()
 params = {
 "rec_off": 0.2,

@@ -20,6 +20,7 @@ const EFFECT := {
 	"crit": Color("#FFD84A"),       # bright gold
 	"negative": Color("#C9665E"),   # muted red
 	"neutral": Color("#E8DCC0"),
+	"utility": Color("#9FD6E8"),    # movement / timing / duration / range values (006 card text)
 }
 const EFFECT_LABEL := {"physical": "Physical", "magic": "Magic", "heal": "Healing", "poise": "Poise", "stamina": "Stamina",
 	"mana": "Mana", "crit": "Critical", "negative": "Cost"}

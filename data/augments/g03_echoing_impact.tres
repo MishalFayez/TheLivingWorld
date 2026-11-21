@@ -22,6 +22,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "3 separate connecting actions on one target"
+short_text = "Every 3rd hit on the same target echoes for {pct:share:physical} of its damage."
 cooldown = 6.0
 mechanical_tradeoff = "Once per 6s; the echo is a plain secondary impact."
 scaling_sources = PackedStringArray("str", "dex", "weapon_power")

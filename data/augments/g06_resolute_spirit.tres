@@ -21,6 +21,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Recover from Stagger"
+short_text = "After a Stagger, take {pct:poise_resist:poise} less Poise damage for {s:duration}."
 cooldown = 10.0
 mechanical_tradeoff = "Cooldown 10s; no immunity."
 scaling_sources = PackedStringArray()

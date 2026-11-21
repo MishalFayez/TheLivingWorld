@@ -29,6 +29,7 @@ synergy_kind = {
 "vk04_retaliation_window": "mechanical"
 }
 trigger_summary = "Perfect Guard a lunging attack, then counter with A / D"
+short_text = "Perfect-Guard a charging attack, then counter with A / D to step {m:distance} aside first."
 cooldown = 10.0
 mechanical_tradeoff = "Cooldown 10s."
 scaling_sources = PackedStringArray()

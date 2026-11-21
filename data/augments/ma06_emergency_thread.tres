@@ -23,6 +23,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Heal an ally below 35% HP"
+short_text = "Saving an ally below {pct:hp_threshold:negative} HP: your next attack spell recovers {pct:rec_off:utility} faster."
 cooldown = 10.0
 scaling_sources = PackedStringArray()
 params = {

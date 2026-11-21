@@ -21,6 +21,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Direct heal restores HP"
+short_text = "Your heals give the target {chg:speed_mult:utility} move speed for {s:duration}."
 cooldown = 5.0
 scaling_sources = PackedStringArray()
 params = {

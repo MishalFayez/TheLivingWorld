@@ -30,6 +30,7 @@ synergy_kind = {
 "mc06_woven_protection": "rule"
 }
 trigger_summary = "Ally-targeted interaction (no cleansable statuses exist)"
+short_text = "(Design backlog) Ally interactions would remove one minor debuff."
 scaling_sources = PackedStringArray()
 params = {
 "cooldown": 12.0

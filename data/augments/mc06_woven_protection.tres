@@ -22,6 +22,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Overheal"
+short_text = "{pct:share:heal} of your overhealing becomes a shield (up to {pct:cap_frac:heal} max HP)."
 scaling_sources = PackedStringArray()
 params = {
 "cap_frac": 0.06,

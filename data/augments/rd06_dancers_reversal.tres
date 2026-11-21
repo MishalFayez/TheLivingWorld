@@ -23,6 +23,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Perfect side dodge, then directional Dance"
+short_text = "After a perfect side dodge, your next directional Dance travels {chg:travel_mult:utility} farther."
 cooldown = 8.0
 scaling_sources = PackedStringArray()
 params = {

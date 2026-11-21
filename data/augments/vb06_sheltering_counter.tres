@@ -30,6 +30,7 @@ synergy_kind = {
 }
 requires_party = true
 trigger_summary = "Counter right after an interception"
+short_text = "A counter right after protecting an ally shields them for {pct:shield_frac:heal} of your max HP."
 cooldown = 8.0
 scaling_sources = PackedStringArray("vit")
 params = {

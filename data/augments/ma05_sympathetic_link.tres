@@ -24,6 +24,7 @@ synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 requires_party = true
 trigger_summary = "Heal an ally twice within 4s with an enemy nearby"
+short_text = "Healing an ally links them to an enemy: your next heal on them also deals {pct:share:magic} of it as damage."
 cooldown = 12.0
 scaling_sources = PackedStringArray("weapon_power")
 params = {

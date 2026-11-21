@@ -123,9 +123,10 @@ func test_scaling_labels() -> void:
 	var by := {}
 	for e in ents:
 		by[e.id] = TooltipText.skill(e, src, TooltipText.LEVEL_SIMPLE)
-	check(not by.bd_dance.contains("(heavy / charged)") and not by.bd_dance.contains("multi-hit"), "Dance: no STR heavy / DEX scaling (it is neither heavy nor multi-hit)")
-	check(by.bd_committed.contains("(heavy / charged)"), "Committed Cut: STR (charged) shown")
-	check(by.bd_whirl.contains("(multi-hit total)") and not by.bd_whirl.contains("(heavy / charged)"), "Whirling Assault: DEX shown, STR heavy not shown")
+	# 006 simple format: one "STAT value -> +contribution · +1 STAT -> +x" line per stat that really applies
+	check(not by.bd_dance.contains("+1 STR") and not by.bd_dance.contains("+1 DEX"), "Dance: no STR / DEX scaling line (it is neither heavy nor multi-hit)")
+	check(by.bd_committed.contains("+1 STR") and not by.bd_committed.contains("+1 DEX"), "Committed Cut: STR (charged) shown with its +1 STR value")
+	check(by.bd_whirl.contains("+1 DEX") and not by.bd_whirl.contains("+1 STR"), "Whirling Assault: DEX shown, STR not shown")
 	var all_txt := "".join(by.values())
 	check(not all_txt.contains("VIT") and not all_txt.contains("MAS"), "no VIT / MAS on Reaver damage skills (VIT = HP only, MAS = effects only)")
 	var mp := ClassProgress.new("mage")

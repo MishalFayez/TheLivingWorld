@@ -29,6 +29,7 @@ synergy_kind = {
 "rd02_flowing_steps": "mechanical"
 }
 trigger_summary = "Whirling Assault"
+short_text = "Redirect Whirling Assault once, and move {chg:speed_mult:utility} faster during it."
 scaling_sources = PackedStringArray()
 params = {
 "speed_mult": 1.15

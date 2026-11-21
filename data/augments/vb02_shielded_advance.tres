@@ -23,6 +23,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Shield Rush"
+short_text = "Shield Rush travels {pct:travel_mult:utility} as far but blocks {pp:frontal_add_pp:heal} more from the front."
 mechanical_tradeoff = "Shorter rush."
 scaling_sources = PackedStringArray()
 transforms = "shield_rush"

@@ -29,6 +29,7 @@ synergy_kind = {
 "vb01_living_fortress": "mechanical"
 }
 trigger_summary = "Perfect Guard"
+short_text = "Perfect Guard releases a {m:radius} pulse that slows enemies {pct:slow:utility} for {s:duration}."
 cooldown = 8.0
 mechanical_tradeoff = "Internal cooldown 8s."
 scaling_sources = PackedStringArray()

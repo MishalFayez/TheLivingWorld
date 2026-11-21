@@ -28,6 +28,7 @@ synergy_kind = {
 "re03_fracturing_edge": "mechanical"
 }
 trigger_summary = "Precision Cut on a recovering enemy"
+short_text = "Precision Cut on a recovering enemy deals {pct:poise_bonus:poise} more Poise."
 cooldown = 5.0
 scaling_sources = PackedStringArray()
 params = {

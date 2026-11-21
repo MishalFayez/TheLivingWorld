@@ -29,6 +29,7 @@ synergy_kind = {
 }
 requires_party = true
 trigger_summary = "Successful interception"
+short_text = "A successful interception shields the ally for {pct:shield_frac:heal} of your max HP."
 cooldown = 8.0
 mechanical_tradeoff = "Cooldown 8s."
 scaling_sources = PackedStringArray("vit")

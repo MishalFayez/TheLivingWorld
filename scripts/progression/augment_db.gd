@@ -65,6 +65,13 @@ func chosen_path(p: ClassProgress) -> String:
 
 
 const PATHS := {"vanguard": ["bulwark", "counterguard"], "mage": ["fusion", "arcane"], "reaver": ["dance", "edge"]}
+## COMBAT-BALANCE-UX-006 Part 12: one plain sentence per approved build direction (shown on Level 4 anchors).
+const PATH_BLURB := {"bulwark": "Endure: push forward behind your Guard and protect allies by your position.",
+	"counterguard": "React: time Perfect Guards and punish with counters.",
+	"fusion": "Combine: make elements and world formations interact for bigger effects.",
+	"arcane": "Flow: chain different spells quickly and route them through allies.",
+	"dance": "Move: circle, flank and stay engaged without stopping.",
+	"edge": "Strike precisely: charged cuts that punish recovering enemies."}
 const PATH_NAMES := {"bulwark": "Bulwark", "counterguard": "Counterguard", "fusion": "Elemental Fusion", "arcane": "Arcane Weaving", "dance": "Dance Mastery", "edge": "Edge Mastery"}
 
 

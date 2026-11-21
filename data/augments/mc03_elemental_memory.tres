@@ -22,6 +22,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Cast element A, then B, then A again"
+short_text = "Return to an element within {s:memory}: that spell costs {pct:mana_off:mana} less Mana."
 cooldown = 6.0
 scaling_sources = PackedStringArray()
 params = {

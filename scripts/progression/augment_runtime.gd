@@ -637,6 +637,9 @@ func relay_origin(default_pos: Vector3, max_range: float) -> Vector3:
 ## M-F01 / M-F03: magnitude multiplier for an implemented elemental interaction.
 func interaction_mult(id: String) -> float:
 	if has("mf01_elemental_crossroads") and crossroads_choice() == id:
+		if ready("mf01_fx"):
+			use_cd("mf01_fx", 1.0)   # visible cue (006 Part 12), at most once per second
+			fire("mf01_elemental_crossroads", "%s enhanced (%s)" % [id.replace("_", " ").capitalize(), StatStyle.pct(float(pv("mf01_elemental_crossroads", "magnitude", 1.2)) - 1.0)])
 		return float(pv("mf01_elemental_crossroads", "magnitude", 1.2))
 	return 1.0
 

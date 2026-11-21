@@ -21,6 +21,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Successful Guard"
+short_text = "After a successful Guard, the next hit knocks you back {pct:knock_off:utility} less."
 scaling_sources = PackedStringArray()
 params = {
 "knock_off": 0.3,

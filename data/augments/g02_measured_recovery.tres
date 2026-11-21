@@ -21,6 +21,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Hit an enemy that is recovering from its own attack"
+short_text = "Hitting an enemy during its recovery restores {n:stamina:stamina} Stamina or {n:mana:mana} Mana."
 cooldown = 5.0
 mechanical_tradeoff = "Internal cooldown 5s."
 scaling_sources = PackedStringArray()

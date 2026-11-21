@@ -24,6 +24,7 @@ blocked_reason = "No Fire-based ally support effect exists in the approved World
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Fire-based ally support (does not exist yet)"
+short_text = "(Design backlog) A Fire support effect would add {pct:damage_bonus:physical} weapon damage."
 scaling_sources = PackedStringArray()
 params = {
 "damage_bonus": 0.12,

@@ -22,6 +22,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Guard below 35% HP"
+short_text = "Guarding below {pct:hp_threshold:negative} HP gives you a shield of {pct:shield_frac:heal} max HP."
 cooldown = 20.0
 mechanical_tradeoff = "Cooldown 20s; passive reduction never triggers it."
 scaling_sources = PackedStringArray("vit")

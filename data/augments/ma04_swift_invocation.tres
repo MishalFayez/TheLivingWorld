@@ -28,6 +28,7 @@ synergy_kind = {
 "ma06_emergency_thread": "rule"
 }
 trigger_summary = "Spell wheel change, then cast"
+short_text = "Switching spells on a casting wheel makes the next spell charge {pct:prep_off:utility} faster."
 cooldown = 6.0
 scaling_sources = PackedStringArray()
 params = {

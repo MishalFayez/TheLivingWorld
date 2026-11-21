@@ -8,6 +8,58 @@ extends RefCounted
 static func describe(a: AugmentData) -> String:
 	if a == null:
 		return ""
+	return fill(a.description, a.params, false)
+
+
+## COMBAT-BALANCE-UX-006 Part 9: the one-sentence card text, numbers coloured by meaning (BBCode) or plain.
+static func short(a: AugmentData, colored: bool = true) -> String:
+	if a == null:
+		return ""
+	var t := a.short_text if a.short_text != "" else _first_sentence(a.description)
+	return fill(t, a.params, colored)
+
+
+static func _first_sentence(t: String) -> String:
+	var i := t.find(". ")
+	return t.substr(0, i + 1) if i > 0 else t
+
+
+## Replace {kind:key[:effect]} tokens with the param value; `colored` wraps each value in its effect colour
+## (durations / distances default to the utility colour). Never colour alone: the text says what it is.
+static func fill(txt: String, params: Dictionary, colored: bool) -> String:
+	var re := RegEx.new()
+	re.compile("\\{(pct|chg|s|m|n|pp):([a-z_0-9]+)(?::([a-z]+))?\\}")
+	var out := txt
+	for m in re.search_all(txt):
+		var kind := m.get_string(1)
+		var key := m.get_string(2)
+		var effect := m.get_string(3)
+		if effect == "":
+			effect = "utility" if kind in ["s", "m"] else "neutral"
+		var v := float(params.get(key, 0.0))
+		var rep := _token_value(kind, v)
+		if colored:
+			rep = "[b]%s[/b]" % StatStyle.fx(effect, rep)
+		out = out.replace(m.get_string(0), rep)
+	return out
+
+
+static func _token_value(kind: String, v: float) -> String:
+	match kind:
+		"pct":
+			return _num(v * 100.0) + "%"
+		"chg":
+			return ("+" if v >= 1.0 else "-") + _num(absf(v - 1.0) * 100.0) + "%"
+		"s":
+			return _num(v, 2) + "s"
+		"m":
+			return _num(v, 2) + "m"
+		"pp":
+			return "+" + _num(v * 100.0) + "pp"
+	return _num(v, 2)
+
+
+static func _legacy_describe(a: AugmentData) -> String:
 	var txt := a.description
 	var re := RegEx.new()
 	re.compile("\\{(pct|chg|s|m|n|pp):([a-z_0-9]+)\\}")
@@ -62,7 +114,8 @@ static func header(a: AugmentData) -> String:
 static func inspect(a: AugmentData, class_id: String, p: ClassProgress) -> String:
 	var lines: Array = []
 	lines.append("[b]%s[/b]   [color=#b9a98a]%s[/color]" % [a.display_name, header(a)])
-	lines.append(describe(a))
+	lines.append(short(a))
+	lines.append("[color=#b9a98a]Full rule:[/color] " + describe(a))
 	if a.trigger_summary != "":
 		lines.append("[color=#d8c890]Trigger:[/color] " + a.trigger_summary)
 	if a.cooldown > 0.0:

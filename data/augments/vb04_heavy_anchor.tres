@@ -28,6 +28,7 @@ synergy_kind = {
 "vb05_fortress_breaker": "mechanical"
 }
 trigger_summary = "Passive while guarding"
+short_text = "While guarding, take {pct:poise_resist:poise} less Poise damage; Guard movement {chg:move_mult:negative}."
 mechanical_tradeoff = "-10% Guard movement."
 scaling_sources = PackedStringArray()
 params = {

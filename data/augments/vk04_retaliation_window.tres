@@ -23,6 +23,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Connecting counter"
+short_text = "After a connecting counter, raise Guard {pct:faster:utility} sooner."
 scaling_sources = PackedStringArray()
 params = {
 "faster": 0.2,

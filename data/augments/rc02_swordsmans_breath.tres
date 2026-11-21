@@ -21,6 +21,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Precision Cut connects"
+short_text = "A connecting Precision Cut restores {n:stamina:stamina} Stamina."
 cooldown = 4.0
 scaling_sources = PackedStringArray()
 params = {

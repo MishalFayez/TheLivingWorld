@@ -30,6 +30,7 @@ synergy_kind = {
 }
 requires_party = true
 trigger_summary = "Heal an ally, then cast a projectile"
+short_text = "After you heal an ally, your next projectile launches from that ally."
 cooldown = 10.0
 scaling_sources = PackedStringArray()
 params = {

@@ -30,6 +30,7 @@ synergy_kind = {
 "re06_patient_blade": "rule"
 }
 trigger_summary = "Committed Cut"
+short_text = "Committed Cut becomes two hits ({pct:first:physical} + {pct:second:physical}) with {chg:exposure_mult:negative} exposure."
 mechanical_tradeoff = "+15% exposure."
 scaling_sources = PackedStringArray()
 transforms = "bd_committed"

@@ -22,6 +22,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Perfect dodge, then LMB"
+short_text = "A perfect dodge turns your next LMB into a Reflex strike."
 cooldown = 6.0
 scaling_sources = PackedStringArray()
 params = {

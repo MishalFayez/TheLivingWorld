@@ -31,6 +31,7 @@ synergy_kind = {
 "vb03_bastion_pulse": "mechanical"
 }
 trigger_summary = "Hold Guard and move forward"
+short_text = "Walk forward while guarding at {pct:forward_mult:utility} speed; Guard Stamina recovery {pct:regen_off:negative} lower."
 mechanical_tradeoff = "-30% Guard stamina recovery while advancing."
 scaling_sources = PackedStringArray()
 params = {

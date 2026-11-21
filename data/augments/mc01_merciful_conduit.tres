@@ -22,6 +22,7 @@ blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
 trigger_summary = "Offensive spell deals damage"
+short_text = "Every {s:cooldown}, an attack spell heals the most injured ally for {pct:share:heal} of its damage."
 cooldown = 8.0
 scaling_sources = PackedStringArray("weapon_power", "str")
 params = {

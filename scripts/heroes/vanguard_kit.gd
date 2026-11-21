@@ -59,6 +59,9 @@ func move_mult() -> float:
 		# Living Fortress (Bulwark anchor): forward steps while guarding at up to 60% of normal speed
 		if hero.rt and _guard_advancing():
 			m = maxf(m, hero.rt.guard_forward_fraction())
+			if hero.rt.ready("vb01_fx"):
+				hero.rt.use_cd("vb01_fx", 3.0)    # visible cue (006 Part 12): advancing behind the Guard
+				hero.rt.fire("vb01_living_fortress", "Advancing behind the Guard (%s speed)" % StatStyle.pct(m))
 		return m
 	return super.move_mult()
 

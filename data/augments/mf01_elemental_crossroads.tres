@@ -33,6 +33,7 @@ synergy_kind = {
 "mf05_living_confluence": "visual"
 }
 trigger_summary = "Your chosen elemental interaction happens"
+short_text = "Your chosen elemental interaction is {chg:magnitude:magic} stronger."
 scaling_sources = PackedStringArray("weapon_power")
 params = {
 "choices": "thermal_fracture,shattered_winter,living_bastion,conductive_anchors",
