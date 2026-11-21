@@ -42,11 +42,18 @@ const PLAN := [
 ]
 
 ## Part S: identical scripted inputs for every build (only the cards differ). [level, build, enemy]
-const SCRIPTED := [[4, "none", "elite raider"], [4, "A1", "elite raider"], [4, "B1", "elite raider"],
-	[10, "none", "elite raider"], [10, "A3 syn", "elite raider"], [10, "A3 alt", "elite raider"], [10, "B3 syn", "elite raider"], [10, "B3 alt", "elite raider"],
-	[10, "none", "boss"], [10, "A3 syn", "boss"], [10, "B3 syn", "boss"]]
+## 006: [level, build, enemy, mode]  mode: dps (45s vs a huge-HP target), nodef (no guard / dodge / heal, until down),
+## boss (the real Lv10 boss at full HP, until it or the hero falls, max 240s)
+const SCRIPTED_ALL := [[1, "none", "elite raider", "dps"], [3, "none", "elite raider", "dps"], [4, "none", "elite raider", "dps"], [5, "none", "elite raider", "dps"],
+	[8, "none", "elite raider", "dps"], [10, "none", "elite raider", "dps"],
+	[4, "A1", "elite raider", "dps"], [4, "B1", "elite raider", "dps"],
+	[10, "A3 syn", "elite raider", "dps"], [10, "A3 alt", "elite raider", "dps"], [10, "B3 syn", "elite raider", "dps"], [10, "B3 alt", "elite raider", "dps"],
+	[10, "none", "elite raider", "nodef"], [10, "none", "elite raider", "defend"],
+	[10, "none", "boss", "boss"], [10, "A3 syn", "boss", "boss"], [10, "B3 syn", "boss", "boss"]]
+const SCRIPTED_BOSS := [[10, "none", "elite raider", "dps"], [10, "none", "boss", "boss"], [10, "A3 syn", "boss", "boss"], [10, "B3 syn", "boss", "boss"]]
 
 var trig_n: Dictionary = {}
+var taken_by: Dictionary = {}
 var poise_breaks: int = 0
 var shields: float = 0.0
 
@@ -58,6 +65,7 @@ func _run_all() -> void:
 	Events.augment_triggered.connect(func(o, id, _d): if is_instance_valid(Game.player) and o == Game.player and Game.augment_db.get_augment(id) != null and Game.augment_db.get_augment(id).pool == "l10": trig_n[id] = int(trig_n.get(id, 0)) + 1)
 	Events.combat_notice.connect(func(t, who): if t == "POISE BROKEN" and who is Enemy: poise_breaks += 1)
 	Events.log_message.connect(_on_log)
+	Events.damage_applied.connect(func(info): if is_instance_valid(Game.player) and info.target == Game.player and info.final_amount > 0.0: taken_by[info.attack_name] = float(taken_by.get(info.attack_name, 0.0)) + info.final_amount)
 	var only := OS.get_environment("L10_BALANCE_CLASS")
 	for cls in ["vanguard", "mage", "reaver"]:
 		if only != "" and only != cls:
@@ -68,11 +76,11 @@ func _run_all() -> void:
 	for cls in ["vanguard", "mage", "reaver"]:
 		if only != "" and only != cls:
 			continue
-		for row in SCRIPTED:
-			await _scripted_run(cls, int(row[0]), String(row[1]), String(row[2]))
+		for row in (SCRIPTED_BOSS if OS.get_environment("L10_BALANCE_SET") == "boss" else SCRIPTED_ALL):
+			await _scripted_run(cls, int(row[0]), String(row[1]), String(row[2]), String(row[3]))
 	# determinism check: the same scripted run twice must give identical numbers
 	if only == "" or only == "reaver":
-		await _scripted_run("reaver", 10, "B3 syn", "elite raider")
+		await _scripted_run("reaver", 10, "B3 syn", "elite raider", "dps")
 	print("\n==== L10 BALANCE RESULTS ====")
 	for r in rows:
 		print(r)
@@ -204,7 +212,7 @@ func _run(cls: String, level: int, build: String, scen: String, party: bool) -> 
 ##   on itself when below 60%, wheel swap every 4th cast; dodge an attack about to land.
 ## Reaver: Dance (neutral / lateral) and an Edge strike every 4th action (full-charge Committed Cut or
 ##   Precision Cut); dodge an attack about to land.
-func _scripted_run(cls: String, level: int, build: String, enemy: String) -> void:
+func _scripted_run(cls: String, level: int, build: String, enemy: String, mode: String = "dps") -> void:
 	seed(SEED)
 	Game.rng.seed = SEED
 	var h := await _setup_hero(cls, level, build, false)
@@ -216,15 +224,22 @@ func _scripted_run(cls: String, level: int, build: String, enemy: String) -> voi
 		r = Game.spawn_enemy("ashen_warden", h.global_position + Vector3(0, 0, -3.0), "keep", false)
 	else:
 		r = Game.spawn_enemy("raider", h.global_position + Vector3(0, 0, -2.4), "ruins" if level >= 8 else "outskirts", true)
-	r.max_hp = 999999
-	r.hp = 999999
+	if mode == "dps":
+		r.max_hp = 999999
+		r.hp = 999999
+	r.target = h
 	h.lock_target = r
 	face(h, r)
 	_reset_metrics()
 	trig_n.clear()
+	taken_by.clear()
 	poise_breaks = 0
 	shields = 0.0
-	var dur := 30.0
+	var dur: float = float({"dps": 45.0, "nodef": 120.0, "defend": 120.0, "boss": 240.0}.get(mode, 45.0))
+	var defend := mode != "nodef"
+	var dodges := 0
+	var hp_start := r.hp
+	var zones: Array = []          # active Burning Ground circles [pos, until]
 	var hold := -1
 	var hold_action := ""
 	var step := 0
@@ -233,11 +248,45 @@ func _scripted_run(cls: String, level: int, build: String, enemy: String) -> voi
 	var last_mana := _mana(h)
 	var busy := 0
 	var frames := int(dur * 60.0)
+	var f_done := 0
 	for f in frames:
+		f_done = f + 1
 		var to: Vector3 = r.global_position - h.global_position
 		to.y = 0
-		var incoming: bool = r.runner.is_busy() and r.runner.phase == AttackRunner.Phase.STARTUP and r.runner.data != null and r.runner.data.hits > 0 \
-			and r.runner.t > r.runner.data.startup - 0.14 and to.length() < 4.5
+		var incoming: bool = defend and r.runner.is_busy() and r.runner.phase == AttackRunner.Phase.STARTUP and r.runner.data != null \
+			and (r.runner.data.hits > 0 or r.runner.data.special in ["lance_far", "execution"]) \
+			and r.runner.t > r.runner.data.startup - 0.14 and to.length() < 7.5
+		# Burning Ground: the marked circle (2.8m) is placed where you stood when the windup began - walk out of it
+		var burning: bool = defend and r.runner.is_busy() and r.runner.phase == AttackRunner.Phase.STARTUP and r.runner.data != null and r.runner.data.special == "burning_ground"
+		if burning and hold_action != "guard":
+			for sp in (r.burn_spots if "burn_spots" in r else []):
+				var away: Vector3 = h.global_position - sp
+				away.y = 0
+				if away.length() < 3.4:
+					h.move_input = (away.normalized() if away.length() > 0.1 else to.normalized().cross(Vector3.UP))
+					if cls != "vanguard" and h.stamina > 20.0 and not h.dodging and r.runner.t > r.runner.data.startup - 0.3:
+						h.try_dodge()
+		elif not h.dodging and hold_action == "" and h.kit.charging == "":
+			h.move_input = Vector3.ZERO
+		# remember the burning circles while they burn (6s) and never stand / fight inside them
+		if r.runner.is_busy() and r.runner.phase == AttackRunner.Phase.ACTIVE and r.runner.data != null and r.runner.data.special == "burning_ground" and zones.is_empty():
+			for sp in r.burn_spots:
+				zones.append([sp, Game.time + 6.3])
+		zones = zones.filter(func(z): return Game.time < float(z[1]))
+		var in_zone := false
+		for z in zones:
+			var away: Vector3 = h.global_position - Vector3(z[0])
+			away.y = 0
+			if away.length() < 3.4:
+				in_zone = true
+				if not h.dodging and hold_action != "guard":
+					h.move_input = away.normalized() if away.length() > 0.1 else to.normalized().cross(Vector3.UP)
+		if in_zone and not burning:
+			await get_tree().physics_frame
+			continue
+		# the mage keeps casting range instead of trading blows in melee
+		if cls == "mage" and defend and not incoming and not burning and to.length() < 5.0 and h.kit.charging == "" and not h.dodging:
+			h.move_input = -to.normalized()
 		if hold > 0:
 			hold -= 1
 			if cls == "vanguard" and hold_action == "guard":
@@ -266,14 +315,15 @@ func _scripted_run(cls: String, level: int, build: String, enemy: String) -> voi
 					h.move_input = Vector3.ZERO
 		elif cls == "mage":
 			var el: MageElementalist = h.kit.el
-			if incoming and h.stamina > 30.0 and el.cur == null:
-				h.move_input = to.normalized().cross(Vector3.UP)
+			if incoming and h.stamina > 20.0:
+				# a real player dodges even mid-charge (the charge is dropped, no mana spent)
+				h.move_input = _evade_dir(r, to)
 				h.try_dodge()
 				h.move_input = Vector3.ZERO
 			elif el.cur == null and h.can_act():
 				casts += 1
 				var slot := "light"
-				if h.hp < h.max_hp * 0.6:
+				if defend and h.hp < h.max_hp * 0.6:
 					el.set_heal_target(h)
 					el.ai_spell = {"heavy": "life_bloom"}
 					slot = "heavy"
@@ -290,12 +340,13 @@ func _scripted_run(cls: String, level: int, build: String, enemy: String) -> voi
 				hold = 70
 		else:
 			var bdk: ReaverBladeDancer = h.kit.bd
-			if incoming and h.stamina > 30.0 and not h.dodging:
+			if incoming and h.stamina > 18.0 and not h.dodging and h.can_act():
+				dodges += 1
 				h.release("heavy")
-				h.move_input = to.normalized().cross(Vector3.UP)
+				h.move_input = _evade_dir(r, to)
 				h.try_dodge()
 				h.move_input = Vector3.ZERO
-			elif h.can_act() and h.kit.charging == "":
+			elif h.can_act() and h.kit.charging == "" and (not defend or h.stamina > 40.0 or (r.runner.is_busy() and r.runner.phase == AttackRunner.Phase.RECOVERY) or r.is_staggered()):
 				if to.length() > 3.0:
 					h.release("heavy")
 					h.move_input = to.normalized()
@@ -328,6 +379,8 @@ func _scripted_run(cls: String, level: int, build: String, enemy: String) -> voi
 		last_mana = mana_now
 		if h.downed:
 			break
+		if mode != "dps" and (r.dead or r.hp <= 0.0):
+			break
 	for a in ["guard", "heavy", "light"]:
 		h.release(a)
 	var tr := 0
@@ -335,10 +388,22 @@ func _scripted_run(cls: String, level: int, build: String, enemy: String) -> voi
 		tr += int(trig_n[k])
 	var keys: Array = trig_n.keys()
 	keys.sort()
-	var line := "S | %-8s | Lv%-2d | %-8s | %-12s | DPS %6.1f | uptime %3d%% | taken %4d%%HP | downed %d | heal %5d | shield %4d | stamina %5d | mana %5d | perfect %2d | dodged %2d | poise breaks %2d | aug triggers %3d (%s)" % [
-		cls, level, build, enemy, m.dealt / dur, roundi(100.0 * busy / maxf(1, frames)), roundi(100.0 * m.taken / h.max_hp), m.downed,
+	var t_used: float = (f_done if f_done > 0 else frames) / 60.0
+	var line := "S | %-8s | Lv%-2d | %-8s | %-12s | %-6s | t %5.1fs | %s | DPS %6.1f | uptime %3d%% | taken %4d%%HP | downed %d | heal %5d | shield %4d | stamina %5d | mana %5d | perfect %2d | dodged %2d | poise breaks %2d | aug triggers %3d (%s)" % [
+		cls, level, build, enemy, mode, t_used, ("WON" if r.dead or r.hp <= 0.0 else ("DOWNED" if h.downed else "alive")), m.dealt / t_used, roundi(100.0 * busy / maxf(1, frames)), roundi(100.0 * m.taken / h.max_hp), m.downed,
 		roundi(m.heal_done), roundi(shields), roundi(m.stamina), roundi(m.mana), m.perfect, m.dodge, poise_breaks, tr,
 		", ".join(keys.map(func(k): return "%s %d" % [String(k).get_slice("_", 0), int(trig_n[k])]))]
+	if mode == "boss" or mode == "nodef":
+		var ks: Array = taken_by.keys()
+		ks.sort_custom(func(a, b): return float(taken_by[a]) > float(taken_by[b]))
+		line += " | taken from: " + ", ".join(ks.slice(0, 5).map(func(k): return "%s %d" % [k, roundi(float(taken_by[k]))]))
 	rows.append(line)
 	print(line)
 	r.queue_free()
+
+## Player-like evasion: wide / area / multi-hit attacks -> back away (longest Weave); narrow ones -> sidestep.
+func _evade_dir(r: Enemy, to: Vector3) -> Vector3:
+	var d: AttackData = r.runner.data
+	if d != null and (d.hitbox_size.x >= 3.0 or d.hits > 1 or absf(d.hitbox_offset.z) < 0.5):
+		return -to.normalized()
+	return to.normalized().cross(Vector3.UP)

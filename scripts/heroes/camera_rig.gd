@@ -262,7 +262,8 @@ func _apply(hp: Vector3, delta: float, snap: bool) -> void:
 	# limited by geometry the limit rises in 2-3 cm steps on alternate frames and the camera copied that
 	# staircase (measured: position acceleration spikes on 70% of frames while locked). Decreases still apply
 	# at once (never clip); increases are low-passed, so easing out is smooth. Never above the real limit.
-	if snap or target < _limit_smooth - 0.05 or (target < _limit_smooth and _penetrating(pivot + back * _limit_smooth)):
+	var raw_target := target
+	if snap or target < _limit_smooth - 0.05 or target < cur_dist - 0.005 or (target < _limit_smooth and _penetrating(pivot + back * _limit_smooth)):
 		_limit_smooth = target
 	elif target < _limit_smooth:
 		pass    # a quantization dip of a few cm that would not put the camera inside geometry: hold
@@ -283,7 +284,9 @@ func _apply(hp: Vector3, delta: float, snap: bool) -> void:
 	else:
 		# never ease OUT into geometry: at a wall the eased step would penetrate, be snapped back next
 		# frame and repeat every 2-3 frames (a visible ~7cm oscillation)
-		var out_d := move_toward(cur_dist, target, ease_out_speed * delta)
+		# a held quantization dip keeps the camera where it is, but never lets it ease OUT past the real
+		# limit (that space can turn solid a frame later and force a small snap-back at walls)
+		var out_d := move_toward(cur_dist, maxf(cur_dist, minf(target, raw_target)), ease_out_speed * delta)
 		dbg_want = want
 		dbg_target = target
 		dbg_blocked = not (out_d <= cur_dist or snap or not _penetrating(pivot + back * out_d))

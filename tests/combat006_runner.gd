@@ -106,6 +106,65 @@ func test_dodge_vs_attacks() -> void:
 				print("    hit: %s side dodge %.2fs before" % [spec[1], tb])
 			e.queue_free()
 	check(ok == total, "side dodges 0.12-0.4s before impact avoid the hit: %d / %d" % [ok, total])
+	await test_boss_avoidability()
+
+
+## Every Ashen Warden attack has a correct answer that takes no damage (measurement for Part 11:
+## "repeated deaths caused by unavoidable tracking / hitboxes are unacceptable"). Wide or multi-hit
+## attacks: dodge back and keep moving away; Burning Ground: leave the 2.8m circle; others: side dodge.
+func test_boss_avoidability() -> void:
+	print("\n[Boss: every Ashen Warden attack is avoidable with its correct response (Reaver Lv10, 2.2m)]")
+	var plan := {"warden_slash1": "side", "warden_slash2": "side", "warden_breaker": "side", "warden_execution": "side",
+		"warden_ember_lance": "side", "warden_sweep": "back", "warden_flame_combo": "back", "warden_roar": "back",
+		"warden_burning_ground": "leave"}
+	var ok := 0
+	for id in plan:
+		var how: String = plan[id]
+		var h := await bd(10)
+		h.max_hp = 99999
+		h.hp = 99999
+		var e := dummy("ashen_warden", h.global_position + Vector3(0, 0, -2.2))
+		e.max_hp = 999999
+		e.hp = 999999
+		e.target = h
+		face(e, h)
+		h.lock_target = e
+		await wait(0.05)
+		var d: AttackData = e.find_attack(id)
+		if d == null:
+			check(false, "warden has attack %s" % id)
+			e.queue_free()
+			continue
+		got_hit = false
+		e.begin_attack(d)
+		var startup: float = d.startup / e.runner.speed
+		var lead := 0.3 if how != "leave" else 0.45
+		if id == "warden_ember_lance":
+			lead = -0.02     # aimed at the hero's position on release (not homing): answer it on the release
+		var acted := false
+		var away := Vector3.ZERO
+		var t := 0.0
+		while t < startup + d.active + (1.6 if how == "leave" else 0.4):
+			var to: Vector3 = e.global_position - h.global_position
+			to.y = 0
+			if not acted and startup - t <= lead:
+				acted = true
+				away = -to.normalized() if how != "side" else to.normalized().cross(Vector3.UP)
+				h.move_input = away
+				h.try_dodge()
+			if acted and not h.dodging:
+				h.move_input = away if how != "side" and t < startup + d.active + 0.6 else Vector3.ZERO
+			await get_tree().physics_frame
+			t += 1.0 / 60.0
+		if not got_hit:
+			ok += 1
+		else:
+			print("    hit: %s (%s)" % [id, how])
+		e.queue_free()
+		await wait(0.05)
+		for z in get_tree().root.find_children("*", "GroundZone", true, false):
+			z.queue_free()
+	check(ok == plan.size(), "every warden attack avoided by its correct response: %d / %d" % [ok, plan.size()])
 
 
 func test_weave_distances() -> void:
