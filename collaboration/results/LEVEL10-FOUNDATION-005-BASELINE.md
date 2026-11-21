@@ -67,7 +67,12 @@
 
 **الاستقبال (`take_damage`):** `amount × (1 − reduction) × damage_taken`، ثم الدرع (Ward)، ثم HP، ثم Poise (× `poise_taken`، × (1 − `poise_armor`) أثناء الهجوم).
 
-**ضرر التعاويذ (`spell_damage`):** `weapon_power × power × damage_dealt`، والحرج بـ`crit_chance` الأساسي. **لا يدخل STR ولا DEX ولا MAS في ضرر التعاويذ.** MAS يدخل فقط في الحالات والشفاء المستمر.
+**ضرر التعاويذ (`spell_damage`):** `weapon_power × power × damage_dealt`، والحرج بـ`crit_chance` الأساسي.
+
+- **تصحيح بعد التدقيق:** الإطلاق **الكامل** لتعاويذ الضرر يُضرب في STR عبر `dmg_power = power_full × heavy_mult`. الإطلاق الجزئي لا يتأثر.
+- DEX لا يدخل في التعاويذ.
+- MAS يدخل فقط في الحالات والشفاء المستمر.
+- **الشفاء المباشر** (Life Bloom وLifeline) = `weapon_power × power`، ولا يتأثر بـMAS.
 
 **مشكلة معمارية للتلميحات:** لا توجد دالة حساب خالية من العشوائية. `build_damage` يقرر الحرج بـ`randf` ويستدعي الخطافات مباشرة. الحل في المرحلة A: فصل الحساب الحتمي إلى دالة تفصيلية واحدة يستخدمها القتال والواجهة معًا.
 
