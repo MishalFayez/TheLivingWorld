@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_l26s2"]
+
+[resource]
+script = ExtResource("1_l26s2")
+id = "vc03_shared_aegis"
+display_name = "Shared Aegis"
+description = "A successful interception gives the protected ally a shield of {pct:shield_frac} of YOUR max HP for {s:duration}."
+class_id = "vanguard"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "V-C03"
+requires_unlocks = PackedStringArray("v_intercept")
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("vb06_sheltering_counter")
+synergy_text = {
+"vb06_sheltering_counter": "Both shields on one ally refresh the duration; the amount is the larger shield, never the sum."
+}
+trigger_summary = "Successful interception"
+cooldown = 8.0
+mechanical_tradeoff = "Cooldown 8s."
+scaling_sources = PackedStringArray("vit")
+params = {
+"cooldown": 8.0,
+"duration": 4.0,
+"shield_frac": 0.06
+}

@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_xnkts"]
+
+[resource]
+script = ExtResource("1_xnkts")
+id = "ma05_sympathetic_link"
+display_name = "Sympathetic Link"
+description = "A direct heal on an ally links them to the nearest enemy within {m:link_range} for {s:duration}. Your next direct heal on that ally deals {pct:share} of the effective healing as magic damage to the linked enemy (max {n:cap_wp} x Weapon Power)."
+class_id = "mage"
+category = "enhancement"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "arcane"
+code = "M-A05"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Heal an ally twice within 4s with an enemy nearby"
+cooldown = 12.0
+scaling_sources = PackedStringArray("weapon_power")
+params = {
+"cap_wp": 0.6,
+"cooldown": 12.0,
+"duration": 4.0,
+"link_range": 8.0,
+"share": 0.15
+}

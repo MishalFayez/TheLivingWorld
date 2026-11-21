@@ -28,18 +28,35 @@ func _ready() -> void:
 	n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	n.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(n)
-	var meta := UITheme.text("%s  ·  %s%s" % [aug.rarity.to_upper(), aug.category.capitalize(), "  ·  stacks x%d" % aug.max_stacks if aug.stackable else ""], 13, UITheme.TEXT_DIM, true)
+	var head := AugmentText.header(aug) if aug.pool == "l10" else "%s  ·  %s" % [aug.rarity.to_upper(), aug.category.capitalize()]
+	var meta := UITheme.text(head + ("  ·  stacks x%d" % aug.max_stacks if aug.stackable else ""), 13, UITheme.GOLD if aug.is_anchor else UITheme.TEXT_DIM, true)
 	meta.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	meta.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(meta)
 	if not aug.build_tags.is_empty():
 		var bt := UITheme.text(" · ".join(aug.build_tags), 13, UITheme.GOLD, true)
 		bt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		content.add_child(bt)
 	content.add_child(UITheme.divider(content.size.x))
-	var d := UITheme.text(aug.description, 15, UITheme.PARCHMENT)
+	var d := UITheme.text(AugmentText.describe(aug), 15, UITheme.PARCHMENT)
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	d.custom_minimum_size = Vector2(content.size.x, 0)
 	content.add_child(d)
+	# LEVEL10-FOUNDATION-005 7.2: synergy with an owned card / replacement warning, before choosing
+	var p := Game.prog(aug.class_id if aug.class_id != "global" else Game.active_class)
+	var syn := Game.augment_db.synergy_text(aug, p)
+	if syn != "":
+		var sl := UITheme.text("SYNERGY AVAILABLE  ·  " + syn, 13, Color(0.55, 0.9, 1.0), true)
+		sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		sl.custom_minimum_size = Vector2(content.size.x, 0)
+		content.add_child(sl)
+	var rep := Game.augment_db.replaces(aug, p)
+	if rep != "":
+		var ra: AugmentData = Game.augment_db.get_augment(rep)
+		var rl := UITheme.text("REPLACES %s (kept owned, inactive)" % (ra.display_name if ra else rep), 13, Color(1.0, 0.55, 0.45), true)
+		rl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		rl.custom_minimum_size = Vector2(content.size.x, 0)
+		content.add_child(rl)
 	if aug.interacts_with != "":
 		var it := UITheme.text("Interacts: " + aug.interacts_with, 12, Color(0.6, 0.8, 1.0))
 		it.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

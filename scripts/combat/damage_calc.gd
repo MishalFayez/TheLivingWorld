@@ -20,7 +20,7 @@ static func attack_hit(stats: StatBlock, weapon_power: float, d: AttackData, idx
 	var total := weapon_power * d.damage_mult * float(ctx.get("damage_mult", 1.0))
 	if d.is_heavy or d.is_charged:
 		total *= stats.heavy_mult()          # STR: heavy & charged damage
-	if d.hits > 1:
+	if d.hits > 1 and not d.has_tag("single_impact_scaling"):
 		total *= stats.multihit_mult()       # DEX: combined total of multi-hit attacks
 	total *= status_dmg
 	var cc := stats.crit_chance + d.crit_chance_bonus + float(ctx.get("crit_chance_bonus", 0.0))
@@ -38,7 +38,7 @@ static func attack_breakdown(stats: StatBlock, weapon_power: float, d: AttackDat
 		target = null, status_dmg: float = 1.0, status_poise: float = 1.0) -> Dictionary:
 	var hit_count := maxi(1, d.hits)
 	var str_on := d.is_heavy or d.is_charged
-	var dex_on := d.hits > 1
+	var dex_on := d.hits > 1 and not d.has_tag("single_impact_scaling")
 	var out := {
 		"name": d.display_name, "type": "physical" if d.damage_type == AttackData.DamageType.PHYSICAL else "magic",
 		"weapon_power": weapon_power, "attack_mult": d.damage_mult, "ctx_mult": float(ctx.get("damage_mult", 1.0)),

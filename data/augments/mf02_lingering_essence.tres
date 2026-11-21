@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_0phy1"]
+
+[resource]
+script = ExtResource("1_0phy1")
+id = "mf02_lingering_essence"
+display_name = "Lingering Essence"
+description = "Burning and Chill you apply last {chg:duration_mult} longer (max +{s:cap}). Hard crowd control is not extended."
+class_id = "mage"
+category = "enhancement"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "fusion"
+code = "M-F02"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Apply Burning or Chill"
+scaling_sources = PackedStringArray()
+params = {
+"cap": 1.5,
+"duration_mult": 1.2
+}

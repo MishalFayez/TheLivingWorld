@@ -289,6 +289,9 @@ func test_reaver_augments() -> void:
 	var through := hp0 - g.hp
 	g.statuses.remove("sundered")
 	await wait(0.4)
+	# LEVEL10-FOUNDATION-005: Poise Break windows are longer (1.3s); compare against a raised guard, not a broken one
+	while g.is_staggered():
+		await get_tree().physics_frame
 	face(g, h)
 	face(h, g)
 	hp0 = g.hp

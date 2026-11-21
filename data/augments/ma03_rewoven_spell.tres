@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_sbyvo"]
+
+[resource]
+script = ExtResource("1_sbyvo")
+id = "ma03_rewoven_spell"
+display_name = "Rewoven Spell"
+description = "A single-target offensive spell that hits also strikes another enemy within {m:radius} for {pct:share} of its direct damage. Never chains."
+class_id = "mage"
+category = "enhancement"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "arcane"
+code = "M-A03"
+requires_unlocks = PackedStringArray("m_frost")
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Glacial Spear / Thunder Conduit / Lightning Verdict hits"
+cooldown = 8.0
+scaling_sources = PackedStringArray("weapon_power", "str")
+params = {
+"cooldown": 8.0,
+"radius": 6.0,
+"share": 0.25,
+"spells": "glacial_spear,thunder_conduit,lightning_verdict"
+}

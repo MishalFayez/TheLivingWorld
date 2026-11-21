@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_rcltb"]
+
+[resource]
+script = ExtResource("1_rcltb")
+id = "rd06_dancers_reversal"
+display_name = "Dancer's Reversal"
+description = "After a well-timed SIDE dodge, your next forward or lateral Dance within {s:window} is a turning follow-up with {chg:travel_mult} movement."
+class_id = "reaver"
+category = "enhancement"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "dance"
+code = "R-D06"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Perfect side dodge, then directional Dance"
+cooldown = 8.0
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 8.0,
+"travel_mult": 1.2,
+"window": 2.0
+}

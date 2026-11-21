@@ -55,11 +55,22 @@ func move_mult() -> float:
 	if planted:
 		return b.shield_plant_move_mult
 	if guarding:
-		return b.guard_move_mult
+		var m := b.guard_move_mult * (hero.rt.guard_move_mult() if hero.rt else 1.0)
+		# Living Fortress (Bulwark anchor): forward steps while guarding at up to 60% of normal speed
+		if hero.rt and _guard_advancing():
+			m = maxf(m, hero.rt.guard_forward_fraction())
+		return m
 	return super.move_mult()
 
 
+## Moving forward (facing direction) while guarding - Living Fortress advance.
+func _guard_advancing() -> bool:
+	return guarding and hero.rt != null and hero.rt.guard_forward_fraction() > 0.0 and hero.move_input.length() > 0.2 and hero.move_input.normalized().dot(hero.forward()) > 0.5
+
+
 func stamina_regen_mult() -> float:
+	if guarding and _guard_advancing():
+		return 0.35 * float(hero.rt.pv("vb01_living_fortress", "regen_mult", 0.7))
 	return 0.35 if guarding else 1.0
 
 
@@ -120,6 +131,19 @@ func process(delta: float) -> void:
 		_lower_guard()
 	elif not guarding and hero.is_held("guard") and charging == "" and not hero.runner.is_busy() and hero.can_act():
 		_raise_guard(false)
+	elif not guarding and hero.is_held("guard") and charging == "" and _retaliation_guard_ok():
+		hero.runner.interrupt()
+		_raise_guard(false)
+		trigger("vk04_retaliation_window", "Guard raised early after the counter")
+
+
+## Retaliation Window: after a CONNECTING counter, Guard may return once (1 - 20%) of its recovery has
+## passed (Redirected Force synergy: 30%). Never during startup / hit frames.
+func _retaliation_guard_ok() -> bool:
+	var r := hero.runner
+	if not r.is_busy() or r.phase != AttackRunner.Phase.RECOVERY or not r.ctx.has("guard_return"):
+		return false
+	return r.time_in_recovery() >= r.data.recovery * float(r.ctx.guard_return)
 
 
 # ------------------------------------------------------------------ input
@@ -136,6 +160,8 @@ func on_press(action: String) -> void:
 			if Game.time < counter_until and unlocked("v_counter"):
 				_lower_guard()
 				_counter()
+			elif _echo_strike():
+				_lower_guard()
 			elif (guarding or hero.is_held("guard")) and not planted and unlocked("v_guarded_strike"):
 				_guarded_strike()
 			else:
@@ -217,7 +243,37 @@ func _light() -> void:
 
 func _heavy() -> void:
 	combo = 0
+	# Aegis Reversal (Counterguard anchor): after a Perfect Guard the Heavy becomes the Reversal counter
+	if hero.rt and hero.rt.has("vk01_aegis_reversal") and hero.rt.take_reversal():
+		counter_until = -10.0       # one Perfect Guard = one counter (LMB counter OR the Reversal)
+		var d := load_attack("v_heavy").clone()
+		d.display_name = "Aegis Reversal"
+		d.anim_style = "bash"
+		var rm := float(hero.rt.pv("vk01_aegis_reversal", "reach_mult", 0.9))
+		d.hitbox_offset.z *= rm
+		d.hitbox_size.z *= rm
+		d.add_tag("shield")
+		trigger("vk01_aegis_reversal", "Reversal counter: +%d%% Poise, %d%% reach" % [roundi(float(hero.rt.pv("vk01_aegis_reversal", "poise_bonus", 0.3)) * 100.0), roundi(rm * 100.0)])
+		_attack(d, {"reversal": true, "counter": true})
+		return
 	_attack(load_attack("v_heavy"), {})
+
+
+## Judgment Echo: one distinct follow-up strike after a connecting counter (65% damage, 20% longer recovery).
+func _echo_strike() -> bool:
+	if hero.rt == null or not hero.rt.active("vk05"):
+		return false
+	var w := hero.rt.take("vk05")
+	var d := load_attack("v_counter").clone()
+	d.damage_mult *= float(hero.rt.pv("vk05_judgment_echo", "damage_share", 0.65))
+	d.recovery *= float(hero.rt.pv("vk05_judgment_echo", "recovery_mult", 1.2))
+	d.display_name = "Echo Strike"
+	# after an Aegis Reversal the echo uses the alternate (rising) follow-up animation - never a second automatic hit
+	d.anim_style = "rising" if w.get("reversal", false) else "slash_v"
+	d.add_tag("shield")
+	trigger("vk05_judgment_echo", "Echo Strike (%d%% damage)" % roundi(float(hero.rt.pv("vk05_judgment_echo", "damage_share", 0.65)) * 100.0))
+	_attack(d, {"echo": true})
+	return true
 
 
 ## Guarded Strike: short sword strike FROM Guard. Guard stays raised but its coverage is reduced
@@ -260,7 +316,18 @@ func _end_plant(reason: String) -> void:
 
 func _counter() -> void:
 	counter_until = -10.0
-	_attack(load_attack("v_counter"), {"counter": true})
+	var ctx := {"counter": true}
+	# Redirected Force: after Perfect-Guarding a charging attack, A / D steps 0.8m aside before countering
+	if hero.rt and hero.rt.has("vk03_redirected_force") and hero.rt.active("vk03") and hero.rt.ready("vk03_cd") and hero.move_input.length() > 0.2:
+		var side := hero.forward().cross(Vector3.UP).normalized()
+		var s := signf(hero.move_input.dot(side))
+		if absf(hero.move_input.normalized().dot(side)) > 0.5:
+			hero.rt.take("vk03")
+			hero.rt.use_cd("vk03_cd", float(hero.rt.pv("vk03_redirected_force", "cooldown", 10.0)))
+			hero.knock_velocity += side * s * sqrt(36.0 * float(hero.rt.pv("vk03_redirected_force", "distance", 0.8)))
+			ctx["redirected"] = true
+			trigger("vk03_redirected_force", "Lateral reposition %.1fm before the counter" % float(hero.rt.pv("vk03_redirected_force", "distance", 0.8)))
+	_attack(load_attack("v_counter"), ctx)
 	Events.log_message.emit("Vanguard: Aegis Counter!", "guard")
 
 
@@ -323,12 +390,22 @@ func _shield_rush(spend: bool) -> void:
 		d.lunge = clampf(dist - 1.3, 1.0, 9.0) / maxf(d.active, 0.05)
 		d.display_name = "Shield Rush (Interception)"
 		ctx["intercept_ally"] = ally
+		# Guardian's Reach: longer interception reach costs 10% more stamina
+		if hero.rt and hero.rt.has("vc01_guardians_reach"):
+			d.stamina_cost *= float(hero.rt.pv("vc01_guardians_reach", "cost_mult", 1.1))
 	elif spend and _can_spend(0):
 		resolve -= s.resolve_cost
 		d = s.alt_attack
 		ctx["empowered"] = true
 		ctx["taunt"] = true
 		Events.log_message.emit("EMPOWERED SHIELD RUSH (30 Resolve)", "guard")
+	# Shielded Advance (Bulwark): a shorter defensive advance with stronger frontal protection
+	if hero.rt and hero.rt.has("vb02_shielded_advance"):
+		d = d.clone()
+		d.lunge *= float(hero.rt.pv("vb02_shielded_advance", "travel_mult", 0.8))
+		d.frontal_guard = minf(d.frontal_guard + float(hero.rt.pv("vb02_shielded_advance", "frontal_add_pp", 0.15)), float(hero.rt.pv("vb02_shielded_advance", "cap", 0.9)))
+		d.display_name += " (Shielded Advance)"
+		trigger("vb02_shielded_advance", "Shield Rush: %d%% travel, frontal reduction %d%%" % [roundi(float(hero.rt.pv("vb02_shielded_advance", "travel_mult", 0.8)) * 100.0), roundi(d.frontal_guard * 100.0)])
 	_offense_ctx(d, ctx)
 	start_attack(d, ctx)
 	if ally != null:
@@ -348,7 +425,7 @@ func endangered_ally():
 	for h in hero.allies(false):
 		var to: Vector3 = h.global_position - hero.global_position
 		var dist := to.length()
-		if dist > 11.0 or dist < 0.5:
+		if dist > 11.0 * (hero.rt.intercept_range_mult() if hero.rt else 1.0) or dist < 0.5:
 			continue
 		if hero.is_player and rad_to_deg(aim.angle_to(Vector3(to.x, 0, to.z).normalized())) > 70.0:
 			continue
@@ -476,7 +553,7 @@ func on_attack_finished(d: AttackData, ctx: Dictionary, interrupted: bool) -> vo
 func try_intercept(info: DamageInfo, ally: Node) -> bool:
 	if hero.downed or hero.dead or not hero.visible:
 		return false
-	if hero.global_position.distance_to(ally.global_position) > b.intercept_range:
+	if hero.global_position.distance_to(ally.global_position) > b.intercept_range * (hero.rt.intercept_range_mult() if hero.rt else 1.0):
 		return false
 	var redirected := info.copy()
 	redirected.target = hero
@@ -560,7 +637,7 @@ func modify_incoming(info: DamageInfo) -> void:
 	var steadfast := clampf(1.0 - float(ap("steadfast", "stamina_reduction", 0.25)) * aug("steadfast"), 0.2, 1.0)
 	if aug("steadfast") > 0:
 		trigger("steadfast", "Guard stamina cost x%.2f" % steadfast)
-	var window := b.perfect_guard_window * (1.35 if unlocked("v_bulwark_mastery") else 1.0)
+	var window := b.perfect_guard_window * (1.35 if unlocked("v_bulwark_mastery") else 1.0) + (hero.rt.perfect_window_bonus() if hero.rt else 0.0)
 	var perfect := guard_perfect_ok and not info.forced_guard and (Game.time - guard_start) <= window
 	info.guarded = true
 	if perfect:

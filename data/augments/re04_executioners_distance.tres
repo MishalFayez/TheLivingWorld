@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_ggam7"]
+
+[resource]
+script = ExtResource("1_ggam7")
+id = "re04_executioners_distance"
+display_name = "Executioner's Distance"
+description = "Precision Cut reaches {chg:range_mult} farther but is {pct:width_off} narrower."
+class_id = "reaver"
+category = "enhancement"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "edge"
+code = "R-E04"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Precision Cut"
+mechanical_tradeoff = "-20% width."
+scaling_sources = PackedStringArray()
+params = {
+"range_mult": 1.15,
+"width_mult": 0.8,
+"width_off": 0.2
+}

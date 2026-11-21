@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_fauen"]
+
+[resource]
+script = ExtResource("1_fauen")
+id = "vb03_bastion_pulse"
+display_name = "Bastion Pulse"
+description = "A Perfect Guard emits a {m:radius} pulse that slows nearby enemies by {pct:slow} for {s:duration} (bosses: half). No stun."
+class_id = "vanguard"
+category = "synergy"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "bulwark"
+code = "V-B03"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("vb01_living_fortress")
+synergy_text = {
+"vb01_living_fortress": "While advancing in Guard the pulse radius is +15% and starts from your advance position."
+}
+trigger_summary = "Perfect Guard"
+cooldown = 8.0
+mechanical_tradeoff = "Internal cooldown 8s."
+scaling_sources = PackedStringArray()
+params = {
+"boss_factor": 0.5,
+"cooldown": 8.0,
+"duration": 2.0,
+"radius": 3.0,
+"slow": 0.25,
+"synergy_radius_mult": 1.15
+}

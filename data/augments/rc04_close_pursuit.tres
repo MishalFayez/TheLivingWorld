@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_ds21f"]
+
+[resource]
+script = ExtResource("1_ds21f")
+id = "rc04_close_pursuit"
+display_name = "Close Pursuit"
+description = "If the enemy you just hit ends {m:gap_min}-{m:gap_max} away, your next Forward Dance within {s:window} travels up to {pct:travel_bonus} farther toward it. No teleport."
+class_id = "reaver"
+category = "enhancement"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "R-C04"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Hit, then the enemy steps just out of range"
+scaling_sources = PackedStringArray()
+params = {
+"gap_max": 3.6,
+"gap_min": 2.2,
+"travel_bonus": 0.2,
+"window": 3.0
+}

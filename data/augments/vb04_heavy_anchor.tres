@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_82c7i"]
+
+[resource]
+script = ExtResource("1_82c7i")
+id = "vb04_heavy_anchor"
+display_name = "Heavy Anchor"
+description = "While guarding, take {pct:poise_resist} less Poise damage. Guard movement {chg:move_mult}."
+class_id = "vanguard"
+category = "synergy"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "bulwark"
+code = "V-B04"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("vb05_fortress_breaker")
+synergy_text = {
+"vb05_fortress_breaker": "Blocking a heavy attack raises Fortress Breaker's Poise bonus from 35% to 45% (never stacks)."
+}
+trigger_summary = "Passive while guarding"
+mechanical_tradeoff = "-10% Guard movement."
+scaling_sources = PackedStringArray()
+params = {
+"move_mult": 0.9,
+"poise_resist": 0.2
+}

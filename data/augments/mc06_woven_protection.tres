@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_7duvx"]
+
+[resource]
+script = ExtResource("1_7duvx")
+id = "mc06_woven_protection"
+display_name = "Woven Protection"
+description = "{pct:share} of real overhealing becomes a shield (max {pct:cap_frac} of the recipient's max HP) for {s:duration}. The shield triggers no healing effects."
+class_id = "mage"
+category = "enhancement"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "M-C06"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Overheal"
+scaling_sources = PackedStringArray()
+params = {
+"cap_frac": 0.06,
+"duration": 4.0,
+"share": 0.2
+}

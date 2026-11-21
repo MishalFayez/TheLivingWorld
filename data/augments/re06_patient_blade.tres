@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_nhodw"]
+
+[resource]
+script = ExtResource("1_nhodw")
+id = "re06_patient_blade"
+display_name = "Patient Blade"
+description = "A FULLY charged Committed Cut that connects restores {n:stamina} stamina after it resolves. A miss refunds nothing."
+class_id = "reaver"
+category = "enhancement"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "edge"
+code = "R-E06"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Full Committed Cut connects"
+cooldown = 6.0
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 6.0,
+"stamina": 5.0
+}

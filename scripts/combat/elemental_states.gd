@@ -20,6 +20,7 @@ const FORMATION_STATES := ["frozen_structure", "conductive", "fortified", "vital
 static func apply_burning(target, source, duration: float, dps_power: float) -> void:
 	if not is_instance_valid(target) or target.dead:
 		return
+	duration = _lingering(source, duration, false)
 	# dps_power 0 = state marker only (e.g. standing in a burning area that deals its own damage)
 	var st := StatusEffect.make("burn", "Burning", "dot" if dps_power > 0.0 else "debuff", duration, {}, source.weapon_power * dps_power, 1.0)
 	st.source = source
@@ -30,9 +31,16 @@ static func apply_chill(target, source, duration: float, slow: float) -> void:
 	if not is_instance_valid(target) or target.dead:
 		return
 	var s := maxf(slow, 0.85) if target.is_boss else slow
+	duration = _lingering(source, duration, false)
 	var st := StatusEffect.make("chill", "Chill", "debuff", duration, {"move_speed": s, "attack_speed": lerpf(1.0, s, 0.4)})
 	st.source = source
 	target.statuses.add(st.scaled_by(source.stats.effect_power()))
+
+
+## Lingering Essence (Worldweaver augment): +20% duration, at most +1.5s; hard crowd control excluded.
+static func _lingering(source, duration: float, hard_cc: bool) -> float:
+	var rt := AugmentRuntime.runtime_of(source) if source is Hero else null
+	return rt.status_duration(duration, hard_cc) if rt != null else duration
 
 
 static func combatant_states(target) -> Array:

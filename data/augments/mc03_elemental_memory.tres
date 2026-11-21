@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_lxiue"]
+
+[resource]
+script = ExtResource("1_lxiue")
+id = "mc03_elemental_memory"
+display_name = "Elemental Memory"
+description = "Returning to an element you used within the last {s:memory} (after casting a different one) makes that spell cost {pct:mana_off} less mana. Repeating one element does nothing."
+class_id = "mage"
+category = "enhancement"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "M-C03"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Cast element A, then B, then A again"
+cooldown = 6.0
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 6.0,
+"mana_mult": 0.88,
+"mana_off": 0.12,
+"memory": 6.0
+}

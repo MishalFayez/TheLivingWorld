@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_a5twl"]
+
+[resource]
+script = ExtResource("1_a5twl")
+id = "vc02_steel_foundation"
+display_name = "Steel Foundation"
+description = "After a successful Guard, the next hit you receive within {s:window} has {pct:knock_off} less knockback."
+class_id = "vanguard"
+category = "enhancement"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "V-C02"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Successful Guard"
+scaling_sources = PackedStringArray()
+params = {
+"knock_off": 0.3,
+"knockback_mult": 0.7,
+"window": 3.0
+}

@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_2ao3d"]
+
+[resource]
+script = ExtResource("1_2ao3d")
+id = "vc05_defenders_oath"
+display_name = "Defender's Oath"
+description = "After a successful interception, for {s:window} you take {pct:share} of the damage that ally receives (range and line of sight required). The redirected part never redirects again."
+class_id = "vanguard"
+category = "enhancement"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "V-C05"
+requires_unlocks = PackedStringArray("v_intercept")
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Successful interception"
+cooldown = 8.0
+mechanical_tradeoff = "You really take the redirected damage."
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 8.0,
+"share": 0.25,
+"window": 4.0
+}

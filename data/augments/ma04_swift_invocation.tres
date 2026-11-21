@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_tdfj3"]
+
+[resource]
+script = ExtResource("1_tdfj3")
+id = "ma04_swift_invocation"
+display_name = "Swift Invocation"
+description = "Changing a spell with the spell wheel (Q / V, hold or tap) makes the next spell prepare {pct:prep_off} faster. Swapping without casting gains nothing."
+class_id = "mage"
+category = "synergy"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "arcane"
+code = "M-A04"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("ma06_emergency_thread")
+synergy_text = {
+"ma06_emergency_thread": "Restoring the kept offensive spell counts as a wheel change (shared cooldown)."
+}
+trigger_summary = "Spell wheel change, then cast"
+cooldown = 6.0
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 6.0,
+"prep_mult": 0.9,
+"prep_off": 0.1
+}

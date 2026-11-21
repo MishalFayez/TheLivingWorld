@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_jxrhc"]
+
+[resource]
+script = ExtResource("1_jxrhc")
+id = "rc03_measured_blade"
+display_name = "Measured Blade"
+description = "Hitting an enemy during its recovery makes your next attack within {s:window} recover {pct:rec_off} faster. Never inside committed hit frames."
+class_id = "reaver"
+category = "enhancement"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "R-C03"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Hit a recovering enemy"
+cooldown = 6.0
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 6.0,
+"rec_off": 0.15,
+"recovery_mult": 0.85,
+"window": 3.0
+}

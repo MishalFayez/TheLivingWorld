@@ -790,7 +790,8 @@ func test_augments() -> void:
 	var r := target(h)
 	var pool: Array = Game.augment_db.eligible("reaver", p).map(func(a): return a.id)
 	pool.sort()
-	check(pool == ["perfect_edge", "relentless_dance", "twin_tempest"], "Blade Dancer draft pool = its three augments only", str(pool))
+	# LEVEL10-FOUNDATION-005 replaces the draft pool with the curated Level 1-10 cards; the three 003 cards stay working when owned
+	check(not pool.is_empty() and pool.all(func(id): return Game.augment_db.get_augment(id).pool == "l10") and not pool.has("perfect_edge") and not pool.has("twin_tempest") and not pool.has("relentless_dance"), "Blade Dancer drafts only from the Level 1-10 pool (005); 003 cards kept when owned", str(pool.size()))
 	for id in ["crosswind", "needlepoint", "turning_steel", "sundering_verdict", "precision_edge", "tempest_edge", "momentum_edge", "rising_crescent", "ghost_step"]:
 		var a: AugmentData = Game.augment_db.get_augment(id)
 		check(Game.augment_db.ineligible_reason(a, p) != "" and Game.augment_db.bladedancer_inactive(a), "%s: incompatible with Blade Dancer, never drafted" % id, Game.augment_db.ineligible_reason(a, p))
@@ -844,7 +845,8 @@ func test_augments() -> void:
 		check(absf(pe_rec[1][0].poise / pe[1][0].poise - 1.5) < 0.05, "x1.5 Poise against a recovering target", "x%.2f" % (pe_rec[1][0].poise / pe[1][0].poise))
 	else:
 		check(false, "Perfect Edge hits connected")
-	check(Game.augment_db.ineligible_reason(Game.augment_db.get_augment("twin_tempest"), p) == "excluded by perfect_edge", "Perfect Edge excludes Twin Tempest")
+	Game.add_augment("reaver", "twin_tempest")
+	check(p.augment_stacks("twin_tempest") == 0 and Game.augment_db.owned_in_group(p, "committed_transform", "twin_tempest") == "perfect_edge", "Perfect Edge excludes Twin Tempest")
 	Game.remove_augment("reaver", "perfect_edge")
 	# Twin Tempest
 	Game.add_augment("reaver", "twin_tempest")

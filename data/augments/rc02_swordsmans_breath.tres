@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_k88wr"]
+
+[resource]
+script = ExtResource("1_k88wr")
+id = "rc02_swordsmans_breath"
+display_name = "Swordsman's Breath"
+description = "A connecting Precision Cut restores {n:stamina} stamina (once per cut)."
+class_id = "reaver"
+category = "enhancement"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "R-C02"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Precision Cut connects"
+cooldown = 4.0
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 4.0,
+"stamina": 3.0
+}

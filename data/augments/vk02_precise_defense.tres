@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_dfw47"]
+
+[resource]
+script = ExtResource("1_dfw47")
+id = "vk02_precise_defense"
+display_name = "Precise Defense"
+description = "After a Perfect Guard, your next Perfect Guard within {s:window} has a {s:extra_window} wider timing window. Single use. The normal Guard window is unchanged."
+class_id = "vanguard"
+category = "enhancement"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "counterguard"
+code = "V-K02"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Perfect Guard"
+cooldown = 10.0
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 10.0,
+"extra_window": 0.03,
+"window": 4.0
+}

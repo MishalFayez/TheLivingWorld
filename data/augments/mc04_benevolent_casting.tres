@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_56p5e"]
+
+[resource]
+script = ExtResource("1_56p5e")
+id = "mc04_benevolent_casting"
+display_name = "Benevolent Casting"
+description = "Healing an ally below {pct:hp_threshold} HP makes your next support spell (Life / utility) within {s:expiry} cost {pct:mana_off} less mana."
+class_id = "mage"
+category = "enhancement"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "M-C04"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Heal an ally below 40% HP"
+cooldown = 8.0
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 8.0,
+"expiry": 5.0,
+"hp_threshold": 0.4,
+"mana_mult": 0.85,
+"mana_off": 0.15
+}

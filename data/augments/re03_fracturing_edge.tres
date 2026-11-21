@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_njnrl"]
+
+[resource]
+script = ExtResource("1_njnrl")
+id = "re03_fracturing_edge"
+display_name = "Fracturing Edge"
+description = "Breaking Point vs a recovering enemy deals {pct:poise_bonus} more Poise damage; its hitbox is {pct:width_off} narrower. No raw damage."
+class_id = "reaver"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "edge"
+code = "R-E03"
+requires_unlocks = PackedStringArray("bd_offense")
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("rc06_clean_execution")
+synergy_text = {
+"rc06_clean_execution": "Combined Poise bonus vs recovering enemies capped at +50%."
+}
+trigger_summary = "Breaking Point on a recovering enemy"
+mechanical_tradeoff = "-15% width."
+scaling_sources = PackedStringArray()
+params = {
+"poise_bonus": 0.3,
+"width_mult": 0.85,
+"width_off": 0.15
+}

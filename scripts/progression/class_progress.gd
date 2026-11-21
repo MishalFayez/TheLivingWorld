@@ -37,6 +37,8 @@ var spell_loadout: Array = ["flame_cataclysm", "life_bloom", "", ""]
 var bloom_shared: bool = false
 ## Reaver skill slots (keys 1 / 2 / 3 / E); Final Stroke lives on F.
 var reaver_loadout: Array = ["", "", "", ""]
+## Elemental Crossroads (Worldweaver Fusion anchor): the interaction the player chose to enhance ("" = default)
+var crossroads_choice: String = ""
 var debug_elements: Array[String] = []
 var shrine_elements: Array[String] = []
 var discipline_casts: Dictionary = {}
@@ -72,6 +74,7 @@ func _clear() -> void:
 	spell_loadout = ["flame_cataclysm", "life_bloom", "", ""]
 	bloom_shared = false
 	reaver_loadout = ["", "", "", ""]
+	crossroads_choice = ""
 	play_time = 0.0
 
 
@@ -268,6 +271,7 @@ func to_dict() -> Dictionary:
 		"allocated": allocated, "life_number": life_number, "seen_unlocks": seen_unlocks,
 		"equipment": equipment, "inventory": inventory, "elements": Array(elements), "slots": Array(slots),
 		"shrine_elements": Array(shrine_elements), "discipline_casts": discipline_casts, "play_time": play_time, "spell_loadout": spell_loadout.duplicate(), "bloom_shared": bloom_shared, "reaver_loadout": reaver_loadout.duplicate(),
+		"crossroads_choice": crossroads_choice,
 	}
 
 
@@ -305,3 +309,5 @@ func from_dict(d: Dictionary) -> void:
 	for i in 4:
 		reaver_loadout.append(String(rl[i]) if i < rl.size() else "")
 	play_time = float(d.get("play_time", 0.0))
+	var cc = d.get("crossroads_choice", "")
+	crossroads_choice = cc if cc is String else ""     # tolerate damaged / foreign saves

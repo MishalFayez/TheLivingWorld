@@ -72,6 +72,7 @@ var wheel_hover: int = -1
 var prev_spell: Dictionary = {0: "", 1: ""}
 var pending_slot: Dictionary = {}
 var wheel_events: Array = []           # diagnostics: [{kind, slot, from, to}]
+var cur_mods: Dictionary = {"min": 1.0, "full": 1.0}
 
 
 func _init(p_kit) -> void:
@@ -272,6 +273,8 @@ func begin(action: String) -> bool:
 	cur_action = action
 	charge_t = 0.0
 	release_queued = false
+	# augment preparation modifiers (Spell Threading / Dual Invocation / Swift Invocation), fixed at charge start
+	cur_mods = hero.rt.charge_mods(s) if hero.rt else {"min": 1.0, "full": 1.0}
 	if not preserved.is_empty() and preserved.spell == sid and Game.time < float(preserved.until):
 		charge_t = float(preserved.t)
 		kit.trigger("m_arcane_mastery", "%s resumed at %d%%" % [s.display_name, roundi(ratio() * 100.0)])
@@ -296,11 +299,20 @@ func charge_speed() -> float:
 func ratio() -> float:
 	if cur == null:
 		return 0.0
-	return clampf(charge_t / maxf(cur.full_charge, 0.01), 0.0, 1.0)
+	return clampf(charge_t / maxf(full_time(), 0.01), 0.0, 1.0)
 
 
 func is_full() -> bool:
-	return cur != null and charge_t >= cur.full_charge
+	return cur != null and charge_t >= full_time()
+
+
+## Effective charge times of the current spell (augment preparation modifiers applied).
+func full_time() -> float:
+	return cur.full_charge * float(cur_mods.get("full", 1.0)) if cur != null else 0.0
+
+
+func min_time() -> float:
+	return cur.min_charge * float(cur_mods.get("min", 1.0)) if cur != null else 0.0
 
 
 func move_mult() -> float:
@@ -310,7 +322,7 @@ func move_mult() -> float:
 func request_release() -> void:
 	if cur == null:
 		return
-	if charge_t >= cur.min_charge:
+	if charge_t >= min_time():
 		release()
 	else:
 		release_queued = true      # a tap still casts: it waits for the minimum release time
@@ -407,7 +419,7 @@ func process(delta: float) -> void:
 		charge_t = minf(charge_t + delta * charge_speed(), cur.full_charge + 5.0)
 		if is_instance_valid(fx):
 			fx.set_ratio(ratio(), is_full())
-		if release_queued and charge_t >= cur.min_charge:
+		if release_queued and charge_t >= min_time():
 			release()
 	if heal_target != null and (not is_instance_valid(heal_target) or heal_target.dead):
 		heal_target = null
@@ -527,6 +539,9 @@ func release() -> void:
 		# nothing was cast (no valid target / no room): no mana spent
 		Events.spell_interrupted.emit(hero, s.id, "no_target")
 		return
+	if hero.rt:
+		cost *= hero.rt.mana_mult(s)
+		hero.rt.consume_charge_mods(s)
 	kit.mana -= cost
 	if ctx.sanctum:
 		sanctum.pulse(s.element)
@@ -547,6 +562,8 @@ func _recovery(s: ChargedSpellData, full: bool) -> void:
 	d.startup = 0.03
 	d.active = 0.05
 	d.recovery = (s.recovery_full + s.root_on_full) if full else s.recovery_partial
+	if hero.rt:
+		d.recovery *= hero.rt.spell_recovery_mult(s)
 	d.cancel_after = d.recovery * 0.6
 	d.move_during = 0.0 if (full and s.root_on_full > 0.0) else 0.45
 	d.hits = 0
@@ -802,7 +819,10 @@ func thermal_fracture(f: WorldFormation, pos: Vector3, radius: float, full: bool
 				if hit.has(e):
 					continue
 				hit[e] = true
-				hero.spell_damage(e, 0.5, 10.0, "Thermal Fracture", {"pos": p, "knockback": 1.5, "tags": {"interaction": true}})
+				# Elemental Crossroads (+magnitude) / Thermal Fracture augment (+Poise, capped together)
+				var mag: float = hero.rt.interaction_mult("thermal_fracture") if hero.rt else 1.0
+				var pm: float = hero.rt.thermal_poise_mult(e) if hero.rt else 1.0
+				hero.spell_damage(e, 0.5 * mag, 10.0 * pm, "Thermal Fracture", {"pos": p, "knockback": 1.5, "tags": {"interaction": true}})
 		interaction("thermal_fracture", "Fire shattered %d ice section(s), fragments hit %d" % [idx.size(), hit.size()], c)
 	_interaction_depth -= 1
 
@@ -836,7 +856,8 @@ func shattered_winter(pos: Vector3, radius: float, travel: Vector3, full: bool) 
 			to.y = 0
 			if to.length() < 0.2 or rad_to_deg(travel.angle_to(to.normalized())) <= 35.0:
 				hit += 1
-				hero.spell_damage(e, 0.7 if full else 0.45, 20.0 if full else 10.0, "Shattered Winter", {"pos": origin, "knockback": 2.0, "tags": {"interaction": true}})
+				var mag: float = hero.rt.interaction_mult("shattered_winter") if hero.rt else 1.0
+				hero.spell_damage(e, (0.7 if full else 0.45) * mag, (20.0 if full else 10.0) * mag, "Shattered Winter", {"pos": origin, "knockback": 2.0, "tags": {"interaction": true}})
 				ElementalStates.apply_chill(e, hero, 1.5, 0.7)
 		VFX.particles(origin + Vector3(0, 1.0, 0), VFX._quad(0.16), VFX._billboard(Color(0.85, 0.95, 1.0), 2.5), 18, 0.5,
 			{"direction": travel, "spread": 30.0, "vmin": 8.0, "vmax": 14.0, "gravity": Vector3(0, -4, 0)})
@@ -867,7 +888,7 @@ func _living_bastion(target_pos: Vector3) -> void:
 	var enh: bool = kit.aug("living_bastion") > 0
 	var reach := 3.0
 	var radius: float = float(kit.ap("living_bastion", "radius", 4.5)) if enh else 3.0
-	var dur: float = 6.0 * (float(kit.ap("living_bastion", "duration_mult", 1.5)) if enh else 1.0)
+	var dur: float = 6.0 * (float(kit.ap("living_bastion", "duration_mult", 1.5)) if enh else 1.0) * (hero.rt.interaction_mult("living_bastion") if hero.rt else 1.0)
 	for f in WorldFormation.active():
 		if f.element != "stone" or not f.has_state("fortified") or f.mage != hero:
 			continue
@@ -893,6 +914,8 @@ func _flame(s: ChargedSpellData, ctx: Dictionary) -> void:
 	var full: bool = ctx.full
 	var h = hero
 	var from := tip_pos()
+	if hero.rt:
+		from = hero.rt.relay_origin(from, s.max_range)    # Arcane Relay
 	var aim := _projectile_aim(s)
 	var spd := s.speed_full if full else s.speed_partial
 	var power := dmg_power(s, full)
@@ -1060,6 +1083,8 @@ func _spear(s: ChargedSpellData, ctx: Dictionary) -> void:
 	var full: bool = ctx.full
 	var h = hero
 	var from := tip_pos()
+	if hero.rt:
+		from = hero.rt.relay_origin(from, s.max_range)    # Arcane Relay
 	var aim := _projectile_aim(s)
 	var power := dmg_power(s, full)
 	var poise := s.poise_full if full else s.poise_partial
@@ -1367,7 +1392,8 @@ func _storm_arc(s: ChargedSpellData, ctx: Dictionary) -> void:
 		relays += 1
 		if nxt != null:
 			VFX.lightning(f.global_position + Vector3(0, 1.4, 0), nxt.global_position + Vector3(0, 1.0, 0))
-			hero.spell_damage(nxt, power * 0.8, poise, "Storm Arc (relay)", {"hitstop": 0.03})
+			var mag: float = hero.rt.interaction_mult("conductive_anchors") if hero.rt else 1.0
+			hero.spell_damage(nxt, power * 0.8 * mag, poise * mag, "Storm Arc (relay)", {"hitstop": 0.03})
 			hit.append(nxt)
 		interaction("conductive_anchors", "Storm Arc relayed through a conductive %s%s" % [f.kind, "" if nxt == null else " to " + nxt.display_name], f.global_position)
 	if ctx.sanctum:

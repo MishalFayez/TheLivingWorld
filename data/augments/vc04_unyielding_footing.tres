@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_y7wrx"]
+
+[resource]
+script = ExtResource("1_y7wrx")
+id = "vc04_unyielding_footing"
+display_name = "Unyielding Footing"
+description = "Movement while guarding {chg:guard_move_mult} (relative to normal Guard movement; never a sprint)."
+class_id = "vanguard"
+category = "enhancement"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "V-C04"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Passive while guarding"
+scaling_sources = PackedStringArray()
+params = {
+"guard_move_mult": 1.15
+}

@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_j4f3r"]
+
+[resource]
+script = ExtResource("1_j4f3r")
+id = "rd03_circling_predator"
+display_name = "Circling Predator"
+description = "Hitting from the flank (>{n:flank_angle} deg) after moving at least {m:min_lateral} sideways readies a Predator Cut (next LMB within {s:window}): {pct:damage_share} damage, faster start."
+class_id = "reaver"
+category = "enhancement"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "dance"
+code = "R-D03"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Flank hit after a lateral move"
+cooldown = 7.0
+mechanical_tradeoff = "85% damage - the reward is position and tempo."
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 7.0,
+"damage_share": 0.85,
+"flank_angle": 60.0,
+"min_lateral": 0.5,
+"window": 2.0
+}

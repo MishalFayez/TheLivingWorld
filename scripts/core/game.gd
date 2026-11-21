@@ -355,7 +355,21 @@ func draft_tier(class_id: String) -> String:
 
 
 func roll_draft(class_id: String) -> Array:
+	if AugmentDB.uses_l10_pool(class_id):
+		return augment_db.roll_l10(class_id, prog(class_id), draft_level(class_id), rng, balance.draft_choices)
 	return augment_db.roll(class_id, prog(class_id), balance.draft_choices, rng, draft_tier(class_id))
+
+
+## Milestone level of the next pending draft (4 / 8 / 10 on the current tracks), from the class track.
+func draft_level(class_id: String) -> int:
+	var p := prog(class_id)
+	var t := track(class_id)
+	if t == null:
+		return 4
+	var lv_keys: Array = t.draft_levels.keys()
+	lv_keys.sort()
+	var i := clampi(p.drafts_taken, 0, maxi(0, lv_keys.size() - 1))
+	return int(lv_keys[i]) if not lv_keys.is_empty() else 4
 
 
 func _consume_draft(p: ClassProgress) -> void:
@@ -375,6 +389,37 @@ func skip_draft(class_id: String) -> void:
 	_consume_draft(prog(class_id))
 
 
+## LEVEL10-FOUNDATION-005 7.4: safe replacement at a draft (the documented build-management opportunity).
+## The new card is added and `replace_id` becomes OWNED BUT INACTIVE (kept in the save, never deleted).
+## Uses the draft (no free extra slot, no duplicate draft, no rarity upgrade).
+func choose_augment_replacing(class_id: String, aug_id: String, replace_id: String) -> bool:
+	var p := prog(class_id)
+	if replace_id == "" or p.augment_stacks(replace_id) <= 0 or replace_id == aug_id:
+		choose_augment(class_id, aug_id)
+		return false
+	_consume_draft(p)
+	if not p.inactive_mutations.has(replace_id):
+		p.inactive_mutations.append(replace_id)
+	var ra: AugmentData = augment_db.get_augment(replace_id)
+	Events.log_message.emit("Augment benched: %s (kept owned, inactive)" % (ra.display_name if ra else replace_id), "augment")
+	add_augment(class_id, aug_id)
+	autosave()
+	return true
+
+
+## Cards that depend on `id` through a listed synergy (warning before benching a path anchor / partner).
+func dependents_of(class_id: String, id: String) -> Array:
+	var out: Array = []
+	var p := prog(class_id)
+	for oid in p.augments:
+		if oid == id or p.augment_stacks(oid) <= 0:
+			continue
+		var o: AugmentData = augment_db.get_augment(oid)
+		if o != null and (o.synergy_partners.has(id) or (augment_db.get_augment(id) != null and augment_db.get_augment(id).synergy_partners.has(oid))):
+			out.append(o.display_name)
+	return out
+
+
 func add_augment(class_id: String, aug_id: String) -> void:
 	var a: AugmentData = augment_db.get_augment(aug_id)
 	if a == null:
@@ -384,8 +429,8 @@ func add_augment(class_id: String, aug_id: String) -> void:
 	if (stacks > 0 and not a.stackable) or (a.stackable and stacks >= a.max_stacks):
 		Events.log_message.emit("%s already owned / at max stacks" % a.display_name, "system")
 		return
-	if a.params.has("exclusive_group"):
-		var other := augment_db.owned_in_group(p, String(a.params["exclusive_group"]), aug_id)
+	if a.group() != "":
+		var other := augment_db.owned_in_group(p, a.group(), aug_id)
 		if other != "":
 			Events.log_message.emit("%s not added: mutually exclusive with %s" % [a.display_name, other], "system")
 			return

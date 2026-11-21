@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_tg77r"]
+
+[resource]
+script = ExtResource("1_tg77r")
+id = "g02_measured_recovery"
+display_name = "Measured Recovery"
+description = "Hitting an enemy during its real attack recovery restores {n:stamina} stamina (Vanguard / Reaver) or {n:mana} mana (Worldweaver)."
+class_id = "global"
+category = "enhancement"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "G02"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Hit an enemy that is recovering from its own attack"
+cooldown = 5.0
+mechanical_tradeoff = "Internal cooldown 5s."
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 5.0,
+"mana": 4.0,
+"stamina": 5.0
+}

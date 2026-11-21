@@ -511,6 +511,7 @@ func on_poise_broken() -> void:
 func _on_recovery_started(d: AttackData) -> void:
 	if dead:
 		return
+	AugmentRuntime.enemy_attack_resolved(self, d, runner.targets_hit)
 	open_window("recovery", d.recovery / maxf(0.1, runner.speed) + 0.25)
 
 

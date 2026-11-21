@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_dv3wq"]
+
+[resource]
+script = ExtResource("1_dv3wq")
+id = "vk06_guardians_retort"
+display_name = "Guardian's Retort"
+description = "A counter right after an interception turns {pct:share} of its direct damage into a shield on that ally (max {pct:cap_frac} of the ally's max HP). No healing."
+class_id = "vanguard"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "counterguard"
+code = "V-K06"
+requires_unlocks = PackedStringArray("v_intercept")
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("vc01_guardians_reach")
+synergy_text = {
+"vc01_guardians_reach": "Reach only creates more interception chances; one shield per counter."
+}
+trigger_summary = "Counter right after an interception"
+cooldown = 8.0
+scaling_sources = PackedStringArray("weapon_power")
+params = {
+"cap_frac": 0.08,
+"cooldown": 8.0,
+"duration": 4.0,
+"share": 0.2
+}

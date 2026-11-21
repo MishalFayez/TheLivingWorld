@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_u0k30"]
+
+[resource]
+script = ExtResource("1_u0k30")
+id = "vb02_shielded_advance"
+display_name = "Shielded Advance"
+description = "Shield Rush becomes a shorter defensive advance: {pct:travel_mult} of its travel, and +{pp:frontal_add_pp} frontal damage reduction during the rush (capped at {pct:cap}). Interception still works."
+class_id = "vanguard"
+category = "mutation"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "bulwark"
+code = "V-B02"
+requires_unlocks = PackedStringArray("shield_rush")
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Shield Rush"
+mechanical_tradeoff = "Shorter rush."
+scaling_sources = PackedStringArray()
+transforms = "shield_rush"
+params = {
+"cap": 0.9,
+"frontal_add_pp": 0.15,
+"travel_mult": 0.8
+}

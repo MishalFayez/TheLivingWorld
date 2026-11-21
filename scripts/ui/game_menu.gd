@@ -512,6 +512,27 @@ func _skill_values(v: VBoxContainer, c: String, p: ClassProgress) -> void:
 		grid.add_child(pc)
 
 
+## Elemental Crossroads: choose which IMPLEMENTED interaction is enhanced (availability shown honestly).
+func _crossroads_picker(a: AugmentData, p: ClassProgress) -> Control:
+	var box := HFlowContainer.new()
+	var names := {"thermal_fracture": "Thermal Fracture (Fire on ice, Lv3)", "shattered_winter": "Shattered Winter (Stone on ice, Lv7)",
+		"living_bastion": "Living Bastion (Life near fortified Stone, Lv7)", "conductive_anchors": "Conductive Anchors (Storm relay, Lv9)"}
+	var need := {"thermal_fracture": "m_frost", "shattered_winter": "m_stone", "living_bastion": "m_stone", "conductive_anchors": "m_storm"}
+	var cur := p.crossroads_choice if p.crossroads_choice != "" else String(a.params.get("default_choice", "thermal_fracture"))
+	box.add_child(UITheme.text("Enhanced interaction: ", 14, UITheme.GOLD, true))
+	for id in String(a.params.get("choices", "thermal_fracture")).split(","):
+		var b := Button.new()
+		b.text = String(names.get(id, id)) + ("  ✓" if id == cur else "")
+		b.disabled = not p.has_unlock(String(need.get(id, ""))) or id == cur
+		var cid: String = id
+		b.pressed.connect(func():
+			p.crossroads_choice = cid
+			Game.autosave()
+			show_tab("Augments"))
+		box.add_child(b)
+	return box
+
+
 # ------------------------------------------------------------------ Augments
 func _augments() -> Control:
 	var sc := ScrollContainer.new()
@@ -555,6 +576,23 @@ func _augments() -> Control:
 		var tv := _col()
 		tv.add_theme_constant_override("separation", 2)
 		var inactive: bool = p.inactive_mutations.has(id)
+		if a.pool == "l10":
+			# LEVEL10-FOUNDATION-005: generated text (real values), path label, benched state
+			tv.add_child(UITheme.text("%s   ·   %s%s" % [a.display_name, AugmentText.header(a), "   ·   BENCHED (kept owned; can return through a later draft)" if inactive else ""], 17, UITheme.TEXT_DIM if inactive else rc.lightened(0.2), true))
+			var rtl := RichTextLabel.new()
+			rtl.bbcode_enabled = true
+			rtl.fit_content = true
+			rtl.scroll_active = false
+			rtl.custom_minimum_size = Vector2(1180, 0)
+			rtl.add_theme_font_size_override("normal_font_size", 14)
+			rtl.add_theme_color_override("default_color", UITheme.PARCHMENT)
+			rtl.text = AugmentText.inspect(a, cls(), p)
+			tv.add_child(rtl)
+			if a.id == "mf01_elemental_crossroads" and not inactive:
+				tv.add_child(_crossroads_picker(a, p))
+			row.add_child(tv)
+			v.add_child(pc)
+			continue
 		tv.add_child(UITheme.text("%s%s   ·   %s %s%s" % [a.display_name, "  x%d" % p.augment_stacks(id) if p.augment_stacks(id) > 1 else "", a.rarity.to_upper(), a.category.to_upper(),
 			"   ·   INACTIVE (mutation limit %d)" % Game.balance.max_equipped_mutations if inactive else ("   ·   EQUIPPED" if a.category == "mutation" else "")], 17, UITheme.TEXT_DIM if inactive else rc.lightened(0.2), true))
 		if Game.augment_db.freeflow_inactive(a):

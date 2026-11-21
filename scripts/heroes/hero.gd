@@ -6,6 +6,7 @@ extends Combatant
 
 @export var class_id: String = "vanguard"
 var kit: ClassKit
+var rt: AugmentRuntime
 var is_player: bool = false
 var move_input: Vector3 = Vector3.ZERO
 var lock_target = null
@@ -49,6 +50,10 @@ func _ready() -> void:
 		return
 	kit.setup(self)
 	kit.build_model()
+	# LEVEL10-FOUNDATION-005: runtime of the Level 1-10 augment pool (one per hero)
+	rt = AugmentRuntime.new()
+	add_child(rt)
+	rt.setup(self)
 	refresh_stats(true)
 	runner.started.connect(kit.on_attack_started)
 	runner.active_started.connect(kit.on_attack_active)
@@ -293,6 +298,8 @@ func stamina_regen_mult() -> float:
 
 func _on_attack_finished(d: AttackData, ctx: Dictionary, interrupted: bool) -> void:
 	kit.on_attack_finished(d, ctx, interrupted)
+	if rt:
+		rt.on_attack_finished(d, ctx, interrupted)
 	if not runner.is_busy() and not downed and stagger_timer <= 0.0 and not dodging:
 		if not kit.overrides_idle_anim():
 			play_anim("idle")
@@ -306,6 +313,9 @@ func pre_damage(info: DamageInfo) -> void:
 			info.cancelled = true
 			info.intercepted = true
 			return
+	# Defender's Oath (Vanguard augment): part of the hit goes to the protecting Vanguard
+	if has_meta("oath_guard"):
+		AugmentRuntime.oath_split(self, info)
 	# Phantom Bulwark barriers
 	for b in get_tree().get_nodes_in_group("barriers"):
 		if b.protects(self, info):
@@ -313,11 +323,15 @@ func pre_damage(info: DamageInfo) -> void:
 			if info.cancelled:
 				return
 	kit.modify_incoming(info)
+	if rt:
+		rt.modify_incoming(info)
 
 
 func modify_outgoing(info: DamageInfo, d: AttackData, target, idx: int, ctx: Dictionary) -> void:
 	info.threat_mult *= threat_mult
 	kit.modify_outgoing(info, d, target, idx, ctx)
+	if rt:
+		rt.modify_outgoing(info, d, target, idx, ctx)
 
 
 func situational_crit(d: AttackData, target, ctx: Dictionary) -> float:
@@ -326,6 +340,8 @@ func situational_crit(d: AttackData, target, ctx: Dictionary) -> float:
 
 func on_hit_landed(target, info: DamageInfo) -> void:
 	super.on_hit_landed(target, info)
+	if rt:
+		rt.on_hit_landed(target, info)
 	if is_player and info.final_amount > 0.0 and Game.world and Game.world.has_method("shake"):
 		Game.world.shake(0.08 if not info.is_heavy else 0.2)
 
@@ -337,6 +353,8 @@ func on_damaged(info: DamageInfo) -> void:
 func on_dodged(info: DamageInfo) -> void:
 	if dodging:
 		kit.on_perfect_dodge(info)
+		if rt:
+			rt.on_perfect_dodge(info)
 
 
 func on_staggered() -> void:

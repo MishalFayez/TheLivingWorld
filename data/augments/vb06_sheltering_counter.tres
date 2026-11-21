@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_5ffxa"]
+
+[resource]
+script = ExtResource("1_5ffxa")
+id = "vb06_sheltering_counter"
+display_name = "Sheltering Counter"
+description = "A connecting counter within {s:window} after protecting an ally gives that ally a shield of {pct:shield_frac} of your max HP for {s:duration}."
+class_id = "vanguard"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "bulwark"
+code = "V-B06"
+requires_unlocks = PackedStringArray("v_intercept")
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("vc03_shared_aegis")
+synergy_text = {
+"vc03_shared_aegis": "Shields refresh duration; the amount is the larger shield, never the sum."
+}
+trigger_summary = "Counter right after an interception"
+cooldown = 8.0
+scaling_sources = PackedStringArray("vit")
+params = {
+"cooldown": 8.0,
+"duration": 4.0,
+"shield_frac": 0.05,
+"window": 3.0
+}

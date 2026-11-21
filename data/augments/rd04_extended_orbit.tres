@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_1pib2"]
+
+[resource]
+script = ExtResource("1_1pib2")
+id = "rd04_extended_orbit"
+display_name = "Extended Orbit"
+description = "Orbit Step sweeps {chg:angle_mult} more angle; its startup and recovery are {chg:commit_mult} longer."
+class_id = "reaver"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "dance"
+code = "R-D04"
+requires_unlocks = PackedStringArray("bd_footwork")
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("rd06_dancers_reversal")
+synergy_text = {
+"rd06_dancers_reversal": "Orbit Step never counts as a dodge: Reversal still needs a real dodge."
+}
+trigger_summary = "Orbit Step"
+mechanical_tradeoff = "+15% movement commitment."
+scaling_sources = PackedStringArray()
+params = {
+"angle_mult": 1.2,
+"commit_mult": 1.15
+}

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_pdlrx"]
+
+[resource]
+script = ExtResource("1_pdlrx")
+id = "mc02_gentle_current"
+display_name = "Gentle Current"
+description = "Effective direct healing gives the target {chg:speed_mult} movement speed for {s:duration} (once per {s:cd_per_target} per target). Pure overheal does nothing."
+class_id = "mage"
+category = "enhancement"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "M-C02"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Direct heal restores HP"
+cooldown = 5.0
+scaling_sources = PackedStringArray()
+params = {
+"cd_per_target": 5.0,
+"duration": 2.5,
+"speed_mult": 1.1
+}

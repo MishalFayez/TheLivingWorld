@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_vbjxc"]
+
+[resource]
+script = ExtResource("1_vbjxc")
+id = "vk03_redirected_force"
+display_name = "Redirected Force"
+description = "After Perfect-Guarding a charging (lunging) attack, counter while holding A / D to step {m:distance} aside first. No teleport, no extra i-frames."
+class_id = "vanguard"
+category = "synergy"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "counterguard"
+code = "V-K03"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("vk04_retaliation_window")
+synergy_text = {
+"vk04_retaliation_window": "A repositioned counter returns to Guard 30% earlier instead of 20%."
+}
+trigger_summary = "Perfect Guard a lunging attack, then counter with A / D"
+cooldown = 10.0
+mechanical_tradeoff = "Cooldown 10s."
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 10.0,
+"distance": 0.8
+}

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_8g1kw"]
+
+[resource]
+script = ExtResource("1_8g1kw")
+id = "re02_steel_focus"
+display_name = "Steel Focus"
+description = "While charging Committed Cut, take {pct:poise_resist} less Poise damage. Damage and interruption still apply."
+class_id = "reaver"
+category = "enhancement"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "edge"
+code = "R-E02"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Charging Committed Cut"
+scaling_sources = PackedStringArray()
+params = {
+"poise_resist": 0.2
+}

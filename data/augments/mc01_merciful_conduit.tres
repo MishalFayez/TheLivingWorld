@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_1y3v6"]
+
+[resource]
+script = ExtResource("1_1y3v6")
+id = "mc01_merciful_conduit"
+display_name = "Merciful Conduit"
+description = "Once every {s:cooldown}, a damaging offensive spell heals the most injured ally in range for {pct:share} of the damage dealt (max {pct:cap_frac} of that ally's max HP). Never recursive."
+class_id = "mage"
+category = "enhancement"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "M-C01"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Offensive spell deals damage"
+cooldown = 8.0
+scaling_sources = PackedStringArray("weapon_power", "str")
+params = {
+"cap_frac": 0.08,
+"cooldown": 8.0,
+"share": 0.12
+}

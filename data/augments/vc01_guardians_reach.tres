@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_relkm"]
+
+[resource]
+script = ExtResource("1_relkm")
+id = "vc01_guardians_reach"
+display_name = "Guardian's Reach"
+description = "Interception range {chg:range_mult}. Interception Shield Rush costs {chg:cost_mult} stamina."
+class_id = "vanguard"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "V-C01"
+requires_unlocks = PackedStringArray("v_intercept")
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("vk06_guardians_retort")
+synergy_text = {
+"vk06_guardians_retort": "Longer reach only creates more successful interceptions; Retort still shields one ally per counter."
+}
+trigger_summary = "Interception (Shield Rush toward an endangered ally)"
+mechanical_tradeoff = "+10% interception stamina cost."
+scaling_sources = PackedStringArray()
+params = {
+"cost_mult": 1.1,
+"range_mult": 1.2
+}

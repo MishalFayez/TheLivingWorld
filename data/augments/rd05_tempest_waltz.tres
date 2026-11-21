@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_7p4mj"]
+
+[resource]
+script = ExtResource("1_7p4mj")
+id = "rd05_tempest_waltz"
+display_name = "Tempest Waltz"
+description = "Whirling Assault allows exactly one redirection of its movement (turn your input by more than 60 deg) and moves {chg:speed_mult} faster. No extra hits or damage."
+class_id = "reaver"
+category = "synergy"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "dance"
+code = "R-D05"
+requires_unlocks = PackedStringArray("bd_offense")
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("rd02_flowing_steps")
+synergy_text = {
+"rd02_flowing_steps": "A real dodge may discount the next Whirling Assault (once)."
+}
+trigger_summary = "Whirling Assault"
+scaling_sources = PackedStringArray()
+params = {
+"speed_mult": 1.15
+}

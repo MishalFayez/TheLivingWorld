@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_o2w4w"]
+
+[resource]
+script = ExtResource("1_o2w4w")
+id = "vk04_retaliation_window"
+display_name = "Retaliation Window"
+description = "After a connecting counter you can raise Guard {pct:faster} earlier in its recovery. Never during its hit frames."
+class_id = "vanguard"
+category = "enhancement"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "counterguard"
+code = "V-K04"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Connecting counter"
+scaling_sources = PackedStringArray()
+params = {
+"faster": 0.2,
+"guard_delay_mult": 0.8,
+"synergy_mult": 0.7
+}

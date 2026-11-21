@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_5wuea"]
+
+[resource]
+script = ExtResource("1_5wuea")
+id = "g03_echoing_impact"
+display_name = "Echoing Impact"
+description = "The third separate connecting offensive action against the same target creates a delayed echo dealing {pct:share} of that action's direct damage. Echoes trigger nothing else and refund nothing."
+class_id = "global"
+category = "enhancement"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "G03"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "3 separate connecting actions on one target"
+cooldown = 6.0
+mechanical_tradeoff = "Once per 6s; the echo is a plain secondary impact."
+scaling_sources = PackedStringArray("str", "dex", "weapon_power")
+params = {
+"actions": 3,
+"cooldown": 6.0,
+"delay": 0.4,
+"share": 0.25
+}

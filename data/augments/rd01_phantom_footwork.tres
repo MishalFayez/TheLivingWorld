@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_0gvcd"]
+
+[resource]
+script = ExtResource("1_0gvcd")
+id = "rd01_phantom_footwork"
+display_name = "Phantom Footwork"
+description = "PATH ANCHOR (Dance Mastery). With a locked target, Lateral Dance becomes a curved step around it, traveling {chg:travel_mult} the distance. Collision is real; no crit or immunity."
+class_id = "reaver"
+category = "mutation"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "dance"
+is_anchor = true
+code = "R-D01"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+exclusive_group = "anchor_reaver"
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("rd03_circling_predator")
+synergy_text = {
+"rd03_circling_predator": "A curved flank step counts as lateral displacement for the Predator follow-up."
+}
+trigger_summary = "Lateral Dance with lock-on"
+scaling_sources = PackedStringArray()
+params = {
+"travel_mult": 1.15
+}

@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_m7biy"]
+
+[resource]
+script = ExtResource("1_m7biy")
+id = "rc06_clean_execution"
+display_name = "Clean Execution"
+description = "A Precision Cut that hits an enemy in its attack recovery deals {pct:poise_bonus} more Poise damage ({s:cd_per_target} per target)."
+class_id = "reaver"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "R-C06"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("re03_fracturing_edge")
+synergy_text = {
+"re03_fracturing_edge": "Combined Poise bonus vs recovering enemies capped at +50%."
+}
+trigger_summary = "Precision Cut on a recovering enemy"
+cooldown = 5.0
+scaling_sources = PackedStringArray()
+params = {
+"cd_per_target": 5.0,
+"poise_bonus": 0.25
+}

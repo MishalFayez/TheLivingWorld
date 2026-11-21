@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_1ybxd"]
+
+[resource]
+script = ExtResource("1_1ybxd")
+id = "mf03_thermal_fracture"
+display_name = "Thermal Fracture"
+description = "Fire shattering your ice deals {pct:poise_bonus} more Poise to ordinary enemies ({pct:boss_bonus} vs bosses), once per {s:cooldown} per target."
+class_id = "mage"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "fusion"
+code = "M-F03"
+requires_unlocks = PackedStringArray("m_frost")
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("mf01_elemental_crossroads")
+synergy_text = {
+"mf01_elemental_crossroads": "Combined Poise bonus capped at +40% over base."
+}
+trigger_summary = "Fire / Frost interaction hits an enemy"
+cooldown = 6.0
+scaling_sources = PackedStringArray()
+params = {
+"boss_bonus": 0.1,
+"cooldown": 6.0,
+"poise_bonus": 0.25,
+"synergy_cap": 0.4
+}

@@ -218,6 +218,8 @@ func build_damage(d: AttackData, target, idx: int, ctx: Dictionary) -> DamageInf
 	info.threat_mult = d.threat_mult
 	info.stagger_on_hit = d.stagger_on_hit
 	info.source_pos = global_position
+	# state of the target BEFORE this hit resolves (the hit itself may interrupt its recovery)
+	info.tags["target_recovering"] = ReaverFreeFlow.in_attack_recovery(target)
 	modify_outgoing(info, d, target, idx, ctx)
 	return info
 
@@ -242,7 +244,8 @@ func spell_damage(target, power: float, poise_dmg: float, attack_name: String, o
 	info.source_pos = opts.get("pos", global_position)
 	info.hitstop = float(opts.get("hitstop", 0.03))
 	info.knockback = float(opts.get("knockback", 1.0))
-	info.tags = opts.get("tags", {})
+	info.tags = opts.get("tags", {}).duplicate()
+	info.tags["target_recovering"] = ReaverFreeFlow.in_attack_recovery(target)
 	target.take_damage(info)
 	return info
 

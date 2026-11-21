@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_vho3o"]
+
+[resource]
+script = ExtResource("1_vho3o")
+id = "rc05_blade_reflex"
+display_name = "Blade Reflex"
+description = "A well-timed dodge (i-frames avoid a real attack) makes your next LMB within {s:window} a Reflex follow-up: a spinning Reflex Cut in Dance, a Reflex Thrust in Edge."
+class_id = "reaver"
+category = "enhancement"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "R-C05"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Perfect dodge, then LMB"
+cooldown = 6.0
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 6.0,
+"window": 2.0
+}

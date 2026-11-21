@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_3r26o"]
+
+[resource]
+script = ExtResource("1_3r26o")
+id = "mf06_purifying_confluence"
+display_name = "Purifying Confluence"
+description = "A qualifying ally-targeted elemental interaction would remove one minor negative status ({s:cooldown} per ally)."
+class_id = "mage"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "fusion"
+code = "M-F06"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+blocked_reason = "No enemy applies a negative status to heroes in the current game, so there is nothing to cleanse. Needs a defined minor debuff first."
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("mc06_woven_protection")
+synergy_text = {
+"mc06_woven_protection": "A cleanse would refresh an existing shield's duration once (not its amount)."
+}
+trigger_summary = "Ally-targeted interaction (no cleansable statuses exist)"
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 12.0
+}

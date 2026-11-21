@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_137bq"]
+
+[resource]
+script = ExtResource("1_137bq")
+id = "mf01_elemental_crossroads"
+display_name = "Elemental Crossroads"
+description = "PATH ANCHOR (Elemental Fusion). Choose one implemented interaction (Augments menu): its effect is {chg:magnitude} - fragment damage / Poise vs enemies, or Vitalize duration on allies. Other spells are unchanged."
+class_id = "mage"
+category = "mutation"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "fusion"
+is_anchor = true
+code = "M-F01"
+requires_unlocks = PackedStringArray("m_frost")
+blocked_classes = PackedStringArray()
+exclusive_group = "anchor_mage"
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("mf03_thermal_fracture", "mf05_living_confluence")
+synergy_text = {
+"mf03_thermal_fracture": "Fire / Frost Poise payoff improves further, capped at +40% total for ordinary enemies.",
+"mf05_living_confluence": "If the follow-up comes from your chosen interaction it changes colour - its damage is not doubled."
+}
+trigger_summary = "Your chosen elemental interaction happens"
+scaling_sources = PackedStringArray("weapon_power")
+params = {
+"choices": "thermal_fracture,shattered_winter,living_bastion,conductive_anchors",
+"default_choice": "thermal_fracture",
+"magnitude": 1.2
+}

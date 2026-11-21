@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_ks6lt"]
+
+[resource]
+script = ExtResource("1_ks6lt")
+id = "mc05_dual_invocation"
+display_name = "Dual Invocation"
+description = "A direct heal makes your next offensive spell within {s:window} prepare {pct:prep_off} faster; an offensive spell does the same for your next direct heal. Each direction has its own {s:cooldown} cooldown."
+class_id = "mage"
+category = "synergy"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "M-C05"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("ma01_spell_threading")
+synergy_text = {
+"ma01_spell_threading": "Preparation reductions combine but are capped at 25%."
+}
+trigger_summary = "Alternate healing and offensive spells"
+cooldown = 6.0
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 6.0,
+"prep_mult": 0.85,
+"prep_off": 0.15,
+"window": 3.0
+}

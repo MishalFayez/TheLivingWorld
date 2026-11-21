@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_t6isj"]
+
+[resource]
+script = ExtResource("1_t6isj")
+id = "ma02_arcane_relay"
+display_name = "Arcane Relay"
+description = "After a direct heal on an ally, your next projectile spell within {s:window} launches from that ally (in range, line of sight). Same mana and targeting rules."
+class_id = "mage"
+category = "synergy"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "arcane"
+code = "M-A02"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("ma05_sympathetic_link")
+synergy_text = {
+"ma05_sympathetic_link": "The link may start from the supported ally; never extra targets."
+}
+trigger_summary = "Heal an ally, then cast a projectile"
+cooldown = 10.0
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 10.0,
+"window": 4.0
+}

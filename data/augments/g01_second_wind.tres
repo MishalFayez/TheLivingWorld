@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_by5bo"]
+
+[resource]
+script = ExtResource("1_by5bo")
+id = "g01_second_wind"
+display_name = "Second Wind"
+description = "After a defensive dodge avoids a real enemy attack, your next offensive action within {s:window} costs {pct:stamina_off} less stamina (Worldweaver: the next offensive spell costs {pct:mana_off} less mana). Empty dodges do nothing."
+class_id = "global"
+category = "enhancement"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "G01"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Dodge i-frames avoid a real enemy attack"
+cooldown = 6.0
+mechanical_tradeoff = "Internal cooldown 6s; only real dodges count."
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 6.0,
+"mana_mult": 0.85,
+"mana_off": 0.15,
+"stamina_mult": 0.75,
+"stamina_off": 0.25,
+"window": 3.0
+}

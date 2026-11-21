@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_se24b"]
+
+[resource]
+script = ExtResource("1_se24b")
+id = "vb01_living_fortress"
+display_name = "Living Fortress"
+description = "PATH ANCHOR (Bulwark). Walk forward while guarding at up to {pct:forward_mult} of normal speed. Stamina recovery while advancing in Guard is {pct:regen_off} lower. Every Guard rule (front only, breaks) still applies."
+class_id = "vanguard"
+category = "mutation"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "bulwark"
+is_anchor = true
+code = "V-B01"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+exclusive_group = "anchor_vanguard"
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("vb03_bastion_pulse")
+synergy_text = {
+"vb03_bastion_pulse": "A Perfect Guard while advancing releases the pulse from your advance position with +15% radius (once per cooldown)."
+}
+trigger_summary = "Hold Guard and move forward"
+mechanical_tradeoff = "-30% Guard stamina recovery while advancing."
+scaling_sources = PackedStringArray()
+params = {
+"forward_mult": 0.6,
+"regen_mult": 0.7,
+"regen_off": 0.3
+}

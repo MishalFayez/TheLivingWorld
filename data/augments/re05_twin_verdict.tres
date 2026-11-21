@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_k6sbr"]
+
+[resource]
+script = ExtResource("1_k6sbr")
+id = "re05_twin_verdict"
+display_name = "Twin Verdict"
+description = "Committed Cut becomes two committed impacts ({pct:first} / {pct:second} of its damage, total unchanged); total exposure {chg:exposure_mult}. The second impact may turn up to {n:correction_deg} deg toward your target."
+class_id = "reaver"
+category = "mutation"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "edge"
+code = "R-E05"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+exclusive_group = "committed_transform"
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("re06_patient_blade")
+synergy_text = {
+"re06_patient_blade": "The refund happens once, only if both impacts land."
+}
+trigger_summary = "Committed Cut"
+mechanical_tradeoff = "+15% exposure."
+scaling_sources = PackedStringArray()
+transforms = "bd_committed"
+params = {
+"correction_deg": 15.0,
+"exposure_mult": 1.15,
+"first": 0.4,
+"second": 0.6
+}

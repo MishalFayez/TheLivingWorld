@@ -245,6 +245,8 @@ func on_press(action: String) -> void:
 			if not hero.can_act():
 				hero.buffer(action)
 				return
+			if _follow_up():
+				return
 			if mode == "edge":
 				_lmb_in_edge = true
 				kit.begin_charge("edge_lmb", COMMIT_MAX)
@@ -274,7 +276,7 @@ func on_release(action: String) -> void:
 			if held < HOLD_THRESHOLD:
 				_precision()
 			else:
-				_committed(clampf((held - HOLD_THRESHOLD) / (COMMIT_MAX - HOLD_THRESHOLD), 0.0, 1.0))
+				_committed(clampf((held - HOLD_THRESHOLD) / (COMMIT_MAX - HOLD_THRESHOLD), 0.0, 1.0), held)
 
 
 func _technique(action: String, unlock_id: String) -> void:
@@ -303,6 +305,8 @@ func _technique(action: String, unlock_id: String) -> void:
 			# 0.88: the circling starts one physics tick late and collision / radius correction cost some
 			# arc; the sweep itself stops at the target angle (process), so the margin never over-rotates
 			d.startup = clampf(deg_to_rad(orbit_angle()) * rad / (ORBIT_SPEED * 0.88), ORBIT_MIN_T, ORBIT_MAX_T)
+	if hero.rt:
+		hero.rt.bd_technique(id, d)
 	_go(d, id.trim_prefix("bd_"))
 
 
@@ -312,7 +316,22 @@ static func _flat(v: Vector3) -> Vector3:
 
 ## Orbit Step sweep target (Extended Orbit augment adds to it; see augment_runtime).
 func orbit_angle() -> float:
-	return ORBIT_ANGLE * float(kit.hero.get_meta("orbit_angle_mult", 1.0))
+	var m := 1.0
+	if hero.rt and hero.rt.has("rd04_extended_orbit"):
+		m = float(hero.rt.pv("rd04_extended_orbit", "angle_mult", 1.2))
+	return ORBIT_ANGLE * m
+
+
+## Augment follow-ups that replace the next LMB (Circling Predator, Blade Reflex). True when one started.
+func _follow_up() -> bool:
+	if hero.rt == null:
+		return false
+	var fu: Dictionary = hero.rt.bd_follow_up(mode)
+	if fu.is_empty():
+		return false
+	kit.trigger(String(fu.aug), "%s" % fu.attack.display_name)
+	_go(fu.attack, String(fu.kind), {"follow_up": true})
+	return true
 
 
 # ------------------------------------------------------------------ attacks
@@ -331,11 +350,16 @@ func _dance() -> void:
 		d.display_name = "Relentless " + d.display_name
 		extra["relentless"] = true
 		kit.trigger("relentless_dance", "Relentless Dance follow-up")
+	if hero.rt:
+		hero.rt.bd_dance(kind, d, extra)
 	_go(d, "dance_" + kind, extra)
 
 
 func _precision() -> void:
-	_go(kit.load_attack("bd_precision").clone(), "precision")
+	var d: AttackData = kit.load_attack("bd_precision").clone()
+	if hero.rt:
+		hero.rt.bd_precision(d)
+	_go(d, "precision")
 
 
 ## Committed Cut at a charge ratio (0 = 0.35s hold, 1 = 0.75s), before transformations. Shared with the
@@ -347,7 +371,7 @@ static func committed_attack(base: AttackData, ratio: float) -> AttackData:
 	return d
 
 
-func _committed(ratio: float) -> void:
+func _committed(ratio: float, held: float = -1.0) -> void:
 	var d: AttackData = committed_attack(kit.load_attack("bd_committed"), ratio)
 	var tr := ""
 	if kit.aug("perfect_edge") > 0:
@@ -374,6 +398,8 @@ func _committed(ratio: float) -> void:
 		d.add_tag("multi")
 		d.display_name = "Twin Tempest"
 		kit.trigger(tr, "Committed Cut became a %d-hit technique" % n)
+	if hero.rt:
+		tr = hero.rt.bd_committed(d, held, tr)
 	_go(d, "committed", {"charge": ratio, "transform": tr})
 
 
@@ -381,7 +407,7 @@ func _go(d: AttackData, kind: String, extra: Dictionary = {}) -> bool:
 	var r: AttackRunner = hero.runner
 	if hero.stamina <= 0.0 and d.stamina_cost > 0.0:
 		return false
-	var ctx := {"bd": true, "kind": kind, "mode": mode}
+	var ctx := {"bd": true, "kind": kind, "mode": mode, "start_pos": hero.global_position}
 	ctx.merge(extra)
 	if "attack_blend" in hero:
 		hero.attack_blend = CHAIN_BLEND if r.is_busy() else DEFAULT_BLEND
@@ -676,6 +702,24 @@ func process(_delta: float) -> void:
 		else:
 			_weave = false
 	_update_charge_fx()
+	# Twin Verdict: the second impact may correct its angle slightly toward the locked target (not homing)
+	if r.is_busy() and r.ctx.get("transform", "") == "twin_verdict" and r.phase == AttackRunner.Phase.ACTIVE and r.hit_index == 1 and not r.ctx.get("tv_corrected", false):
+		r.ctx["tv_corrected"] = true
+		var tl = hero.lock_target
+		if tl != null and is_instance_valid(tl) and tl.is_targetable():
+			var to := _flat(tl.global_position - hero.global_position)
+			var lim := deg_to_rad(float(hero.rt.pv("re05_twin_verdict", "correction_deg", 15.0)) if hero.rt else 15.0)
+			var ang: float = hero.forward().signed_angle_to(to.normalized(), Vector3.UP)
+			hero.rotation.y += clampf(ang, -lim, lim)
+	# Tempest Waltz: exactly one controlled redirection of the Whirling Assault movement
+	if r.is_busy() and r.ctx.get("kind", "") == "whirl" and r.phase == AttackRunner.Phase.ACTIVE and hero.rt and hero.rt.has("rd05_tempest_waltz"):
+		var m := _input_dir()
+		if not r.ctx.has("tw_dir"):
+			r.ctx["tw_dir"] = m
+		elif not r.ctx.get("tw_used", false) and m != Vector3.ZERO and (Vector3(r.ctx.tw_dir) == Vector3.ZERO or rad_to_deg(Vector3(r.ctx.tw_dir).angle_to(m)) > 60.0):
+			r.ctx["tw_used"] = true
+			hero.knock_velocity = m * sqrt(36.0 * 0.6)
+			kit.trigger("rd05_tempest_waltz", "Whirling Assault redirected")
 	if r.is_busy() and r.ctx.get("bd", false) and r.phase == AttackRunner.Phase.RECOVERY:
 		# Breaking Point: a connecting strike recovers at once; a miss keeps its long recovery
 		if r.ctx.get("kind", "") == "break" and r.ctx.get("hit", false):

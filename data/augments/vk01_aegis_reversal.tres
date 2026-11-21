@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_y53mi"]
+
+[resource]
+script = ExtResource("1_y53mi")
+id = "vk01_aegis_reversal"
+display_name = "Aegis Reversal"
+description = "PATH ANCHOR (Counterguard). After a Perfect Guard, your next Heavy Attack within {s:window} becomes the Reversal counter: {pct:poise_bonus} more Poise damage, {pct:reach_off} shorter reach. No automatic critical."
+class_id = "vanguard"
+category = "mutation"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "counterguard"
+is_anchor = true
+code = "V-K01"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+exclusive_group = "anchor_vanguard"
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("vk05_judgment_echo")
+synergy_text = {
+"vk05_judgment_echo": "A Reversal counter unlocks the alternate (rising) Echo Strike animation - still one follow-up, never an automatic second hit."
+}
+trigger_summary = "Perfect Guard, then RMB"
+mechanical_tradeoff = "-10% reach."
+scaling_sources = PackedStringArray()
+params = {
+"poise_bonus": 0.3,
+"reach_mult": 0.9,
+"reach_off": 0.1,
+"window": 3.0
+}

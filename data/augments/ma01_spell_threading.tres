@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_ui35f"]
+
+[resource]
+script = ExtResource("1_ui35f")
+id = "ma01_spell_threading"
+display_name = "Spell Threading"
+description = "PATH ANCHOR (Arcane Weaving). After releasing a spell, casting a DIFFERENT spell within {s:window} lowers its minimum charge by {pct:min_off} and its full charge by {pct:full_off}. Never instant, never free."
+class_id = "mage"
+category = "mutation"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "arcane"
+is_anchor = true
+code = "M-A01"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+exclusive_group = "anchor_mage"
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("mc05_dual_invocation")
+synergy_text = {
+"mc05_dual_invocation": "Combined preparation reduction capped at 25%."
+}
+trigger_summary = "Release, then a different spell"
+cooldown = 5.0
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 5.0,
+"full_mult": 0.9,
+"full_off": 0.1,
+"min_mult": 0.8,
+"min_off": 0.2,
+"window": 3.0
+}

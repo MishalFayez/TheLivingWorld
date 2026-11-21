@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_ul1yk"]
+
+[resource]
+script = ExtResource("1_ul1yk")
+id = "mf04_healing_ember"
+display_name = "Healing Ember"
+description = "An approved Fire-based ally support effect would also grant +{pct:damage_bonus} physical weapon damage for {s:duration}."
+class_id = "mage"
+category = "enhancement"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "fusion"
+code = "M-F04"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+blocked_reason = "No Fire-based ally support effect exists in the approved Worldweaver (all support is Life). The spec forbids inventing one: design prerequisite missing."
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Fire-based ally support (does not exist yet)"
+scaling_sources = PackedStringArray()
+params = {
+"damage_bonus": 0.12,
+"duration": 4.0
+}

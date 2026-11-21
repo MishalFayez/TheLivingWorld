@@ -1016,13 +1016,14 @@ func test_e_augments() -> void:
 	print("\n[E] Augments (only the approved list)")
 	var h := await mage(4)
 	var e := el(h)
-	var all: Array = Game.augment_db.for_class("mage").filter(func(a): return Game.augment_db.ineligible_reason(a, Game.prog()) != "legacy Mage core only" and not String(a.params.get("requires_core", "")) in ["weave", "sigils"]).map(func(a): return a.id)
+	# LEVEL10-FOUNDATION-005: the curated Level 1-10 cards are checked by l10_augment_runner; this keeps the legacy list unchanged
+	var all: Array = Game.augment_db.for_class("mage").filter(func(a): return a.pool != "l10" and a.class_id == "mage" and not a.params.get("legacy_only", false) and not String(a.params.get("requires_core", "")) in ["weave", "sigils"]).map(func(a): return a.id)
 	all.sort()
 	check(all == ["crystal_chain", "everlasting_bloom", "infernal_collapse", "living_bastion", "living_thunder", "mountainfall", "second_heart", "storm_lattice", "wandering_sanctum"], "Mage augment pool = the 9 approved augments (refoundation spec)", str(all))
 	var elig: Array = Game.augment_db.eligible("mage", Game.prog()).map(func(a): return a.id)
 	check(not elig.has("mountainfall") and not elig.has("living_thunder") and not elig.has("living_bastion"), "no augments for locked elements at Level 4", str(elig))
 	check(not elig.has("wandering_sanctum"), "no augments with missing prerequisites (Sanctum is Level 5)")
-	check(elig.has("infernal_collapse") and elig.has("crystal_chain") and elig.has("everlasting_bloom"), "known-element augments offered")
+	check(not elig.has("infernal_collapse") and elig.has("mf02_lingering_essence") and elig.has("mc02_gentle_current"), "005: Level 1-10 cards offered, legacy cards no longer drafted (kept when owned)")
 	var draft: Array = Game.augment_db.roll("mage", Game.prog(), 3, Game.rng, "any").map(func(a): return a.id)
 	check(draft.size() == 3, "three-card draft works")
 	# Infernal Collapse

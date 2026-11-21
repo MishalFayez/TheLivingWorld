@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_h1hth"]
+
+[resource]
+script = ExtResource("1_h1hth")
+id = "g06_resolute_spirit"
+display_name = "Resolute Spirit"
+description = "When you recover from a Stagger, take {pct:poise_resist} less Poise damage for {s:duration}. You can still be interrupted."
+class_id = "global"
+category = "enhancement"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "G06"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Recover from Stagger"
+cooldown = 10.0
+mechanical_tradeoff = "Cooldown 10s; no immunity."
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 10.0,
+"duration": 3.0,
+"poise_resist": 0.2
+}

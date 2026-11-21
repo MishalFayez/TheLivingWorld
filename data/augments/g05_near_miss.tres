@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_cofah"]
+
+[resource]
+script = ExtResource("1_cofah")
+id = "g05_near_miss"
+display_name = "Near Miss"
+description = "Avoid an enemy attack aimed at you by moving out of it (no dodge, no i-frames, inside its reach + {m:margin}): gain {chg:speed_mult} movement speed for {s:duration}."
+class_id = "global"
+category = "enhancement"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "G05"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "An attack targeting you ends without hitting while you move through its reach"
+cooldown = 8.0
+mechanical_tradeoff = "Cooldown 8s; dodging never counts."
+scaling_sources = PackedStringArray()
+params = {
+"cooldown": 8.0,
+"duration": 2.0,
+"margin": 1.0,
+"min_speed": 1.5,
+"speed_mult": 1.15
+}

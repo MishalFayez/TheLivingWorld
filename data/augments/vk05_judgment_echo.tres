@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_re11y"]
+
+[resource]
+script = ExtResource("1_re11y")
+id = "vk05_judgment_echo"
+display_name = "Judgment Echo"
+description = "A connecting counter opens a {s:window} window for one Echo Strike (LMB): {pct:damage_share} of the counter's damage, {chg:recovery_mult} recovery."
+class_id = "vanguard"
+category = "enhancement"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "counterguard"
+code = "V-K05"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Connecting counter, then LMB"
+cooldown = 10.0
+mechanical_tradeoff = "Echo recovers 20% longer."
+scaling_sources = PackedStringArray("weapon_power")
+params = {
+"cooldown": 10.0,
+"damage_share": 0.65,
+"recovery_mult": 1.2,
+"window": 2.0
+}

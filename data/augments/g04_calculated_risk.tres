@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_yh1mq"]
+
+[resource]
+script = ExtResource("1_yh1mq")
+id = "g04_calculated_risk"
+display_name = "Calculated Risk"
+description = "Committed actions (Committed Cut, Breaking Point, Judgment Strike, Shieldbreaker Slash) deal {chg:power_mult} direct damage, but if one connects with nothing its recovery is {chg:fail_recovery_mult} longer."
+class_id = "global"
+category = "enhancement"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "G04"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray("mage")
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Start a tagged committed action"
+mechanical_tradeoff = "A miss recovers 20% longer."
+scaling_sources = PackedStringArray("str")
+params = {
+"class_block_reason": "Worldweaver spells resolve after their recovery, so a missed committed spell cannot lengthen it (spec rule: report, do not substitute).",
+"committed_ids": "bd_committed,bd_break,v_judgment,v_heavy",
+"fail_recovery_mult": 1.2,
+"power_mult": 1.2
+}

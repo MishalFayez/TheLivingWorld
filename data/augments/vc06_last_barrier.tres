@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_b17cb"]
+
+[resource]
+script = ExtResource("1_b17cb")
+id = "vc06_last_barrier"
+display_name = "Last Barrier"
+description = "A successful Guard while below {pct:hp_threshold} HP grants a shield of {pct:shield_frac} max HP for {s:duration}."
+class_id = "vanguard"
+category = "enhancement"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+code = "V-C06"
+requires_unlocks = PackedStringArray()
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray()
+trigger_summary = "Guard below 35% HP"
+cooldown = 20.0
+mechanical_tradeoff = "Cooldown 20s; passive reduction never triggers it."
+scaling_sources = PackedStringArray("vit")
+params = {
+"cooldown": 20.0,
+"duration": 4.0,
+"hp_threshold": 0.35,
+"shield_frac": 0.08
+}

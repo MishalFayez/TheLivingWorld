@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_lhe8a"]
+
+[resource]
+script = ExtResource("1_lhe8a")
+id = "mf05_living_confluence"
+display_name = "Living Confluence"
+description = "After an elemental interaction, your next spell of a DIFFERENT element within {s:window} adds a follow-up: {pct:dmg_share} of its direct damage as a second impact, or {pct:heal_share} extra healing on an ally. Never chains."
+class_id = "mage"
+category = "synergy"
+rarity = "exotic"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray()
+pool = "l10"
+path_id = "fusion"
+code = "M-F05"
+requires_unlocks = PackedStringArray("m_frost")
+blocked_classes = PackedStringArray()
+synergy_tags = PackedStringArray()
+synergy_partners = PackedStringArray("mf01_elemental_crossroads")
+synergy_text = {
+"mf01_elemental_crossroads": "The chosen interaction changes the follow-up's visual, not its damage."
+}
+trigger_summary = "Interaction, then a different-element spell"
+cooldown = 10.0
+scaling_sources = PackedStringArray("weapon_power")
+params = {
+"cooldown": 10.0,
+"dmg_share": 0.2,
+"heal_share": 0.15,
+"window": 4.0
+}

@@ -182,7 +182,11 @@ func trigger(id: String, detail: String) -> void:
 func start_attack(d: AttackData, ctx: Dictionary = {}) -> bool:
 	if hero.stamina <= 0.0 and d.stamina_cost > 0.0:
 		return false
-	hero.use_stamina(d.stamina_cost)
+	var mult := 1.0
+	if hero.rt:
+		d = hero.rt.prepare_attack(d, ctx)
+		mult = hero.rt.stamina_mult(d, ctx)
+	hero.use_stamina(d.stamina_cost * mult)
 	hero.face_for_attack()
 	var aim := hero.move_input if hero.move_input.length() > 0.2 else hero.forward()
 	hero.approach = MeleeApproach.plan(hero, d, hero.lock_target, aim, hero.attack_speed())
