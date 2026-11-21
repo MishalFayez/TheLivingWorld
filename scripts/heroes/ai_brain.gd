@@ -422,6 +422,23 @@ func _reaver(_delta: float) -> void:
 	if think_t > 0.0 or not hero.can_act():
 		return
 	think_t = rng.randf_range(0.12, 0.3)
+	# Blade Dancer companion (REAVER-BLADEDANCER-003): minimal use of the player's Dance rules only
+	# (Dance cuts, sometimes lateral; Orbit Step / Whirling Assault when unlocked). No Edge for the AI.
+	if kit.dancer_core():
+		var side_bd: Vector3 = (hero.global_position - target.global_position).cross(Vector3.UP)
+		side_bd.y = 0
+		side_bd = side_bd.normalized() * (1.0 if rng.randf() < 0.5 else -1.0)
+		if kit.unlocked("bd_offense") and hero.stamina > 30.0 and hero.enemies_within(3.0).size() >= 2 and rng.randf() < 0.25:
+			tap("core")
+			return
+		if kit.unlocked("bd_footwork") and hero.stamina > 25.0 and rng.randf() < 0.1:
+			hero.move_input = side_bd
+			tap("footwork")
+			return
+		if rng.randf() < 0.3:
+			hero.move_input = side_bd
+		tap("light")
+		return
 	if kit.flow_core():
 		var ffc: ReaverFreeFlow = kit.ff
 		var tr: AttackRunner = target.runner

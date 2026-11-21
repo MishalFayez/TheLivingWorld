@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_bdaug"]
+
+[resource]
+script = ExtResource("1_bdaug")
+id = "twin_tempest"
+display_name = "Twin Tempest"
+description = "MUTATION: Committed Cut becomes a brief 4-hit technique whose final strike carries 55% of the damage (same total coefficient). Longer active time and recovery: more exposure to interruption. Excludes Perfect Edge."
+class_id = "reaver"
+category = "mutation"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Blade Dancer")
+interacts_with = "Committed Cut."
+params = {
+"active": 0.36,
+"exclusive_group": "committed_transform",
+"extra_recovery": 0.1,
+"final_share": 0.55,
+"hits": 4,
+"requires_core": "bladedancer"
+}

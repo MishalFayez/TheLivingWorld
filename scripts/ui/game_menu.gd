@@ -211,8 +211,10 @@ func _character() -> Control:
 		core = ("Arcane Weave" if Game.mage_core == "weave" else "Ley Sigils") + " (rejected core - debug comparison)"
 	if c == "reaver":
 		match Game.reaver_core:
+			"bladedancer":
+				core = "Blade Dancer"
 			"freeflow":
-				core = "Free Flow"
+				core = "Free Flow 002 (comparison)"
 			"swordmaster":
 				core = "Swordmaster / Blade Lines (comparison)"
 			"sense":
@@ -456,6 +458,8 @@ func _augments() -> Control:
 			"   ·   INACTIVE (mutation limit %d)" % Game.balance.max_equipped_mutations if inactive else ("   ·   EQUIPPED" if a.category == "mutation" else "")], 17, UITheme.TEXT_DIM if inactive else rc.lightened(0.2), true))
 		if Game.augment_db.freeflow_inactive(a):
 			tv.add_child(UITheme.text("Incompatible with Free Flow - kept, but has no effect (pending an approved migration design)", 13, Color(1.0, 0.6, 0.45)))
+		elif Game.augment_db.bladedancer_inactive(a):
+			tv.add_child(UITheme.text("Incompatible with Blade Dancer - kept, but has no effect (pending an approved migration design)", 13, Color(1.0, 0.6, 0.45)))
 		if inactive:
 			var sw := HFlowContainer.new()
 			for act in p.active_mutations():

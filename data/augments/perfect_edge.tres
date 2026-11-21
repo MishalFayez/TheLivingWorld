@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_bdaug"]
+
+[resource]
+script = ExtResource("1_bdaug")
+id = "perfect_edge"
+display_name = "Perfect Edge"
+description = "MUTATION: Committed Cut becomes narrower (x0.6 width, less forgiving) and deals x1.5 Poise damage to an enemy in attack recovery. Excludes Twin Tempest."
+class_id = "reaver"
+category = "mutation"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Blade Dancer")
+interacts_with = "Committed Cut, enemy recovery."
+params = {
+"exclusive_group": "committed_transform",
+"recovery_poise": 1.5,
+"requires_core": "bladedancer",
+"width_mult": 0.6
+}

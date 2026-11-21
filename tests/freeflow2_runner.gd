@@ -801,4 +801,4 @@ func test_unchanged_systems() -> void:
 	check(is_equal_approx(h.kit.iframe_mult(), 1.2), "Reaver i-frame multiplier unchanged (x1.2)")
 	var hv := load("res://data/attacks/ff_heavy.tres") as AttackData
 	check(is_equal_approx(hv.startup, 0.32) and is_equal_approx(hv.active, 0.14) and is_equal_approx(hv.recovery, 0.43), "base Heavy Cut timing still 0.32 / 0.14 / 0.43")
-	check(Game.DEFAULT_REAVER_CORE == "freeflow", "Free Flow still the default Reaver core")
+	check(Game.DEFAULT_REAVER_CORE == "bladedancer", "Free Flow 002 kept as a comparison core (default: Blade Dancer since 003)")

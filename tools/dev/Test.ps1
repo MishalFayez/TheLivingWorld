@@ -1,8 +1,8 @@
 param(
     # camera_jitter_144 / camera_jitter_30: the camera suite at another fixed frame rate (the camera test
     # needs rendering faster than physics to expose jitter; 30 fps checks the frame-rate independence)
-    [ValidateSet('freeflow_runner','freeflow2_runner','resolution_runner','refoundation_runner','mage_runner','test_runner','update5_runner','smoke_runner','camera_jitter','camera_jitter_144','camera_jitter_30')]
-    [string[]]$Suite = @('freeflow_runner','freeflow2_runner','resolution_runner','refoundation_runner','mage_runner','test_runner','update5_runner','smoke_runner','camera_jitter','camera_jitter_144','camera_jitter_30'),
+    [ValidateSet('bladedancer_runner','freeflow_runner','freeflow2_runner','resolution_runner','refoundation_runner','mage_runner','test_runner','update5_runner','smoke_runner','camera_jitter','camera_jitter_144','camera_jitter_30')]
+    [string[]]$Suite = @('bladedancer_runner','freeflow_runner','freeflow2_runner','resolution_runner','refoundation_runner','mage_runner','test_runner','update5_runner','smoke_runner','camera_jitter','camera_jitter_144','camera_jitter_30'),
     [int]$TimeoutSeconds = 240
 )
 . "$PSScriptRoot/Config.ps1"

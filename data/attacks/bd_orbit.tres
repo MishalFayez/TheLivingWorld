@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_bdatk"]
+
+[resource]
+script = ExtResource("1_bdatk")
+id = "bd_orbit"
+display_name = "Orbit Step"
+anim_style = "bd_orbit"
+startup = 0.28
+active = 0.1
+recovery = 0.26
+cancel_after = 0.12
+damage_mult = 0.9
+poise_damage = 8.0
+hit_weights = PackedFloat32Array()
+hitbox_size = Vector3(1.9, 1.6, 2.3)
+hitbox_offset = Vector3(0, 1, -1.4)
+stamina_cost = 10.0
+tags = PackedStringArray("blade_dancer", "dance", "technique", "orbit")

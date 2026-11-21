@@ -49,13 +49,16 @@ func ineligible_reason(a: AugmentData, p: ClassProgress) -> String:
 		var core: String = a.params["requires_core"]
 		if core in ["sigils", "weave", "elementalist"] and Game.mage_core != core:
 			return "requires Mage core " + core
-		if core in ["sense", "bladecraft", "swordmaster", "freeflow"] and Game.reaver_core != core:
+		if core in ["sense", "bladecraft", "swordmaster", "freeflow", "bladedancer"] and Game.reaver_core != core:
 			# REAVER-FREEFLOW-001: a Swordmaster augment that does not depend on Blade Lines / directional
 			# links is explicitly flagged compatible; every other one is incompatible with Free Flow
 			# pending an approved migration design.
+			# REAVER-BLADEDANCER-003: Blade Dancer accepts only its own augments (nothing is ported).
 			if not (core == "swordmaster" and Game.reaver_core == "freeflow" and freeflow_compatible(a)):
+				if Game.reaver_core == "bladedancer":
+					return "incompatible with Blade Dancer (pending migration design)"
 				return ("incompatible with Free Flow (pending migration design)" if Game.reaver_core == "freeflow" else "requires Reaver core " + core)
-	if a.params.get("legacy_reaver", false) and Game.reaver_core in ["swordmaster", "freeflow"]:
+	if a.params.get("legacy_reaver", false) and Game.reaver_core in ["swordmaster", "freeflow", "bladedancer"]:
 		return "legacy Reaver core only"
 	# REAVER-FREEFLOW-001: the Decisive Cut transformations are mutually exclusive (one per run).
 	if a.params.has("exclusive_group"):
@@ -109,6 +112,16 @@ func freeflow_inactive(a: AugmentData) -> bool:
 		return true
 	var core := String(a.params.get("requires_core", ""))
 	return core != "" and core != "freeflow" and not freeflow_compatible(a)
+
+
+## REAVER-BLADEDANCER-003: true when an owned Reaver augment has no effect under Blade Dancer (it belongs
+## to another core). Such augments stay in the save untouched; no conversion without approval.
+func bladedancer_inactive(a: AugmentData) -> bool:
+	if a == null or a.class_id != "reaver" or Game.reaver_core != "bladedancer":
+		return false
+	if a.params.get("legacy_reaver", false) or a.requires_bladecraft:
+		return true
+	return String(a.params.get("requires_core", "")) != "bladedancer"
 
 
 func eligible(class_id: String, p: ClassProgress) -> Array:

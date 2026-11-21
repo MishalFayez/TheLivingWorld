@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_bdatk"]
+
+[resource]
+script = ExtResource("1_bdatk")
+id = "bd_break"
+display_name = "Breaking Point"
+anim_style = "bd_break"
+startup = 0.34
+active = 0.1
+recovery = 0.55
+cancel_after = 0.5
+damage_mult = 1.2
+poise_damage = 30.0
+hit_weights = PackedFloat32Array()
+hitstop = 0.12
+hitbox_size = Vector3(0.8, 1.6, 2.6)
+hitbox_offset = Vector3(0, 1, -1.5)
+stamina_cost = 22.0
+tags = PackedStringArray("blade_dancer", "edge", "technique", "break")

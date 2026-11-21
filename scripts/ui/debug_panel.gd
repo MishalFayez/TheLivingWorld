@@ -178,12 +178,12 @@ func _build() -> void:
 	for c in [["elementalist", "Worldweaver (current)"], ["sigils", "Ley Sigils (retired)"], ["weave", "Arcane Weave (retired)"]]:
 		var cv: String = c[0]
 		mc.add_child(UIUtil.button(("> " if Game.mage_core == cv else "") + c[1], func(): _set_core("mage", cv)))
-	var rc := HBoxContainer.new()
+	var rc := HFlowContainer.new()     # wraps: six Reaver cores
 	content.add_child(rc)
 	rc.add_child(UIUtil.label("Reaver:"))
-	# REAVER-FREEFLOW-001 comparison mode: any core other than Free Flow makes this a Debug session
-	# (never saved), so comparing never changes the saved character.
-	for c in [["freeflow", "Free Flow (current)"], ["swordmaster", "Swordmaster / Blade Lines (previous - comparison, not saved)"], ["sense", "Sword Sense (retired)"], ["bladecraft", "Bladecraft (retired)"], ["off", "No core"]]:
+	# Comparison mode: any core other than the default (Blade Dancer since REAVER-BLADEDANCER-003) makes
+	# this a Debug session (never saved), so comparing never changes the saved character.
+	for c in [["bladedancer", "Blade Dancer (current)"], ["freeflow", "Free Flow 002 (comparison, not saved)"], ["swordmaster", "Swordmaster / Blade Lines (comparison, not saved)"], ["sense", "Sword Sense (retired)"], ["bladecraft", "Bladecraft (retired)"], ["off", "No core"]]:
 		var cv: String = c[0]
 		rc.add_child(UIUtil.button(("> " if Game.reaver_core == cv else "") + c[1], func(): _set_core("reaver", cv)))
 	content.add_child(UIUtil.header("Enemy defenses (all living enemies)"))

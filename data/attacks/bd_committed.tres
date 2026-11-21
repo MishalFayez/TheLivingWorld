@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_bdatk"]
+
+[resource]
+script = ExtResource("1_bdatk")
+id = "bd_committed"
+display_name = "Committed Cut"
+anim_style = "bd_committed"
+startup = 0.16
+active = 0.14
+recovery = 0.6
+cancel_after = 0.45
+dodge_cancel = false
+damage_mult = 2.6
+poise_damage = 45.0
+is_heavy = true
+hit_weights = PackedFloat32Array()
+hitstop = 0.13
+knockback = 3.0
+hitbox_size = Vector3(1.6, 1.6, 2.8)
+hitbox_offset = Vector3(0, 1, -1.6)
+stamina_cost = 20.0
+poise_armor = 0.4
+tags = PackedStringArray("blade_dancer", "edge", "committed")

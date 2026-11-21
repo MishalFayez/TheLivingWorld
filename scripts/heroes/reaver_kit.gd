@@ -27,6 +27,7 @@ const SKILL_CD := {"r_lunge": 5.0, "r_flurry": 8.0, "r_flow_step": 3.0, "r_cross
 
 var sm: ReaverSwordmaster
 var ff: ReaverFreeFlow
+var bd: ReaverBladeDancer
 
 
 func sense_core() -> bool:
@@ -39,15 +40,21 @@ func sword_core() -> bool:
 	return Game.reaver_core == "swordmaster"
 
 
-## Free Flow (REAVER-FREEFLOW-001) is the default Reaver core.
+## Free Flow (REAVER-FREEFLOW-001/002): default until REAVER-BLADEDANCER-003, now a comparison core.
 func flow_core() -> bool:
 	return Game.reaver_core == "freeflow"
+
+
+## Blade Dancer (REAVER-BLADEDANCER-003) is the default Reaver core.
+func dancer_core() -> bool:
+	return Game.reaver_core == "bladedancer"
 
 
 func setup(h: Hero) -> void:
 	super.setup(h)
 	sm = ReaverSwordmaster.new(self)
 	ff = ReaverFreeFlow.new(self)
+	bd = ReaverBladeDancer.new(self)
 	h.runner.hit_window.connect(_on_hit_window)
 
 
@@ -55,6 +62,14 @@ func restore() -> void:
 	super.restore()
 	if ff:
 		ff.reset()
+	if bd:
+		bd.reset()
+
+
+func overrides_idle_anim() -> bool:
+	if dancer_core() and bd.overrides_idle():
+		return true
+	return super.overrides_idle_anim()
 
 
 ## Crosscut: the second hit is a NARROWER reverse slash, with limited steering toward the input.
@@ -76,7 +91,7 @@ const LEGACY_UNLOCKS := {"r_openings": 1, "r_charged": 3, "r_perfect_dodge": 5, 
 
 
 func unlocked(id: String) -> bool:
-	if not sword_core() and not flow_core() and LEGACY_UNLOCKS.has(id):
+	if not sword_core() and not flow_core() and not dancer_core() and LEGACY_UNLOCKS.has(id):
 		var p: ClassProgress = hero.prog()
 		return (p.level >= int(LEGACY_UNLOCKS[id]) or p.debug_unlocks.has(id)) and not p.debug_locks.has(id)
 	return hero.unlocked(id)
@@ -88,14 +103,19 @@ func dodge_override() -> bool:
 
 func on_dodge() -> void:
 	super.on_dodge()
-	if flow_core():
+	hero.dodge_scale = 1.0       # only Blade Dancer's Combat Weave changes the dodge distance
+	if dancer_core():
+		bd.on_dodge()
+	elif flow_core():
 		ff.on_dodge()
 	elif sword_core():
 		sm.on_dodge()
 
 
 func on_hit_landed(target, info: DamageInfo) -> void:
-	if flow_core():
+	if dancer_core():
+		bd.on_hit_landed(target, info)
+	elif flow_core():
 		ff.on_hit_landed(target, info)
 	elif sword_core():
 		sm.on_hit_landed(target, info)
@@ -120,7 +140,9 @@ func resource_name() -> String:
 
 func process(delta: float) -> void:
 	super.process(delta)
-	if flow_core():
+	if dancer_core():
+		bd.process(delta)
+	elif flow_core():
 		ff.process(delta)
 	elif sword_core():
 		sm.process(delta)
@@ -132,6 +154,9 @@ func process(delta: float) -> void:
 
 
 func on_press(action: String) -> void:
+	if dancer_core():
+		bd.on_press(action)
+		return
 	if flow_core():
 		ff.on_press(action)
 		return
@@ -171,6 +196,9 @@ func on_press(action: String) -> void:
 
 
 func on_release(action: String) -> void:
+	if dancer_core():
+		bd.on_release(action)
+		return
 	if flow_core():
 		return
 	if sword_core():
@@ -395,8 +423,8 @@ func _apply_form(d: AttackData, form: String, kind: String) -> void:
 
 
 func situational_crit(d: AttackData, target, ctx: Dictionary) -> float:
-	if flow_core():
-		return 0.0          # Free Flow: no situational / guaranteed crits
+	if flow_core() or dancer_core():
+		return 0.0          # Free Flow / Blade Dancer: no situational / guaranteed / directional crits
 	if sense_core():
 		if _cut_for(d, target, ctx) == "Vital Cut":
 			return 2.0      # guaranteed
@@ -428,6 +456,9 @@ func _cut_for(d: AttackData, target, ctx: Dictionary) -> String:
 
 
 func modify_outgoing(info: DamageInfo, d: AttackData, target, idx: int, ctx: Dictionary) -> void:
+	if dancer_core():
+		bd.modify_outgoing(info, d, target, idx, ctx)
+		return
 	if flow_core():
 		ff.modify_outgoing(info, d, target, idx, ctx)
 		return
@@ -471,6 +502,8 @@ func modify_outgoing(info: DamageInfo, d: AttackData, target, idx: int, ctx: Dic
 
 
 func on_perfect_dodge(info: DamageInfo) -> void:
+	if dancer_core():
+		return              # Blade Dancer: evasion is positioning + the shared i-frames, no reward state
 	if flow_core():
 		ff.on_perfect_dodge(info)
 		return
@@ -489,6 +522,9 @@ func on_perfect_dodge(info: DamageInfo) -> void:
 
 
 func on_attack_finished(_d: AttackData, ctx: Dictionary, interrupted: bool) -> void:
+	if dancer_core():
+		bd.on_attack_finished(_d, ctx, interrupted)
+		return
 	if flow_core():
 		ff.on_attack_finished(_d, ctx, interrupted)
 		return
@@ -500,6 +536,8 @@ func on_attack_finished(_d: AttackData, ctx: Dictionary, interrupted: bool) -> v
 
 
 func hud_lines() -> Array:
+	if dancer_core():
+		return bd.hud_lines()
 	if flow_core():
 		return ff.hud_lines()
 	if sword_core():

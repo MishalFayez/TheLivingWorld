@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_bdatk"]
+
+[resource]
+script = ExtResource("1_bdatk")
+id = "bd_dance_forward"
+display_name = "Advancing Dance Cut"
+anim_style = "bd_forward"
+startup = 0.14
+active = 0.1
+recovery = 0.26
+cancel_after = 0.12
+poise_damage = 10.0
+hit_weights = PackedFloat32Array()
+hitbox_size = Vector3(1.6, 1.6, 2.4)
+hitbox_offset = Vector3(0, 1, -1.5)
+stamina_cost = 5.0
+tags = PackedStringArray("light", "blade_dancer", "dance")

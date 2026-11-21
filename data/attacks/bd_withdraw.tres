@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_bdatk"]
+
+[resource]
+script = ExtResource("1_bdatk")
+id = "bd_withdraw"
+display_name = "Withdraw & Thrust"
+anim_style = "bd_withdraw"
+startup = 0.3
+active = 0.1
+recovery = 0.3
+cancel_after = 0.16
+damage_mult = 1.5
+poise_damage = 20.0
+hit_weights = PackedFloat32Array()
+hitstop = 0.08
+hitbox_size = Vector3(0.8, 1.6, 3.2)
+hitbox_offset = Vector3(0, 1, -2.0)
+stamina_cost = 12.0
+tags = PackedStringArray("blade_dancer", "edge", "technique", "withdraw")

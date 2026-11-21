@@ -27,10 +27,10 @@ var party_mode: bool = false
 # --- Class cores (new + legacy kept for comparison) ---
 ## Mage core: "sigils" = Ley Sigils (Update 5) | "weave" = legacy Arcane Weave / Elemental Echo
 var mage_core: String = "elementalist"   ## "elementalist" (default) | "sigils" / "weave" (rejected legacy, debug comparison only)
-## Reaver core: "freeflow" = Free Flow (REAVER-FREEFLOW-001, default) | "swordmaster" = Blade Lines
-## (previous default, Debug comparison) | "sense" = Sword Sense (retired, Debug comparison) |
-## "bladecraft" = legacy | "off" = no core
-const DEFAULT_REAVER_CORE := "freeflow"
+## Reaver core: "bladedancer" = Blade Dancer (REAVER-BLADEDANCER-003, default) | "freeflow" = Free Flow 002
+## (Debug comparison) | "swordmaster" = Blade Lines (Debug comparison) | "sense" = Sword Sense (retired,
+## Debug comparison) | "bladecraft" = legacy | "off" = no core
+const DEFAULT_REAVER_CORE := "bladedancer"
 var reaver_core: String = DEFAULT_REAVER_CORE
 var bladecraft_enabled: bool:
 	get:
@@ -114,6 +114,9 @@ func _load_tracks_and_items() -> void:
 	var ff = load("res://data/progression/reaver_freeflow.tres")
 	if ff is ProgressionTrack:
 		tracks["reaver_freeflow"] = ff
+	var bdt = load("res://data/progression/reaver_bladedancer.tres")
+	if bdt is ProgressionTrack:
+		tracks["reaver_bladedancer"] = bdt
 	var dir := DirAccess.open("res://data/items")
 	if dir:
 		for f in dir.get_files():
@@ -127,6 +130,8 @@ func _load_tracks_and_items() -> void:
 func track(c: String) -> ProgressionTrack:
 	if c == "reaver" and reaver_core == "freeflow" and tracks.has("reaver_freeflow"):
 		return tracks["reaver_freeflow"]
+	if c == "reaver" and reaver_core == "bladedancer" and tracks.has("reaver_bladedancer"):
+		return tracks["reaver_bladedancer"]
 	return tracks.get(c)
 
 
@@ -690,6 +695,9 @@ func _setup_inputs() -> void:
 	_key("blade_modifier", [KEY_SHIFT])
 	_key("life", [KEY_F])
 	_key("core", [KEY_E])
+	# Blade Dancer Reaver footwork technique (REAVER-BLADEDANCER-003). Q was unbound; no other class uses
+	# this action, so no existing mapping changes.
+	_key("footwork", [KEY_Q])
 	_key("skill1", [KEY_1])
 	_key("skill2", [KEY_2])
 	_key("skill3", [KEY_3])

@@ -17,6 +17,9 @@ var dodging: bool = false
 var dodge_t: float = 0.0
 var dodge_dir: Vector3 = Vector3.ZERO
 var last_dodge_end: float = -10.0
+## Dodge travel scale (speed only; timing and i-frames unchanged). 1.0 for everyone; only the Blade
+## Dancer Reaver's Combat Weave sets it per dodge (REAVER-BLADEDANCER-003).
+var dodge_scale: float = 1.0
 var buffer_action: String = ""
 var buffer_t: float = 0.0
 
@@ -232,7 +235,7 @@ func combat_process(delta: float) -> void:
 	if dodging:
 		dodge_t += delta
 		var dur := Game.balance.dodge_duration
-		var spd := Game.balance.dodge_speed * (1.0 - 0.5 * dodge_t / dur)
+		var spd := Game.balance.dodge_speed * dodge_scale * (1.0 - 0.5 * dodge_t / dur)
 		velocity.x = dodge_dir.x * spd
 		velocity.z = dodge_dir.z * spd
 		if dodge_t >= dur:

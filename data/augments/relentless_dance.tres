@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AugmentData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/augment_data.gd" id="1_bdaug"]
+
+[resource]
+script = ExtResource("1_bdaug")
+id = "relentless_dance"
+display_name = "Relentless Dance"
+description = "MUTATION: after an Edge attack connects, your first Dance attack back becomes a distinct mobile follow-up (own animation, x1.4 travel; neutral Dance advances 0.5m). No bonus damage."
+class_id = "reaver"
+category = "mutation"
+rarity = "advanced"
+requires_skills = PackedStringArray()
+requires_elements = PackedStringArray()
+requires_missing_elements = PackedStringArray()
+requires_any_augment = PackedStringArray()
+build_tags = PackedStringArray("Blade Dancer")
+interacts_with = "Edge attacks, Dance attacks."
+params = {
+"requires_core": "bladedancer"
+}

@@ -152,9 +152,98 @@ static func build_attack(d: AttackData, hold_windup: bool = false) -> Animation:
 			_k(a, tr, T_MODEL_ROT, e, Vector3(0, 0.45, 0))
 			_k(a, tr, T_WEAPON_ROT, e, Vector3(0.1, 1.9, 0))
 			_k(a, tr, T_MODEL_POS, e, Vector3(0, 0, -0.3))
+	if d.anim_style.begins_with("bd_"):
+		_blade_dancer(a, tr, d, s, e, wp)
 	if hold_windup and s > 0.1:
 		_hold_windup(a, s)
 	return a
+
+
+## REAVER-BLADEDANCER-003 motions (used only by Blade Dancer attacks; temporary procedural animation).
+## Each attack has its own body language so the nine techniques read differently.
+static func _blade_dancer(a: Animation, tr: Dictionary, d: AttackData, s: float, e: float, wp: Vector3) -> void:
+	match d.anim_style:
+		"bd_neutral":       # compact diagonal cut, feet planted
+			_k(a, tr, T_WEAPON_ROT, s, Vector3(0.9, 1.2, 0.3))
+			_k(a, tr, T_WEAPON_ROT, e, Vector3(-0.5, -1.3, -0.2))
+			_k(a, tr, T_MODEL_ROT, s, Vector3(0, 0.2, 0))
+			_k(a, tr, T_MODEL_ROT, e, Vector3(0, -0.2, 0))
+		"bd_forward":       # lunge-step: body leans in, blade sweeps low to high across the advance
+			_k(a, tr, T_MODEL_POS, s, Vector3(0, -0.15, 0.1))
+			_k(a, tr, T_MODEL_ROT, s, Vector3(0.25, 0.25, 0))
+			_k(a, tr, T_WEAPON_ROT, s, Vector3(0.5, 1.5, 0.5))
+			_k(a, tr, T_MODEL_POS, e, Vector3(0, -0.05, -0.4))
+			_k(a, tr, T_MODEL_ROT, e, Vector3(-0.1, -0.3, 0))
+			_k(a, tr, T_WEAPON_ROT, e, Vector3(-0.4, -1.6, -0.3))
+		"bd_lateral_r", "bd_lateral_l":   # body leans into the side step, cut travels with it
+			var sd := 1.0 if d.anim_style == "bd_lateral_r" else -1.0
+			_k(a, tr, T_MODEL_POS, s, Vector3(-0.2 * sd, -0.12, 0))
+			_k(a, tr, T_MODEL_ROT, s, Vector3(0, 0.45 * sd, 0.18 * sd))
+			_k(a, tr, T_WEAPON_ROT, s, Vector3(0.2, 1.8 * sd, 0))
+			_k(a, tr, T_MODEL_POS, e, Vector3(0.25 * sd, -0.05, -0.1))
+			_k(a, tr, T_MODEL_ROT, e, Vector3(0, -0.35 * sd, -0.12 * sd))
+			_k(a, tr, T_WEAPON_ROT, e, Vector3(0.2, -1.6 * sd, 0))
+		"bd_precision":     # still, exact: short draw back then a straight, narrow extension
+			_k(a, tr, T_WEAPON_ROT, s, Vector3(0.05, 0.1, 0))
+			_k(a, tr, T_WEAPON_POS, s, wp + Vector3(0.05, 0.05, 0.35))
+			_k(a, tr, T_MODEL_ROT, s, Vector3(0, 0.35, 0))
+			_k(a, tr, T_WEAPON_ROT, e, Vector3(0.0, 0.0, 0))
+			_k(a, tr, T_WEAPON_POS, e, wp + Vector3(-0.3, 0.05, -1.15))
+			_k(a, tr, T_MODEL_ROT, e, Vector3(0, -0.1, 0))
+			_k(a, tr, T_MODEL_POS, e, Vector3(0, -0.08, -0.25))
+		"bd_committed":     # big two-handed rising-to-crashing diagonal, weight drops through the target
+			_k(a, tr, T_MODEL_POS, s, Vector3(0, 0.08, 0.15))
+			_k(a, tr, T_MODEL_ROT, s, Vector3(-0.15, 0.55, 0))
+			_k(a, tr, T_WEAPON_ROT, s, Vector3(2.6, 0.9, 0.4))
+			_k(a, tr, T_MODEL_POS, e, Vector3(0, -0.32, -0.35))
+			_k(a, tr, T_MODEL_ROT, e, Vector3(0.35, -0.45, 0))
+			_k(a, tr, T_WEAPON_ROT, e, Vector3(-1.4, -0.9, -0.3))
+		"bd_orbit":         # turning step around the target, blade trailing, then a snap cut
+			_k(a, tr, T_MODEL_ROT, s * 0.5, Vector3(0, 0.6, 0))
+			_k(a, tr, T_MODEL_POS, s * 0.5, Vector3(0, -0.18, 0))
+			_k(a, tr, T_WEAPON_ROT, s * 0.5, Vector3(0.1, 2.0, 0))
+			_k(a, tr, T_MODEL_ROT, s, Vector3(0, 0.3, 0))
+			_k(a, tr, T_MODEL_ROT, e, Vector3(0, -0.5, 0))
+			_k(a, tr, T_WEAPON_ROT, e, Vector3(0.2, -1.8, 0))
+		"bd_withdraw":      # body pulls back and down, blade held level, then a long thrust
+			_k(a, tr, T_MODEL_POS, s * 0.6, Vector3(0, -0.2, 0.3))
+			_k(a, tr, T_MODEL_ROT, s * 0.6, Vector3(-0.2, 0, 0))
+			_k(a, tr, T_WEAPON_ROT, s * 0.6, Vector3(0, 0, 0))
+			_k(a, tr, T_WEAPON_POS, s, wp + Vector3(0, -0.05, 0.5))
+			_k(a, tr, T_WEAPON_POS, e, wp + Vector3(-0.3, 0, -1.35))
+			_k(a, tr, T_MODEL_POS, e, Vector3(0, -0.1, -0.45))
+			_k(a, tr, T_MODEL_ROT, e, Vector3(0.2, 0, 0))
+		"bd_whirl":         # continuous turning slashes
+			var n := maxi(d.hits, 2)
+			_k(a, tr, T_WEAPON_ROT, s, Vector3(0.1, 1.57, 0))
+			for i in n:
+				var ti := s + d.active * (float(i) + 1.0) / float(n)
+				_k(a, tr, T_MODEL_ROT, ti, Vector3(0, -TAU * float(i + 1) / float(n) * 0.5, 0))
+				_k(a, tr, T_WEAPON_ROT, ti, Vector3(0.1 + 0.2 * (i % 2), 1.57 if i % 2 == 0 else -1.2, 0))
+			_k(a, tr, T_MODEL_ROT, minf(e + 0.001, a.length), Vector3.ZERO)
+		"bd_break":         # deliberate overhead set, then a narrow downward drive through the guard
+			_k(a, tr, T_WEAPON_ROT, s * 0.7, Vector3(2.9, 0, 0))
+			_k(a, tr, T_WEAPON_POS, s * 0.7, wp + Vector3(-0.2, 0.35, 0.1))
+			_k(a, tr, T_MODEL_POS, s, Vector3(0, 0.12, 0.1))
+			_k(a, tr, T_WEAPON_ROT, e, Vector3(-0.9, 0, 0))
+			_k(a, tr, T_WEAPON_POS, e, wp + Vector3(-0.3, -0.25, -0.75))
+			_k(a, tr, T_MODEL_POS, e, Vector3(0, -0.35, -0.3))
+			_k(a, tr, T_MODEL_ROT, e, Vector3(0.4, 0, 0))
+		"bd_relentless":    # Relentless Dance: low spinning re-entry cut
+			_k(a, tr, T_MODEL_POS, s, Vector3(0, -0.28, 0))
+			_k(a, tr, T_MODEL_ROT, s, Vector3(0.2, 0.9, 0))
+			_k(a, tr, T_WEAPON_ROT, s, Vector3(0.3, 2.1, 0.6))
+			_k(a, tr, T_MODEL_ROT, e, Vector3(-0.1, -0.6, 0))
+			_k(a, tr, T_WEAPON_ROT, e, Vector3(-0.6, -1.9, -0.4))
+			_k(a, tr, T_MODEL_POS, e, Vector3(0, -0.05, -0.3))
+		"bd_twin":          # Twin Tempest: alternating heavy cuts, the last one overhead
+			var n2 := maxi(d.hits, 2)
+			for i in n2:
+				var ti2 := s + d.active * (float(i) + 0.9) / float(n2)
+				var last := i == n2 - 1
+				_k(a, tr, T_WEAPON_ROT, ti2, Vector3(-1.3, 0, 0) if last else Vector3(0.3, -1.6 if i % 2 == 0 else 1.6, 0))
+				_k(a, tr, T_MODEL_ROT, ti2, Vector3(0.3, 0, 0) if last else Vector3(0, 0.3 if i % 2 == 0 else -0.3, 0))
+			_k(a, tr, T_WEAPON_ROT, s, Vector3(2.4, 0.6, 0))
 
 
 static func _hold_windup(a: Animation, s: float) -> void:

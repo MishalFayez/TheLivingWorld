@@ -106,7 +106,8 @@ func enemy_hit(h: Hero, src: Enemy, attack_id: String = "raider_heavy") -> Damag
 # ------------------------------------------------------------------ default core / progression
 func test_default_and_progression() -> void:
 	print("\n[Free Flow is the default Reaver core; Level 1-10 track]")
-	check(Game.DEFAULT_REAVER_CORE == "freeflow", "the default Reaver core is Free Flow")
+	# REAVER-BLADEDANCER-003: Blade Dancer became the default; Free Flow 002 stays as a comparison core
+	check(Game.DEFAULT_REAVER_CORE == "bladedancer" and Game.DEFAULT_REAVER_CORE != "freeflow", "Free Flow is now a comparison core (default: Blade Dancer, 003)")
 	var h := await ff(1)
 	var kit: ReaverKit = h.kit
 	check(kit.flow_core() and not kit.sword_core(), "Free Flow kit path active")
@@ -803,9 +804,11 @@ func test_comparison_mode() -> void:
 	tap(h, "light")
 	await wait(0.05)
 	check(cur(h).begins_with("ff_strike"), "back to Free Flow", cur(h))
+	# REAVER-BLADEDANCER-003: Free Flow is no longer the default, so selecting it is a comparison session
 	Game.debug_tainted = false
 	Game.set_core("reaver", "freeflow")
-	check(not Game.debug_tainted, "selecting Free Flow (the default) does not taint the session")
+	check(Game.debug_tainted, "selecting Free Flow (now a comparison core) makes the session non-saving")
+	Game.debug_tainted = false
 	r.queue_free()
 
 

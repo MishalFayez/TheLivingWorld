@@ -411,7 +411,12 @@ func _make_slots(h: Hero) -> void:
 					["life", "life", "F", "Life: Mend (tap) / Renewal (hold) - heals without attacking"], ["core", "sigil", "E", "Ley Sigil: inscribe the last-cast element / consume"],
 					["skill3", "ward", "3", "Ward: shield the most wounded ally"], ["dodge", "dodge", "SPACE", "Dodge"]]
 		"reaver":
-			if Game.reaver_core == "freeflow":
+			if Game.reaver_core == "bladedancer":
+				# Blade Dancer: the existing skill bar only (no meter); RMB lights up while in Edge
+				defs = [["light", "sword", "LMB", "Dance: LMB (neutral) · W+LMB forward · A/D+LMB lateral"], ["heavy", "precision", "RMB", "Hold: Edge mode - tap LMB Precision Cut / hold LMB Committed Cut"],
+					["footwork", "dodge", "Q", "Dance: Orbit Step · Edge: Withdraw & Thrust (Lv3)"], ["core", "flurry", "E", "Dance: Whirling Assault · Edge: Breaking Point (Lv5)"],
+					["dodge", "dodge", "SPACE", "Combat Weave (side 1.3m / forward 1.5m / back 2.5m); in Edge: leaves Edge"]]
+			elif Game.reaver_core == "freeflow":
 				# Free Flow: the existing skill bar only (no meter, no combo / opportunity indicator)
 				defs = [["light", "sword", "LMB", "Flow Strikes - free-form light attacks"], ["heavy", "heavy", "RMB", "Heavy Cut"],
 					["skill1", "lunge", "1", "Pursuit Cut (Lv3) - gap closer"], ["skill2", "precision", "2", "Pivot Cut (Lv5) - step + slash, no invulnerability"],
@@ -622,6 +627,13 @@ func _update_slots(h: Hero) -> void:
 			var rk: ReaverKit = k
 			slots.light.set_state(0.0, 1.0, false, no_stam)
 			slots.heavy.set_state(0.0, 1.0, rk.charging == "heavy", no_stam)
+			if rk.dancer_core():
+				slots.heavy.set_state(0.0, 1.0, rk.bd.in_edge(), no_stam)
+				for pair in [["footwork", "bd_footwork"], ["core", "bd_offense"]]:
+					if slots.has(pair[0]):
+						slots[pair[0]].set_state(0.0, 1.0, false, no_stam)
+						slots[pair[0]].locked_level = _lock_lv(h, pair[1])
+				return
 			if rk.flow_core():
 				for act in ReaverFreeFlow.SLOT_SKILL:
 					if not slots.has(act):

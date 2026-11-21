@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_bdatk"]
+
+[resource]
+script = ExtResource("1_bdatk")
+id = "bd_whirl"
+display_name = "Whirling Assault"
+anim_style = "bd_whirl"
+startup = 0.14
+active = 0.48
+recovery = 0.3
+cancel_after = 0.18
+damage_mult = 2.2
+poise_damage = 24.0
+hits = 4
+hit_weights = PackedFloat32Array()
+hitbox_size = Vector3(3.0, 1.6, 2.6)
+hitbox_offset = Vector3(0, 1, -0.9)
+stamina_cost = 18.0
+move_during = 0.55
+tags = PackedStringArray("blade_dancer", "dance", "technique", "multi", "whirl")

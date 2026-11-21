@@ -1,0 +1,96 @@
+[gd_resource type="Resource" script_class="ProgressionTrack" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/progression_track.gd" id="1_bdtrk"]
+
+[resource]
+script = ExtResource("1_bdtrk")
+class_id = "reaver"
+milestones = Array[Dictionary]([{
+"desc": "LMB = Dance attack shaped by your movement: neutral (no input), forward (W), lateral (A / D). The direction changes the attack and your real position.",
+"icon": "reaver",
+"id": "bd_dance",
+"input": "LMB (+ W / A / D)",
+"kind": "ability",
+"level": 1,
+"name": "Dance"
+}, {
+"desc": "Hold RMB to enter Edge. Tap LMB: Precision Cut. Hold LMB (0.35s+) and release: Committed Cut. Releasing RMB returns to Dance and never fires an attack.",
+"icon": "precision",
+"id": "bd_edge",
+"input": "hold RMB + LMB",
+"kind": "ability",
+"level": 1,
+"name": "Edge"
+}, {
+"desc": "Blade Weaving: choose where you stand and how you strike - hold position, advance, circle, or switch to Edge to punish. Combat Weave dodge: side 1.3m, forward 1.5m, back 2.5m.",
+"icon": "split",
+"id": "bd_weave",
+"input": "Space",
+"kind": "mechanic",
+"level": 1,
+"name": "Blade Weaving / Combat Weave"
+}, {
+"desc": "Attribute points: spend 2 points per level in the Character screen (C).",
+"icon": "buff",
+"id": "stats_2",
+"input": "C",
+"kind": "stats",
+"level": 2,
+"name": "Attributes"
+}, {
+"desc": "Dance: Orbit Step - circle the target and slash. Edge: Withdraw & Thrust - step back, then a precise thrust. No invulnerability.",
+"icon": "dodge",
+"id": "bd_footwork",
+"input": "Q",
+"kind": "skill",
+"level": 3,
+"name": "Footwork Technique"
+}, {
+"desc": "Choose one of three augments.",
+"icon": "passive",
+"id": "draft_4",
+"input": "",
+"kind": "augment",
+"level": 4,
+"name": "First Augment"
+}, {
+"desc": "Dance: Whirling Assault - a mobile series of slashes. Edge: Breaking Point - a narrow Poise-breaking strike, strongest against a recovering enemy; long recovery if it misses.",
+"icon": "flurry",
+"id": "bd_offense",
+"input": "E",
+"kind": "skill",
+"level": 5,
+"name": "Offensive Technique"
+}, {
+"desc": "Attribute points: spend 2 points per level in the Character screen (C).",
+"icon": "buff",
+"id": "stats_6",
+"input": "C",
+"kind": "stats",
+"level": 6,
+"name": "Attributes"
+}, {
+"desc": "After a connecting Precision Cut, release RMB to flow into one directional Dance attack from a slightly earlier recovery window. No damage bonus.",
+"icon": "reaver",
+"id": "bd_mastery",
+"input": "",
+"kind": "mastery",
+"level": 7,
+"name": "Blade Dancer Mastery"
+}, {
+"desc": "Choose an Advanced or Exotic augment.",
+"icon": "mutation",
+"id": "draft_8",
+"input": "",
+"kind": "augment",
+"level": 8,
+"name": "Advanced Augment"
+}, {
+"desc": "Choose an augment.",
+"icon": "passive",
+"id": "draft_10",
+"input": "",
+"kind": "augment",
+"level": 10,
+"name": "Augment"
+}])
