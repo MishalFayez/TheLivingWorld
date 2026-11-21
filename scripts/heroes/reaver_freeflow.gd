@@ -5,6 +5,8 @@ extends RefCounted
 ##
 ##   LMB    Flow Strikes  three animation variations in rotation; NOT a fixed combo (all equal)
 ##          Pursuit Slash briefly after a COMPLETED dodge: short collision-bound approach (<= 1.5m) + slash
+##            after a BACKWARD dodge with forward input toward the enemy: the slower, committed
+##            "Advance" version, collision-bound approach up to 4.0m (ff_reengage_slash)
 ##          Counter Slash after a genuine Perfect Dodge (Perfect Flow): faster sword counter
 ##   RMB    Heavy Cut     always available, no charge
 ##   Space  Combat Dodge  (shared Hero dodge: same stamina cost, collision and i-frames)
@@ -44,7 +46,11 @@ const PURSUIT_SPEED := 10.0       ## impulse through move_and_slide: ~2.8m, stop
 const PIVOT_SPEED := 5.0          ## ~0.7m (same step as the previous Flow Step / Turning Edge)
 # ---- REAVER-FREEFLOW-002 (provisional values; see DESIGN_QUESTIONS.md)
 const PURSUIT_SLASH_WINDOW := 0.45   ## seconds after a completed dodge in which LMB becomes Pursuit Slash
-const PD_REWARD_WINDOW := 0.15       ## seconds of i-frames (from their start) that count as a genuine
+const REENGAGE_BACK_ANGLE := 112.5   ## dodge direction this far from the target direction = backward /
+									 ## backward-diagonal dodge (straight back = 180)
+const REENGAGE_INTENT_ANGLE := 45.0  ## forward input within this angle of the target = intent to re-engage
+const REENGAGE_SEARCH := 8.0         ## nearest-enemy search radius when not locked on
+const PD_REWARD_WINDOW := 0.15      ## seconds of i-frames (from their start) that count as a genuine
 									 ## Perfect Dodge; the defensive i-frames themselves are unchanged
 const RHYTHM_HEAVY_STARTUP := 0.75   ## In Rhythm: next Heavy Cut startup x0.75
 const FLANK_STARTUP := 0.6           ## flank Perfect Flow: next follow-up startup x0.6
@@ -77,6 +83,7 @@ var _pd_dodge: int = -1
 var _pd_key: String = ""
 var _pd_until: float = -10.0
 var _approach_live: bool = false
+var dodge_was_backward: bool = false     ## the last dodge moved away from the engaged enemy
 # diagnostics (tests / debug, never shown as a HUD meter)
 var opportunities_created: int = 0
 var opportunities_refreshed: int = 0
@@ -142,6 +149,38 @@ func pursuit_slash_ready() -> bool:
 	return not hero.dodging and hero.last_dodge_end > 0.0 and Game.time - hero.last_dodge_end <= PURSUIT_SLASH_WINDOW
 
 
+## The enemy being fought: the lock-on target, otherwise the nearest enemy within REENGAGE_SEARCH.
+func engaged_target():
+	var t = hero.lock_target
+	if t != null and is_instance_valid(t) and t.is_targetable():
+		return t
+	var best = null
+	var best_d := REENGAGE_SEARCH
+	for e in hero.get_tree().get_nodes_in_group("enemies"):
+		if not e.is_targetable():
+			continue
+		var d: float = (e.global_position - hero.global_position).length()
+		if d < best_d:
+			best_d = d
+			best = e
+	return best
+
+
+## Forward re-engagement (REAVER-FREEFLOW-002 correction): inside the Pursuit Slash window, after a
+## backward / backward-diagonal dodge, with the movement input pointing at the engaged enemy. Without
+## that directional intent nothing pulls the Reaver forward.
+func reengage_ready() -> bool:
+	if not pursuit_slash_ready() or not dodge_was_backward:
+		return false
+	var m := _input_dir()
+	var t = engaged_target()
+	if m == Vector3.ZERO or t == null:
+		return false
+	var to: Vector3 = t.global_position - hero.global_position
+	to.y = 0
+	return to.length() > 0.05 and rad_to_deg(m.angle_to(to.normalized())) <= REENGAGE_INTENT_ANGLE
+
+
 func transform() -> String:
 	for id in TRANSFORMS:
 		if kit.aug(id) > 0:
@@ -201,6 +240,11 @@ func on_press(action: String) -> void:
 				return
 			if not in_sequence():
 				strike_i = 0
+			# backward dodge + forward intent: bounded long re-engagement (keeps Perfect Flow for the next
+			# action, so a Counter Slash can follow once back in range)
+			if reengage_ready():
+				_go(kit.load_attack("ff_reengage_slash").clone(), "light", "", "reengage")
+				return
 			if has_opportunity() and flow_source == "dodge":
 				_go(kit.load_attack("ff_counter_slash").clone(), "light", "", "counter")
 				return
@@ -261,7 +305,7 @@ func _go(d: AttackData, kind: String, tr: String = "", variant: String = "") -> 
 	var ctx := {"ff": true, "kind": kind, "consecutive": chain and prev_conn, "consumed": false,
 		"transform": tr, "transforms": [tr] if tr != "" else [], "form": "", "variant": variant}
 	# ---- Perfect Flow: one enhanced follow-up
-	if has_opportunity() and kind != "pivot":
+	if has_opportunity() and kind != "pivot" and variant != "reengage":
 		if flow_source == "flank":
 			d.startup *= FLANK_STARTUP
 			followup = "flank_" + kind
@@ -458,6 +502,18 @@ func on_dodge() -> void:
 	# called after the dodge interrupted the current attack (which already updated the sequence)
 	dodge_count += 1
 	_dodge_keeps = Game.time <= flow_until
+	# direction of THIS dodge relative to the engaged enemy, measured at dodge start (the same rule the
+	# shared dodge uses: movement input, or straight back without input)
+	var dir: Vector3 = hero.move_input
+	dir.y = 0
+	dir = dir.normalized() if dir.length() > 0.2 else -hero.forward()
+	dodge_was_backward = false
+	var t = engaged_target()
+	if t != null:
+		var to: Vector3 = t.global_position - hero.global_position
+		to.y = 0
+		if to.length() > 0.05:
+			dodge_was_backward = rad_to_deg(dir.angle_to(to.normalized())) >= REENGAGE_BACK_ANGLE
 
 
 ## Perfect Dodge = an actual enemy attack avoided inside the dodge i-frames (Combatant.take_damage ->

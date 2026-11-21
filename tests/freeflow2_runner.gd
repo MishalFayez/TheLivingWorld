@@ -9,6 +9,7 @@ func _run_all() -> void:
 	Events.damage_applied.connect(func(info): if is_instance_valid(Game.player) and info.source == Game.player: dmg.append(info))
 	await test_pursuit_slash_gap_closing()
 	await test_pursuit_slash_limits()
+	await test_backward_reengage()
 	await test_perfect_dodge_reward_window()
 	await test_counter_followups()
 	await test_recovery_punish()
@@ -180,6 +181,140 @@ func test_pursuit_slash_limits() -> void:
 	await until_idle(h)
 	moved = Vector2(h.global_position.x - p0.x, h.global_position.z - p0.z).length()
 	check(moved < 0.1, "no enemy nearby: Pursuit Slash does not move", "%.2fm" % moved)
+
+
+# ------------------------------------------------------------------ correction: backward dodge
+## The playtest scenario: target 2.2m away, Light, Light, dodge with `dodge_input`, then optionally
+## hold `follow_input` and press Light right after the dodge. Returns measured values.
+func _ll_dodge_light(dodge_input: Vector3, follow_input: Vector3, target_dist: float = 2.2) -> Dictionary:
+	var h := await ff(3)
+	var r := target(h, target_dist)
+	tap(h, "light")
+	await until_can_act(h)
+	tap(h, "light")
+	await until_can_act(h)
+	h.move_input = dodge_input
+	h.try_dodge()
+	h.move_input = Vector3.ZERO
+	await until_idle(h)
+	var res := {"after_dodge": flat(h, r), "backward": fk(h).dodge_was_backward}
+	h.velocity = Vector3.ZERO      # isolate the follow-up from the dodge's own deceleration (~0.2m)
+	h.move_input = follow_input
+	var p0 := h.global_position
+	var cd0: float = h.kit.skill_cd("r_pursuit_cut")
+	dmg.clear()
+	tap(h, "light")
+	await wait(0.02)
+	res["attack"] = cur(h)
+	res["inv"] = false
+	var mx := 0.0
+	var last := h.global_position
+	for i in 30:
+		res["inv"] = res["inv"] or h.is_invulnerable()
+		await get_tree().physics_frame
+		mx = maxf(mx, (h.global_position - last).length())
+		last = h.global_position
+	h.move_input = Vector3.ZERO
+	await until_idle(h)
+	res["moved"] = Vector2(h.global_position.x - p0.x, h.global_position.z - p0.z).length()
+	res["end"] = flat(h, r)
+	res["hit"] = hit_on(r) != null
+	res["max_step"] = mx
+	res["cd_used"] = h.kit.skill_cd("r_pursuit_cut") > cd0
+	r.queue_free()
+	return res
+
+
+func test_backward_reengage() -> void:
+	print("\n[Correction: backward dodge -> intentional forward Light re-engages (bounded, collision-safe)]")
+	var toward := Vector3(0, 0, -1)       # target() puts the enemy at -Z: forward input = toward it
+	var away := Vector3(0, 0, 1)
+	# 1. the original playtest scenario
+	var a := await _ll_dodge_light(away, toward)
+	check(a.backward and a.after_dodge > 5.0, "backward dodge leaves the Reaver far away (the reported failure)", "%.2fm" % a.after_dodge)
+	check(a.attack == "ff_reengage_slash", "forward + Light after a backward dodge = forward re-engagement", a.attack)
+	check(a.hit, "it reconnects (target 2.2m, L, L, backward Dodge, forward Light)", "%.2fm -> %.2fm, moved %.2fm" % [a.after_dodge, a.end, a.moved])
+	check(a.moved <= ReaverFreeFlow.REENGAGE_SEARCH and a.moved <= 4.05, "bounded movement (max 4.0m)", "%.2fm" % a.moved)
+	check(a.end >= 1.3, "stops at weapon range, never into the enemy", "%.2fm" % a.end)
+	check(a.max_step < 0.4 and not a.inv, "continuous movement (no teleport) and no invulnerability", "largest frame step %.3fm" % a.max_step)
+	check(not a.cd_used, "no Pursuit Cut cooldown needed or used")
+	var d := load("res://data/attacks/ff_reengage_slash.tres") as AttackData
+	var ps := load("res://data/attacks/ff_pursuit_slash.tres") as AttackData
+	check(d.startup > ps.startup and d.total_time() > ps.total_time() and not d.has_tag("light") and is_equal_approx(d.damage_mult, ps.damage_mult), "more commitment than Pursuit Slash (slower, no startup dodge-cancel), same damage", "%.2fs / %.2fs total" % [d.total_time(), ps.total_time()])
+	# 2. backward-diagonal
+	var b := await _ll_dodge_light(Vector3(1, 0, 1).normalized(), Vector3(-1, 0, -1).normalized())
+	check(b.backward and b.attack == "ff_reengage_slash" and b.hit, "backward-diagonal dodge + forward Light also reconnects", "%.2fm -> %.2fm" % [b.after_dodge, b.end])
+	# 3. no directional intent: no pull
+	var c := await _ll_dodge_light(away, Vector3.ZERO)
+	check(c.attack == "ff_pursuit_slash" and c.moved < 0.15 and not c.hit, "backward dodge WITHOUT forward input: no automatic pull", "%s moved %.2fm" % [c.attack, c.moved])
+	var c2 := await _ll_dodge_light(away, Vector3(1, 0, 0))
+	check(c2.attack != "ff_reengage_slash", "sideways input is not forward intent", c2.attack)
+	# 4. side dodge keeps the normal Pursuit Slash, even with forward input
+	var s := await _ll_dodge_light(Vector3(1, 0, 0), Vector3(-1, 0, -1).normalized())
+	check(not s.backward and s.attack == "ff_pursuit_slash" and s.hit, "side dodge: the normal Pursuit Slash still closes and hits", "%s %.2fm -> %.2fm" % [s.attack, s.after_dodge, s.end])
+	var s2 := await _ll_dodge_light(Vector3(1, 0, 0), Vector3.ZERO)
+	check(s2.attack == "ff_pursuit_slash" and s2.hit, "side dodge without input: normal Pursuit Slash")
+	# 5. distant enemy: bounded, no long pull
+	var f := await _ll_dodge_light(away, toward, 6.0)
+	check(f.attack == "ff_reengage_slash" and f.moved <= 4.05, "an enemy beyond reach: movement still capped at 4.0m", "%.2fm -> %.2fm, moved %.2fm, %s" % [f.after_dodge, f.end, f.moved, "hit" if f.hit else "miss"])
+	check(not f.hit, "the hit is not guaranteed (too far away)")
+	# 6. window: after the brief post-dodge window, forward Light is a normal Flow Strike
+	var h := await ff(3)
+	var r := target(h)
+	h.move_input = away
+	h.try_dodge()
+	h.move_input = Vector3.ZERO
+	await until_idle(h)
+	await wait(ReaverFreeFlow.PURSUIT_SLASH_WINDOW + 0.1)
+	h.move_input = toward
+	tap(h, "light")
+	await wait(0.02)
+	h.move_input = Vector3.ZERO
+	check(cur(h).begins_with("ff_strike"), "outside the post-dodge window: ordinary Flow Strike", cur(h))
+	await until_idle(h)
+	# 7. collision: an enemy body in the path stops the advance
+	await wait(1.0)
+	place(h, r, 2.2)
+	h.move_input = away
+	h.try_dodge()
+	h.move_input = Vector3.ZERO
+	await until_idle(h)
+	var blocker := dummy("raider", (h.global_position + r.global_position) * 0.5)
+	blocker.max_hp = 99999
+	blocker.hp = 99999
+	h.move_input = toward
+	tap(h, "light")
+	await wait(0.02)
+	var used := cur(h)
+	h.move_input = Vector3.ZERO
+	await until_idle(h)
+	check(used == "ff_reengage_slash" and h.global_position.z > blocker.global_position.z + 0.3, "an enemy body in the path stops the advance (collision)", "%s hero z %.2f blocker z %.2f" % [used, h.global_position.z, blocker.global_position.z])
+	blocker.queue_free()
+	# 8. backward dodge that was a Perfect Dodge: the advance keeps Perfect Flow -> Counter Slash next
+	await wait(1.0)
+	place(h, r, 2.2)
+	h.move_input = away
+	h.try_dodge()
+	h.move_input = Vector3.ZERO
+	var n := 0
+	while h.dodging and h.dodge_t < 0.08 and n < 30:
+		await get_tree().physics_frame
+		n += 1
+	enemy_hit(h, r, "raider_combo1")
+	await until_idle(h)
+	var pf: bool = fk(h).has_opportunity()
+	h.move_input = toward
+	tap(h, "light")
+	await wait(0.02)
+	var adv := cur(h)
+	h.move_input = Vector3.ZERO
+	await until_can_act(h)
+	refill(h)
+	tap(h, "light")
+	await wait(0.02)
+	check(pf and adv == "ff_reengage_slash" and cur(h) == "ff_counter_slash", "Perfect backward dodge: Advance, then the Counter Slash is still available", "%s -> %s" % [adv, cur(h)])
+	await until_idle(h)
+	r.queue_free()
 
 
 # ------------------------------------------------------------------ 7. Perfect Dodge accuracy

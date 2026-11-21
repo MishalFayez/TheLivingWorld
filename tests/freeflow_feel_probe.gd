@@ -129,10 +129,16 @@ func probe_spacing() -> void:
 		h.move_input = Vector3.ZERO
 		await until_idle(h)
 		var after_dodge := flat(h, r)
+		var backward: bool = dir[1].z > 0.0
+		# backward dodges: the player holds forward (toward the enemy) and presses Light
+		h.move_input = Vector3(0, 0, -1) if backward else Vector3.ZERO
 		dmg.clear()
 		tap(h, "light")
+		await wait(0.02)
+		var used := cur(h)
+		h.move_input = Vector3.ZERO
 		await until_idle(h)
 		var after_slash := flat(h, r)
 		var hit := hit_on(r) != null
-		line("  dodge %-12s distance after dodge %.2fm (Flow Strike reach %.1fm: %s) -> Pursuit Slash ends at %.2fm, %s" % [dir[0] + ":", after_dodge, reach, "in reach" if after_dodge <= reach else "OUT of reach", after_slash, "HIT" if hit else "miss"])
+		line("  dodge %-12s distance after dodge %.2fm (Flow Strike reach %.1fm: %s) -> %s%s ends at %.2fm, %s" % [dir[0] + ":", after_dodge, reach, "in reach" if after_dodge <= reach else "OUT of reach", "forward + " if backward else "", used, after_slash, "HIT" if hit else "miss"])
 		r.queue_free()
