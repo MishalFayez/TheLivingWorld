@@ -27,6 +27,9 @@ synergy_partners = PackedStringArray("mc05_dual_invocation")
 synergy_text = {
 "mc05_dual_invocation": "Combined preparation reduction capped at 25%."
 }
+synergy_kind = {
+"mc05_dual_invocation": "mechanical"
+}
 trigger_summary = "Release, then a different spell"
 cooldown = 5.0
 scaling_sources = PackedStringArray()

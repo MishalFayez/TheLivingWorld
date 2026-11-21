@@ -24,6 +24,9 @@ synergy_partners = PackedStringArray("vb05_fortress_breaker")
 synergy_text = {
 "vb05_fortress_breaker": "Blocking a heavy attack raises Fortress Breaker's Poise bonus from 35% to 45% (never stacks)."
 }
+synergy_kind = {
+"vb05_fortress_breaker": "mechanical"
+}
 trigger_summary = "Passive while guarding"
 mechanical_tradeoff = "-10% Guard movement."
 scaling_sources = PackedStringArray()

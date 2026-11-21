@@ -48,6 +48,8 @@ var debug_tainted: bool = false
 ## REVIEW-004: a labelled non-saving test session (the only kind allowed while a newer-version save is
 ## protected on disk). Nothing is written while it is set; progress is discarded on return to the title.
 var test_session: bool = false
+## true for the fresh Level 1-10 playtest route (Character Selection "Fresh Lv1 Test"); cleared on title return
+var fresh_test: bool = false
 var invincible: bool = false
 var show_hitboxes: bool = false
 var auto_open_drafts: bool = true
@@ -276,6 +278,24 @@ func reset_character(c: String) -> void:
 	create_character(c, nm)
 
 
+## LEVEL10-FOUNDATION-005 review: a fresh Level 1 character for one class as a labelled NON-SAVING test
+## session. The saved character stays untouched on disk; returning to the title reloads the save.
+func start_fresh_test(c: String) -> void:
+	test_session = true
+	fresh_test = true
+	create_character(c, "Test " + c.capitalize())    # in memory only: Save.save_game refuses test sessions
+
+
+## One level through the real EXP path (drafts at the track's levels), test sessions only.
+func test_gain_level() -> void:
+	if not (test_session and fresh_test):
+		return
+	var p := prog()
+	if p.level >= balance.max_level:
+		return
+	gain_exp(p.exp_to_next(balance) - p.xp, "test session")
+
+
 func taint(reason: String) -> void:
 	if not debug_tainted:
 		debug_tainted = true
@@ -415,7 +435,7 @@ func dependents_of(class_id: String, id: String) -> Array:
 		if oid == id or p.augment_stacks(oid) <= 0:
 			continue
 		var o: AugmentData = augment_db.get_augment(oid)
-		if o != null and (o.synergy_partners.has(id) or (augment_db.get_augment(id) != null and augment_db.get_augment(id).synergy_partners.has(oid))):
+		if o != null and augment_db.pair_kind(o, augment_db.get_augment(id)) == "mechanical":
 			out.append(o.display_name)
 	return out
 

@@ -24,6 +24,9 @@ synergy_partners = PackedStringArray("re03_fracturing_edge")
 synergy_text = {
 "re03_fracturing_edge": "Combined Poise bonus vs recovering enemies capped at +50%."
 }
+synergy_kind = {
+"re03_fracturing_edge": "mechanical"
+}
 trigger_summary = "Precision Cut on a recovering enemy"
 cooldown = 5.0
 scaling_sources = PackedStringArray()

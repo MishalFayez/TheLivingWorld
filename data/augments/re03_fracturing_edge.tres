@@ -25,6 +25,9 @@ synergy_partners = PackedStringArray("rc06_clean_execution")
 synergy_text = {
 "rc06_clean_execution": "Combined Poise bonus vs recovering enemies capped at +50%."
 }
+synergy_kind = {
+"rc06_clean_execution": "mechanical"
+}
 trigger_summary = "Breaking Point on a recovering enemy"
 mechanical_tradeoff = "-15% width."
 scaling_sources = PackedStringArray()

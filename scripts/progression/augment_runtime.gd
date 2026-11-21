@@ -23,6 +23,7 @@ var _was_staggered: bool = false
 var _last_element: Dictionary = {} # element -> last cast time (Elemental Memory)
 var _prev_cast_element: String = ""
 var _last_spell_id: String = ""
+var _last_spell_full: bool = false
 var _link: Dictionary = {}        # Sympathetic Link {ally, enemy, until}
 
 
@@ -669,7 +670,7 @@ func status_duration(dur: float, hard_cc: bool) -> float:
 	return dur + ext
 
 
-func _on_spell_released(caster, spell_id: String, element: String, _full: bool, _t: float, _mana: float) -> void:
+func _on_spell_released(caster, spell_id: String, element: String, full: bool, _t: float, _mana: float) -> void:
 	if caster != hero:
 		return
 	var offensive := element != "life"
@@ -678,6 +679,7 @@ func _on_spell_released(caster, spell_id: String, element: String, _full: bool, 
 	_prev_cast_element = element
 	_last_element[element] = Game.time
 	_last_spell_id = spell_id
+	_last_spell_full = full
 	if active("mf05") and String(windows["mf05"].get("element", "")) != element:
 		windows["mf05"]["armed"] = spell_id
 	if offensive and has("mc05_dual_invocation") and ready("mc05_heal_cd"):
@@ -725,7 +727,8 @@ func _on_damage_applied(info) -> void:
 	# M-C05 offensive spell opens the heal window
 	# (handled at release: _on_spell_released)
 	# M-A03 Rewoven Spell: single-target spells only
-	if has("ma03_rewoven_spell") and ready("ma03") and String(pv("ma03_rewoven_spell", "spells", "")).split(",").has(_last_spell_id):
+	# single-target only: Thunder Conduit's FULL release chains, so only its partial (focused) release counts
+	if has("ma03_rewoven_spell") and ready("ma03") and String(pv("ma03_rewoven_spell", "spells", "")).split(",").has(_last_spell_id) and not (_last_spell_id == "thunder_conduit" and _last_spell_full) and not info.attack_name.contains("(chain)"):
 		var other = null
 		var bd := float(pv("ma03_rewoven_spell", "radius", 6.0))
 		for e in hero.get_tree().get_nodes_in_group("enemies"):

@@ -25,6 +25,9 @@ synergy_partners = PackedStringArray("vk04_retaliation_window")
 synergy_text = {
 "vk04_retaliation_window": "A repositioned counter returns to Guard 30% earlier instead of 20%."
 }
+synergy_kind = {
+"vk04_retaliation_window": "mechanical"
+}
 trigger_summary = "Perfect Guard a lunging attack, then counter with A / D"
 cooldown = 10.0
 mechanical_tradeoff = "Cooldown 10s."

@@ -25,6 +25,9 @@ synergy_partners = PackedStringArray("mf01_elemental_crossroads")
 synergy_text = {
 "mf01_elemental_crossroads": "Combined Poise bonus capped at +40% over base."
 }
+synergy_kind = {
+"mf01_elemental_crossroads": "mechanical"
+}
 trigger_summary = "Fire / Frost interaction hits an enemy"
 cooldown = 6.0
 scaling_sources = PackedStringArray()

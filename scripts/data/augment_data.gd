@@ -53,6 +53,11 @@ extends Resource
 @export var synergy_partners: PackedStringArray = PackedStringArray()
 ## partner id -> exact combined behaviour shown under "SYNERGY AVAILABLE"
 @export var synergy_text: Dictionary = {}
+## partner id -> "mechanical" (a real extra gameplay effect), "visual" (feedback only) or "rule" (a limit /
+## clarification, no extra benefit). Only "mechanical" pairs are announced as SYNERGY AVAILABLE.
+@export var synergy_kind: Dictionary = {}
+## Needs an ally to protect / support (interception, ally-targeted support): only offered in party play.
+@export var requires_party: bool = false
 @export var trigger_summary: String = ""
 @export var cooldown: float = 0.0
 @export var mechanical_tradeoff: String = ""

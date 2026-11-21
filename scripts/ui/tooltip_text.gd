@@ -127,7 +127,11 @@ static func _spell_lines(s: ChargedSpellData, full: bool, r: Dictionary, src: Di
 	if r.get("has_target", false):
 		out.append("  vs %s (after magic resist): %s" % [r.target_name, StatStyle.num(r.noncrit_vs_target)])
 	out.append("%s   %s   Recovery %.2fs" % [StatStyle.labeled("poise", "Poise", StatStyle.num(r.poise)), StatStyle.labeled("mana", "Mana", StatStyle.num(r.mana)), r.recovery])
-	out.append("Scaling: %s" % ((StatStyle.stat_tag("str") + " (full charge only), ") if full else "") + StatStyle.stat_tag("str") + " (critical damage)")
+	var jumps := s.chains_full if full else s.chains_partial
+	out.append("Scaling: %s" % ((StatStyle.stat_tag("str") + " (full charge only), ") if full else "") + StatStyle.stat_tag("str") + " (critical damage)" + ((", " + StatStyle.stat_tag("dex") + " (chain jumps)") if jumps > 0 else ""))
+	if jumps > 0:
+		var cp := DamageCalc.chain_power(src.stats, DamageCalc.charged_power(src.stats, s, full), s.chain_falloff, 0)
+		out.append("Chain: up to %d jump(s) of %.0fm, first jump %s (×%.2f per jump, × %s %.2f)" % [jumps, s.chain_range, StatStyle.num(src.wp * cp * float(src.get("status_dmg", 1.0))), s.chain_falloff, StatStyle.stat_tag("dex"), src.stats.multihit_mult()])
 	if level >= LEVEL_DETAILED:
 		var steps := "Weapon Power %s × power %.2f" % [StatStyle.num(r.weapon_power, 1), r.base_power]
 		if full:

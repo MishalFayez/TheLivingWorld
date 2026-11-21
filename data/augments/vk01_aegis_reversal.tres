@@ -27,6 +27,9 @@ synergy_partners = PackedStringArray("vk05_judgment_echo")
 synergy_text = {
 "vk05_judgment_echo": "A Reversal counter unlocks the alternate (rising) Echo Strike animation - still one follow-up, never an automatic second hit."
 }
+synergy_kind = {
+"vk05_judgment_echo": "visual"
+}
 trigger_summary = "Perfect Guard, then RMB"
 mechanical_tradeoff = "-10% reach."
 scaling_sources = PackedStringArray()

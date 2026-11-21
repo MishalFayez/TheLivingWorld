@@ -25,6 +25,9 @@ synergy_partners = PackedStringArray("vb01_living_fortress")
 synergy_text = {
 "vb01_living_fortress": "While advancing in Guard the pulse radius is +15% and starts from your advance position."
 }
+synergy_kind = {
+"vb01_living_fortress": "mechanical"
+}
 trigger_summary = "Perfect Guard"
 cooldown = 8.0
 mechanical_tradeoff = "Internal cooldown 8s."

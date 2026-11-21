@@ -24,6 +24,9 @@ synergy_partners = PackedStringArray("ma06_emergency_thread")
 synergy_text = {
 "ma06_emergency_thread": "Restoring the kept offensive spell counts as a wheel change (shared cooldown)."
 }
+synergy_kind = {
+"ma06_emergency_thread": "rule"
+}
 trigger_summary = "Spell wheel change, then cast"
 cooldown = 6.0
 scaling_sources = PackedStringArray()

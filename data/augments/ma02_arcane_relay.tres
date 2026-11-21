@@ -25,6 +25,10 @@ synergy_partners = PackedStringArray("ma05_sympathetic_link")
 synergy_text = {
 "ma05_sympathetic_link": "The link may start from the supported ally; never extra targets."
 }
+synergy_kind = {
+"ma05_sympathetic_link": "rule"
+}
+requires_party = true
 trigger_summary = "Heal an ally, then cast a projectile"
 cooldown = 10.0
 scaling_sources = PackedStringArray()

@@ -27,6 +27,9 @@ synergy_partners = PackedStringArray("rd03_circling_predator")
 synergy_text = {
 "rd03_circling_predator": "A curved flank step counts as lateral displacement for the Predator follow-up."
 }
+synergy_kind = {
+"rd03_circling_predator": "rule"
+}
 trigger_summary = "Lateral Dance with lock-on"
 scaling_sources = PackedStringArray()
 params = {

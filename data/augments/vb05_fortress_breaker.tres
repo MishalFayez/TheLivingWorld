@@ -20,10 +20,14 @@ path_id = "bulwark"
 code = "V-B05"
 requires_unlocks = PackedStringArray()
 blocked_classes = PackedStringArray()
+blocked_reason = "No enemy attack in the game is marked heavy (AttackData.is_heavy), so a heavy attack can never be blocked. Needs enemy heavy attacks defined first."
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray("vb04_heavy_anchor")
 synergy_text = {
 "vb04_heavy_anchor": "With Heavy Anchor the bonus is 45%."
+}
+synergy_kind = {
+"vb04_heavy_anchor": "mechanical"
 }
 trigger_summary = "Block a heavy attack"
 cooldown = 6.0

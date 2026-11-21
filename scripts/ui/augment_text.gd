@@ -70,7 +70,11 @@ static func inspect(a: AugmentData, class_id: String, p: ClassProgress) -> Strin
 	if a.mechanical_tradeoff != "":
 		lines.append(StatStyle.fx("negative", "Sacrifice: ") + a.mechanical_tradeoff)
 	if a.blocked_reason != "":
-		lines.append(StatStyle.fx("negative", "NOT AVAILABLE: ") + a.blocked_reason)
+		lines.append(StatStyle.fx("negative", "NOT AVAILABLE (future design backlog): ") + a.blocked_reason)
+	if a.requires_party and not Game.party_mode:
+		lines.append(StatStyle.fx("negative", "NEEDS A PARTY: ") + "it has no ally to act on while you play solo.")
+	if a.class_id == "global" and a.blocked_classes.has(class_id):
+		lines.append(StatStyle.fx("negative", "NOT FOR THIS CLASS: ") + String(a.params.get("class_block_reason", "")))
 	var sc: Array = []
 	for s in a.scaling_sources:
 		sc.append(StatStyle.stat_tag(s) if StatStyle.STAT.has(s) else String(s).replace("_", " ").capitalize())
@@ -84,12 +88,16 @@ static func inspect(a: AugmentData, class_id: String, p: ClassProgress) -> Strin
 	var syn := Game.augment_db.synergy_text(a, p) if p != null else ""
 	if syn != "":
 		lines.append("[color=#8fe0ff][b]SYNERGY AVAILABLE[/b][/color]  " + syn)
-	elif not a.synergy_partners.is_empty():
+	else:
+		var other := Game.augment_db.pair_text(a, p, "") if p != null else ""
+		if other != "":
+			lines.append("[color=#9a9a9a]%s[/color]  %s" % [_kind_label(Game.augment_db, a, p), other])
+	if not a.synergy_partners.is_empty():
 		var names: Array = []
 		for pid in a.synergy_partners:
 			var o: AugmentData = Game.augment_db.get_augment(pid)
-			names.append(o.display_name if o else pid)
-		lines.append("[color=#7fa7b8]Synergy partners:[/color] " + ", ".join(names))
+			names.append("%s (%s)" % [o.display_name if o else pid, kind_name(Game.augment_db.pair_kind(a, o))])
+		lines.append("[color=#7fa7b8]Listed pairs:[/color] " + ", ".join(names))
 	var rep := Game.augment_db.replaces(a, p) if p != null else ""
 	if rep != "":
 		var o: AugmentData = Game.augment_db.get_augment(rep)
@@ -97,6 +105,28 @@ static func inspect(a: AugmentData, class_id: String, p: ClassProgress) -> Strin
 	if a.is_anchor and p != null and Game.augment_db.chosen_path(p) != "" and Game.augment_db.chosen_path(p) != a.path_id:
 		lines.append(StatStyle.fx("negative", "Path anchor of %s: your current cards favour %s." % [AugmentDB.PATH_NAMES.get(a.path_id, a.path_id), AugmentDB.PATH_NAMES.get(Game.augment_db.chosen_path(p), "")]))
 	return "\n".join(lines)
+
+
+## Honest pair labels: only "mechanical" pairs are a synergy; the others are said for what they are.
+static func kind_name(k: String) -> String:
+	match k:
+		"mechanical":
+			return "synergy"
+		"visual":
+			return "visual feedback only"
+		"rule":
+			return "rule, no extra benefit"
+		"inactive":
+			return "inactive - partner blocked"
+	return k
+
+
+static func _kind_label(db: AugmentDB, a: AugmentData, p: ClassProgress) -> String:
+	for id in p.augments:
+		var k := db.pair_kind(a, db.get_augment(id))
+		if k != "" and p.augment_stacks(id) > 0:
+			return {"visual": "VISUAL LINK", "rule": "RULE", "inactive": "INACTIVE PAIR"}.get(k, "PAIR")
+	return "PAIR"
 
 
 static func _atk(id: String) -> AttackData:

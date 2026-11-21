@@ -25,6 +25,9 @@ synergy_partners = PackedStringArray("rd02_flowing_steps")
 synergy_text = {
 "rd02_flowing_steps": "A real dodge may discount the next Whirling Assault (once)."
 }
+synergy_kind = {
+"rd02_flowing_steps": "mechanical"
+}
 trigger_summary = "Whirling Assault"
 scaling_sources = PackedStringArray()
 params = {

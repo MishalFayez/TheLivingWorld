@@ -396,6 +396,12 @@ func _refresh_select() -> void:
 			h.add_child(_big_button("Create", func():
 				new_class = cid
 				_goto("create"), 160))
+		# LEVEL10-FOUNDATION-005 review: safe Level 1-10 playtest route - never touches the saved character
+		var ft := _big_button("Fresh Lv1 Test", func():
+			Game.start_fresh_test(cid)
+			start_game(cid, party), 170)
+		ft.tooltip_text = "A new Level 1 %s that is NOT saved. Your saved character is not changed. Returning to the title discards it." % cid.capitalize()
+		h.add_child(ft)
 		select_list.add_child(pc)
 
 
@@ -458,7 +464,10 @@ func start_game(class_id: String, p_party: bool, training: bool = false) -> void
 		world.teleport_player("training")
 	else:
 		Events.notify.emit("Valley Outskirts")
-	if Game.test_session:
+	if Game.fresh_test:
+		Events.notify.emit("FRESH TEST CHARACTER - nothing is saved (Esc > 'Test session: gain a level')")
+		Events.log_message.emit("Fresh Level 1 test session: your saved characters are untouched; returning to the title discards this session.", "system")
+	elif Game.test_session:
 		Events.notify.emit("TEST SESSION - progress is not saved")
 		Events.log_message.emit("Test session: a save from a newer version is protected, so nothing from this session is saved.", "system")
 
@@ -473,6 +482,7 @@ func return_to_menu() -> void:
 			Save.load_game()
 		Game.debug_tainted = false
 		Game.test_session = false
+		Game.fresh_test = false
 	else:
 		Game.autosave()
 	for n in SESSION_LAYERS:

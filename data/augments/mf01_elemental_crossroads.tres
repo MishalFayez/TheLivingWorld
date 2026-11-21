@@ -28,6 +28,10 @@ synergy_text = {
 "mf03_thermal_fracture": "Fire / Frost Poise payoff improves further, capped at +40% total for ordinary enemies.",
 "mf05_living_confluence": "If the follow-up comes from your chosen interaction it changes colour - its damage is not doubled."
 }
+synergy_kind = {
+"mf03_thermal_fracture": "mechanical",
+"mf05_living_confluence": "visual"
+}
 trigger_summary = "Your chosen elemental interaction happens"
 scaling_sources = PackedStringArray("weapon_power")
 params = {

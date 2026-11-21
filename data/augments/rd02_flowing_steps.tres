@@ -24,6 +24,9 @@ synergy_partners = PackedStringArray("rd05_tempest_waltz")
 synergy_text = {
 "rd05_tempest_waltz": "The discount may apply to the next Whirling Assault instead (once, never per hit)."
 }
+synergy_kind = {
+"rd05_tempest_waltz": "mechanical"
+}
 trigger_summary = "Perfect dodge, then directional Dance"
 cooldown = 5.0
 scaling_sources = PackedStringArray()

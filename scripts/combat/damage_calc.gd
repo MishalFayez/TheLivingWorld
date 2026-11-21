@@ -78,6 +78,12 @@ static func charged_power(stats: StatBlock, s: ChargedSpellData, full: bool) -> 
 	return s.power_full * stats.heavy_mult() if full else s.power_partial
 
 
+## Thunder Conduit chain jump `jump` (0 = first jump): falloff per jump, DEX multi-hit scaling (the jumps
+## are the multi-hit part of the spell). Used by MageElementalist._thunder and by the tooltip.
+static func chain_power(stats: StatBlock, power: float, falloff: float, jump: int) -> float:
+	return power * pow(falloff, jump + 1) * stats.multihit_mult()
+
+
 static func spell_breakdown(stats: StatBlock, weapon_power: float, s: ChargedSpellData, full: bool, target = null,
 		status_dmg: float = 1.0) -> Dictionary:
 	var power := charged_power(stats, s, full)

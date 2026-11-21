@@ -25,6 +25,9 @@ synergy_partners = PackedStringArray("mf01_elemental_crossroads")
 synergy_text = {
 "mf01_elemental_crossroads": "The chosen interaction changes the follow-up's visual, not its damage."
 }
+synergy_kind = {
+"mf01_elemental_crossroads": "visual"
+}
 trigger_summary = "Interaction, then a different-element spell"
 cooldown = 10.0
 scaling_sources = PackedStringArray("weapon_power")

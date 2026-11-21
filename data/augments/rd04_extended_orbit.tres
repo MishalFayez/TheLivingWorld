@@ -25,6 +25,9 @@ synergy_partners = PackedStringArray("rd06_dancers_reversal")
 synergy_text = {
 "rd06_dancers_reversal": "Orbit Step never counts as a dodge: Reversal still needs a real dodge."
 }
+synergy_kind = {
+"rd06_dancers_reversal": "rule"
+}
 trigger_summary = "Orbit Step"
 mechanical_tradeoff = "+15% movement commitment."
 scaling_sources = PackedStringArray()

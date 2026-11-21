@@ -24,6 +24,10 @@ synergy_partners = PackedStringArray("vb06_sheltering_counter")
 synergy_text = {
 "vb06_sheltering_counter": "Both shields on one ally refresh the duration; the amount is the larger shield, never the sum."
 }
+synergy_kind = {
+"vb06_sheltering_counter": "rule"
+}
+requires_party = true
 trigger_summary = "Successful interception"
 cooldown = 8.0
 mechanical_tradeoff = "Cooldown 8s."

@@ -26,6 +26,9 @@ synergy_partners = PackedStringArray("re06_patient_blade")
 synergy_text = {
 "re06_patient_blade": "The refund happens once, only if both impacts land."
 }
+synergy_kind = {
+"re06_patient_blade": "rule"
+}
 trigger_summary = "Committed Cut"
 mechanical_tradeoff = "+15% exposure."
 scaling_sources = PackedStringArray()

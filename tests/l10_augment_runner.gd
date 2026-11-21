@@ -19,6 +19,8 @@ func _run_all() -> void:
 	await test_vanguard_cards()
 	await test_mage_cards()
 	await test_no_recursion_and_caps()
+	await test_presentation_review()
+	await test_fresh_test_route()
 	await teardown()
 
 
@@ -57,7 +59,7 @@ func test_catalog() -> void:
 			var anchors := pc.filter(func(a): return a.is_anchor)
 			check(pc.size() == 6 and anchors.size() == 1 and anchors[0].group() == "anchor_" + c, "%s: 6 cards, exactly one anchor (group anchor_%s)" % [AugmentDB.PATH_NAMES[pth], c])
 	var blocked := cards.filter(func(a): return a.blocked_reason != "")
-	check(blocked.size() == 2 and blocked.any(func(a): return a.id == "mf04_healing_ember") and blocked.any(func(a): return a.id == "mf06_purifying_confluence"), "2 cards blocked with a reported design prerequisite (Healing Ember, Purifying Confluence)")
+	check(blocked.size() == 3 and blocked.any(func(a): return a.id == "mf04_healing_ember") and blocked.any(func(a): return a.id == "mf06_purifying_confluence") and blocked.any(func(a): return a.id == "vb05_fortress_breaker"), "3 cards blocked with a reported prerequisite (Healing Ember, Purifying Confluence, Fortress Breaker): 57 playable")
 	var meta_ok := true
 	for a in cards:
 		if a.trigger_summary == "" or a.code == "" or a.description == "":
@@ -102,9 +104,14 @@ func test_eligibility() -> void:
 	check(db.ineligible_reason(db.get_augment("g04_calculated_risk"), mp).begins_with("not for this class"), "Calculated Risk not offered to the Worldweaver (reported limitation)")
 	var vp := Game.prog("vanguard")
 	vp.level = 4
+	Game.party_mode = true
 	check(db.ineligible_reason(db.get_augment("vc03_shared_aegis"), vp).begins_with("requires v_intercept"), "interception cards wait for Interception (Lv7)")
 	vp.level = 8
-	check(db.ineligible_reason(db.get_augment("vc03_shared_aegis"), vp) == "", "... and are offered from Lv8")
+	Game.party_mode = false
+	check(db.ineligible_reason(db.get_augment("vc03_shared_aegis"), vp).begins_with("needs a party"), "solo: ally-protection cards are not offered (nothing to protect)")
+	Game.party_mode = true
+	check(db.ineligible_reason(db.get_augment("vc03_shared_aegis"), vp) == "", "... in party play they are offered from Lv8")
+	Game.party_mode = false
 	Game.reaver_core = "freeflow"
 	check(db.ineligible_reason(db.get_augment("rd01_phantom_footwork"), rp) != "", "Level 1-10 cards stay out of the comparison cores")
 	Game.reaver_core = "bladedancer"
@@ -151,7 +158,7 @@ func test_drafts() -> void:
 	var d8n: Array = Game.augment_db.roll_l10("reaver", rp, 8, rng)
 	check(d8n.filter(func(a): return a.is_anchor).size() == 2, "Lv8 with no path yet: both anchors offered again")
 	rp.level = 10
-	rp.augments.assign(["rd01_phantom_footwork", "rc02_swordsmans_breath"])
+	rp.augments.assign(["rd02_flowing_steps", "rc02_swordsmans_breath"])
 	var ok10 := true
 	var syn10 := 0
 	for s in 20:
@@ -185,8 +192,12 @@ func test_exclusive_and_replacement() -> void:
 	check(Game.augment_db.ineligible_reason(Game.augment_db.get_augment("re05_twin_verdict"), rp).begins_with("excluded by"), "Twin Verdict excluded while the legacy Twin Tempest transformation is owned")
 	rp.augments.erase("twin_tempest")
 	give("reaver", "rd03_circling_predator")
-	var deps := Game.dependents_of("reaver", "rd01_phantom_footwork")
-	check(deps.has("Circling Predator"), "benching the anchor warns about its synergy partner")
+	check(Game.dependents_of("reaver", "rd01_phantom_footwork").is_empty(), "a rule-only pair (Phantom Footwork / Circling Predator) is not announced as a lost synergy")
+	rp.augments.append("rd02_flowing_steps")
+	rp.augments.append("rd05_tempest_waltz")
+	check(Game.dependents_of("reaver", "rd02_flowing_steps").has("Tempest Waltz"), "benching a card warns about its MECHANICAL synergy partner")
+	rp.augments.erase("rd02_flowing_steps")
+	rp.augments.erase("rd05_tempest_waltz")
 	rp.pending_drafts = 1
 	rp.pending_draft_tiers = ["exotic"]
 	var dt := rp.drafts_taken
@@ -624,7 +635,7 @@ func test_vanguard_cards() -> void:
 	h.rt.cds.erase("vb05_cd")
 	h.take_damage(info)
 	check(info.guarded and h.rt.active("vc02"), "V-C02: a successful Guard arms the knockback reduction")
-	check(h.rt.active("vb05") and absf(float(h.rt.windows.vb05.bonus) - 0.45) < 0.001, "V-B05: blocking a heavy blow primes +45% (Heavy Anchor synergy)")
+	check(not h.rt.active("vb05") and not h.rt.has("vb05_fortress_breaker"), "V-B05 is blocked (no heavy enemy attacks): never active even when owned")
 	check(h.has_shield() and fired("vc06_last_barrier") >= 1, "V-C06: Guard below 35% HP grants the shield")
 	var kb := DamageInfo.new()
 	kb.knockback = 4.0
@@ -636,7 +647,7 @@ func test_vanguard_cards() -> void:
 	var pc := DamageInfo.new()
 	pc.poise = 10.0
 	h.rt.modify_outgoing(pc, load("res://data/attacks/v_counter.tres"), r, 0, {"counter": true})
-	check(absf(pc.poise - 14.5) < 0.001 and not h.rt.active("vb05"), "V-B05: next shield strike +45% Poise, once")
+	check(absf(pc.poise - 10.0) < 0.001, "no hidden Poise bonus from the blocked card")
 	# Counterguard: V-K01 / V-K02 / V-K05 / V-K04
 	h.prog().augments.assign(["vk01_aegis_reversal", "vk02_precise_defense", "vk05_judgment_echo", "vk04_retaliation_window"])
 	h.rt.cds.clear()
@@ -898,3 +909,101 @@ func test_no_recursion_and_caps() -> void:
 	h.prog().augments.clear()
 	r.queue_free()
 	r2.queue_free()
+
+
+# ------------------------------------------------------------------ review 1: presentation + safe playtest route
+func test_presentation_review() -> void:
+	print("\n[Review: scaling labels follow the formulas, honest pair labels, blocked / party states]")
+	var h := await bd(10)
+	var src := TooltipText.source_for_hero(h)
+	var ok := true
+	for cls in ["reaver", "vanguard"]:
+		for e in SkillCatalog.entries(cls):
+			for v in e.get("variants", []):
+				var b := TooltipText.breakdown_attack(src, v.attack)
+				var txt := "\n".join(TooltipText._attack_lines("x", b, v.attack, src, 0))
+				if txt.contains("(heavy / charged)") != bool(b.str_applies) or txt.contains("(multi-hit total)") != bool(b.dex_applies):
+					ok = false
+					print("    mismatch: ", e.name, " / ", v.label)
+	check(ok, "every attack variant shows STR / DEX exactly when the real formula applies them")
+	var db: AugmentDB = Game.augment_db
+	check(db.pair_kind(db.get_augment("mf01_elemental_crossroads"), db.get_augment("mf05_living_confluence")) == "visual", "Crossroads + Living Confluence is labelled visual feedback only")
+	check(db.pair_kind(db.get_augment("vb04_heavy_anchor"), db.get_augment("vb05_fortress_breaker")) == "inactive", "a pair with a blocked card is shown as inactive")
+	var mp := Game.prog("mage")
+	Game.mage_core = "elementalist"
+	mp.level = 10
+	mp.augments.assign(["mf01_elemental_crossroads"])
+	check(db.synergy_text(db.get_augment("mf05_living_confluence"), mp) == "", "no SYNERGY AVAILABLE for a visual pair")
+	var ins := AugmentText.inspect(db.get_augment("mf05_living_confluence"), "mage", mp)
+	check(ins.contains("VISUAL LINK") and not ins.contains("SYNERGY AVAILABLE"), "inspect text says VISUAL LINK")
+	mp.augments.assign(["mf03_thermal_fracture"])
+	check(db.synergy_text(db.get_augment("mf01_elemental_crossroads"), mp) != "", "a mechanical pair is announced as SYNERGY AVAILABLE")
+	mp.augments.clear()
+	check(AugmentText.inspect(db.get_augment("mf04_healing_ember"), "mage", mp).contains("NOT AVAILABLE"), "blocked card clearly marked NOT AVAILABLE")
+	Game.party_mode = false
+	check(AugmentText.inspect(db.get_augment("ma05_sympathetic_link"), "mage", mp).contains("NEEDS A PARTY"), "party-only card marked when solo")
+	check(AugmentText.inspect(db.get_augment("g04_calculated_risk"), "mage", mp).contains("NOT FOR THIS CLASS") and db.ineligible_reason(db.get_augment("g04_calculated_risk"), mp) != "", "Calculated Risk is excluded for the Worldweaver (no partial effect shown as available)")
+	# Thunder Conduit chain: tooltip value = real chain hit (DEX multi-hit included)
+	var w := await ww(10)
+	w.stats.crit_chance = 0.0
+	var e1 := dummy("raider", w.global_position + Vector3(0, 0, -5))
+	var e2 := dummy("raider", w.global_position + Vector3(1.5, 0, -6))
+	for e in [e1, e2]:
+		e.max_hp = 99999
+		e.hp = 99999
+	w.lock_target = e1
+	face(w, e1)
+	dmg.clear()
+	var tc: ChargedSpellData = w.kit.el.spells.thunder_conduit
+	w.kit.el.ai_spell = {"light": "thunder_conduit"}
+	w.kit.mana = 100.0
+	w.press("light")
+	await wait(tc.full_charge + 0.2)
+	w.release("light")
+	await wait(0.4)
+	var chain := dmg.filter(func(x): return String(x.attack_name).contains("(chain)"))
+	var want := w.weapon_power * DamageCalc.chain_power(w.stats, DamageCalc.charged_power(w.stats, tc, true), tc.chain_falloff, 0)
+	check(chain.size() >= 1 and absf(chain[0].raw_amount - want) < 0.05, "Thunder Conduit first chain jump: tooltip %.1f = dealt %.1f" % [want, chain[0].raw_amount if chain.size() > 0 else -1.0])
+	var tt := TooltipText.skill({"id": "thunder_conduit", "name": "Thunder Conduit", "spell": tc}, TooltipText.source_for_hero(w), TooltipText.LEVEL_SIMPLE)
+	check(tt.contains("DEX") and tt.contains("Chain"), "spell tooltip shows the DEX-scaled chain")
+	e1.queue_free()
+	e2.queue_free()
+
+
+func test_fresh_test_route() -> void:
+	print("\n[Safe fresh Level 1-10 route: non-saving, real drafts at 4 / 8 / 10, discarded on return]")
+	await teardown()
+	var fx := fixture_path("fresh_route_save.json")
+	clear_fixture(fx)
+	Save.path = fx
+	Save.enabled = true
+	Game.reset_all_progress()
+	Game.reaver_core = "bladedancer"
+	Game.mage_core = "elementalist"
+	var v := Game.prog("vanguard")
+	v.created = true
+	v.character_name = "Owner"
+	v.set_level(7)
+	v.augments.assign(["phantom_bulwark"])
+	Save.save_game()
+	var hash0 := FileAccess.get_md5(fx)
+	for cls in ["vanguard", "mage", "reaver"]:
+		Game.start_fresh_test(cls)
+		var p := Game.prog(cls)
+		check(Game.test_session and Game.fresh_test and p.level == 1 and p.augments.is_empty(), "%s: fresh Level 1 test character (labelled test session)" % cls)
+		for i in 9:
+			Game.test_gain_level()
+		check(p.level == 10 and p.pending_drafts == 3, "%s: levels through the real EXP path, drafts at 4 / 8 / 10 pending (%d)" % [cls, p.pending_drafts])
+		var cards := Game.roll_draft(cls)
+		check(cards.size() == 3 and cards.all(func(a): return a.pool == "l10"), "%s: the Level 4 draft offers new Level 1-10 cards" % cls)
+		Game.choose_augment(cls, cards[0].id)
+		Game.autosave()
+		check(FileAccess.get_md5(fx) == hash0, "%s: nothing written to the save during the test session" % cls)
+	# return to title: the main menu discards a test session by reloading the save
+	Game.reset_all_progress()
+	Save.load_game()
+	Game.fresh_test = false
+	check(not Game.test_session and Game.prog("vanguard").level == 7 and Game.prog("vanguard").character_name == "Owner" and Game.prog("vanguard").augments.has("phantom_bulwark"), "returning to the title restores the saved characters exactly")
+	check(FileAccess.get_md5(fx) == hash0, "the save file is byte-identical")
+	Save.enabled = false
+	clear_fixture(fx)

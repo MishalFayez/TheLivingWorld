@@ -22,6 +22,7 @@ requires_unlocks = PackedStringArray()
 blocked_classes = PackedStringArray()
 synergy_tags = PackedStringArray()
 synergy_partners = PackedStringArray()
+requires_party = true
 trigger_summary = "Heal an ally twice within 4s with an enemy nearby"
 cooldown = 12.0
 scaling_sources = PackedStringArray("weapon_power")

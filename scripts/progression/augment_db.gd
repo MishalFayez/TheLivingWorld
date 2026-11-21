@@ -80,6 +80,8 @@ func ineligible_reason(a: AugmentData, p: ClassProgress) -> String:
 		return "outside the Level 1-10 pool (kept working when owned)"
 	if a.pool == "l10" and not uses_l10_pool(p.class_id):
 		return "Level 1-10 pool card (approved cores only)"
+	if a.requires_party and not Game.party_mode:
+		return "needs a party (an ally to protect / support)"
 	for u in a.requires_unlocks:
 		if not p.has_unlock(u):
 			var lv := p.track().unlock_level(u) if p.track() else -1
@@ -234,24 +236,47 @@ func _weighted(cands: Array, rng: RandomNumberGenerator) -> AugmentData:
 	return cands[0]
 
 
-## Id of an owned augment `a` synergises with (either direction), or "".
-func _synergy_with(a: AugmentData, owned_ids: Array) -> String:
+## Kind of the listed pair a <-> b ("mechanical" / "visual" / "rule"), "" if not listed. A pair whose other
+## card is blocked is "inactive".
+func pair_kind(a: AugmentData, b: AugmentData) -> String:
+	if a == null or b == null:
+		return ""
+	var k := ""
+	if a.synergy_partners.has(b.id):
+		k = String(a.synergy_kind.get(b.id, "rule"))
+	elif b.synergy_partners.has(a.id):
+		k = String(b.synergy_kind.get(a.id, "rule"))
+	if k != "" and (a.blocked_reason != "" or b.blocked_reason != ""):
+		return "inactive"
+	return k
+
+
+## Id of an owned augment `a` has a listed pair with (`kind` "" = any kind), or "". Mechanical first.
+func _synergy_with(a: AugmentData, owned_ids: Array, kind: String = "mechanical") -> String:
+	var any := ""
 	for id in owned_ids:
-		if a.synergy_partners.has(id):
+		var k := pair_kind(a, all.get(id))
+		if k == "":
+			continue
+		if k == kind:
 			return id
-		var o: AugmentData = all.get(id)
-		if o != null and o.synergy_partners.has(a.id):
-			return id
-	return ""
+		if kind == "" and any == "":
+			any = id
+	return any
 
 
-## Text of the combined behaviour of `a` with an owned card, or "".
+## Text of the MECHANICAL combined behaviour of `a` with an owned card, or "" (draft "SYNERGY AVAILABLE").
 func synergy_text(a: AugmentData, p: ClassProgress) -> String:
+	return pair_text(a, p, "mechanical")
+
+
+## Text of a listed pair of `kind` ("" = any) with an owned card, prefixed by its kind when not mechanical.
+func pair_text(a: AugmentData, p: ClassProgress, kind: String = "") -> String:
 	var owned_ids: Array = []
 	for id in p.augments:
 		if p.augment_stacks(id) > 0:
 			owned_ids.append(id)
-	var with := _synergy_with(a, owned_ids)
+	var with := _synergy_with(a, owned_ids, kind)
 	if with == "":
 		return ""
 	var o: AugmentData = all.get(with)

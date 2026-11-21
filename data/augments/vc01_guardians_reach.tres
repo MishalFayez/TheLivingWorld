@@ -24,6 +24,10 @@ synergy_partners = PackedStringArray("vk06_guardians_retort")
 synergy_text = {
 "vk06_guardians_retort": "Longer reach only creates more successful interceptions; Retort still shields one ally per counter."
 }
+synergy_kind = {
+"vk06_guardians_retort": "rule"
+}
+requires_party = true
 trigger_summary = "Interception (Shield Rush toward an endangered ally)"
 mechanical_tradeoff = "+10% interception stamina cost."
 scaling_sources = PackedStringArray()

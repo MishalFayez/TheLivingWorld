@@ -16,7 +16,7 @@ func _ready() -> void:
 				cards.append(a)
 	cards.sort_custom(func(x, y): return x.code < y.code)
 	var lines: Array = []
-	lines.append("# LEVEL10-FOUNDATION-005: Augment catalog (60 cards)")
+	lines.append("# LEVEL10-FOUNDATION-005: Augment catalog (60 cards: 57 playable, 3 blocked)")
 	lines.append("")
 	lines.append("Generated from `data/augments/*.tres` by `tools/print_l10_catalog.gd`. The description is the in-game text, filled from the card's params.")
 	lines.append("")
@@ -31,8 +31,8 @@ func _ready() -> void:
 		lines.append("")
 		lines.append("## " + cls.capitalize())
 		lines.append("")
-		lines.append("| Code | Card | Path | Rarity | Requires | Cooldown | Status | Effect (in-game text) |")
-		lines.append("|---|---|---|---|---|---|---|---|")
+		lines.append("| Code | Card | Path | Rarity | Requires | Party | Cooldown | Status | Effect (in-game text) |")
+		lines.append("|---|---|---|---|---|---|---|---|---|")
 		for a in cards:
 			if a.class_id != cls:
 				continue
@@ -42,13 +42,15 @@ func _ready() -> void:
 			elif not a.blocked_classes.is_empty():
 				status = "PARTIAL (not %s): %s" % [", ".join(a.blocked_classes), String(a.params.get("class_block_reason", ""))]
 			var path: String = PATHS.get(a.path_id, a.path_id) + (" (ANCHOR)" if a.is_anchor else "")
-			lines.append("| %s | %s | %s | %s | %s | %s | %s | %s |" % [a.code, a.display_name, path, a.rarity, ", ".join(a.requires_unlocks) if not a.requires_unlocks.is_empty() else "-",
-				("%ss" % a.cooldown) if a.cooldown > 0.0 else "-", status, AugmentText.describe(a).replace("|", "/")])
+			lines.append("| %s | %s | %s | %s | %s | %s | %s | %s | %s |" % [a.code, a.display_name, path, a.rarity, ", ".join(a.requires_unlocks) if not a.requires_unlocks.is_empty() else "-",
+				"party only" if a.requires_party else "-", ("%ss" % a.cooldown) if a.cooldown > 0.0 else "-", status, AugmentText.describe(a).replace("|", "/")])
 	lines.append("")
 	lines.append("## Synergies (listed pairs)")
 	lines.append("")
-	lines.append("| Card | Partner | Combined behaviour |")
-	lines.append("|---|---|---|")
+	lines.append("Kind: **synergy** = a real extra gameplay effect (only these are announced as SYNERGY AVAILABLE); **visual feedback only**; **rule, no extra benefit** = a limit or clarification; **inactive** = the partner is blocked.")
+	lines.append("")
+	lines.append("| Card | Partner | Kind | Combined behaviour |")
+	lines.append("|---|---|---|---|")
 	var seen := {}
 	for a in cards:
 		for pid in a.synergy_partners:
@@ -58,7 +60,7 @@ func _ready() -> void:
 				continue
 			seen[str(key)] = true
 			var o = load("res://data/augments/%s.tres" % pid)
-			lines.append("| %s | %s | %s |" % [a.display_name, o.display_name if o else pid, String(a.synergy_text.get(pid, "")).replace("|", "/")])
+			lines.append("| %s | %s | %s | %s |" % [a.display_name, o.display_name if o else pid, AugmentText.kind_name(Game.augment_db.pair_kind(a, o)), String(a.synergy_text.get(pid, "")).replace("|", "/")])
 	var f := FileAccess.open("res://collaboration/results/LEVEL10-FOUNDATION-005-CATALOG.md", FileAccess.WRITE)
 	f.store_string("\n".join(lines) + "\n")
 	f.close()

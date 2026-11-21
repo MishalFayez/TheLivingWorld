@@ -25,6 +25,10 @@ synergy_partners = PackedStringArray("vc03_shared_aegis")
 synergy_text = {
 "vc03_shared_aegis": "Shields refresh duration; the amount is the larger shield, never the sum."
 }
+synergy_kind = {
+"vc03_shared_aegis": "rule"
+}
+requires_party = true
 trigger_summary = "Counter right after an interception"
 cooldown = 8.0
 scaling_sources = PackedStringArray("vit")

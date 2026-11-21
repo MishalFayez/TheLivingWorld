@@ -24,6 +24,9 @@ synergy_partners = PackedStringArray("ma01_spell_threading")
 synergy_text = {
 "ma01_spell_threading": "Preparation reductions combine but are capped at 25%."
 }
+synergy_kind = {
+"ma01_spell_threading": "mechanical"
+}
 trigger_summary = "Alternate healing and offensive spells"
 cooldown = 6.0
 scaling_sources = PackedStringArray()

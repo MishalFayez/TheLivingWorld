@@ -8,6 +8,7 @@ var panel: PanelContainer
 var controls_panel: PanelContainer
 var is_open: bool = false
 var main: Node
+var test_level_btn: Button
 
 
 func _ready() -> void:
@@ -50,6 +51,16 @@ func _ready() -> void:
 		btn.pressed.connect(b[1])
 		btn.focus_mode = Control.FOCUS_NONE
 		v.add_child(btn)
+	# LEVEL10-FOUNDATION-005 review: only in a fresh non-saving test session - one natural level-up
+	# (real EXP path, real drafts at 4 / 8 / 10). Never shown in normal play.
+	test_level_btn = Button.new()
+	test_level_btn.text = "Test session: gain a level"
+	test_level_btn.custom_minimum_size = Vector2(280, 38)
+	test_level_btn.focus_mode = Control.FOCUS_NONE
+	test_level_btn.pressed.connect(func():
+		resume()
+		Game.test_gain_level())
+	v.add_child(test_level_btn)
 	controls_panel = PanelContainer.new()
 	controls_panel.add_theme_stylebox_override("panel", UITheme.panel(UITheme.GOLD, 0.97))
 	UIUtil.place(controls_panel, 0.5, 0.5, 0.5, 0.5, 190, -300, 720, 300)
@@ -87,6 +98,7 @@ func open() -> void:
 	is_open = true
 	dim.visible = true
 	panel.visible = true
+	test_level_btn.visible = Game.fresh_test and Game.test_session and Game.prog().level < Game.balance.max_level
 	controls_panel.visible = false
 	get_tree().paused = true
 	Game.ui_block += 1

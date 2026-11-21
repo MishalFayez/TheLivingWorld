@@ -27,6 +27,9 @@ synergy_partners = PackedStringArray("re02_steel_focus")
 synergy_text = {
 "re02_steel_focus": "Steel Focus protects the charge while you wait for the window - no invulnerability."
 }
+synergy_kind = {
+"re02_steel_focus": "rule"
+}
 trigger_summary = "Release at full charge (watch the blade highlight)"
 scaling_sources = PackedStringArray()
 params = {

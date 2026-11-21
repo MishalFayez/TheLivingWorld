@@ -1220,10 +1220,12 @@ func _thunder(s: ChargedSpellData, ctx: Dictionary) -> bool:
 		_establish_conductive(path)
 	var dmg := power
 	for i in jumps:
+		var via_anchor := false
 		var nxt = _next_chain(cur_pos, hit, s.chain_range)
 		if nxt == null:
 			var anchor = _anchor_near(cur_pos, s.chain_range, ctx.cast)
 			if anchor != null:
+				via_anchor = true
 				anchor.relayed[ctx.cast] = int(anchor.relayed.get(ctx.cast, 0)) + 1
 				if anchor.relayed[ctx.cast] > 1:
 					kit.trigger("storm_lattice", "Anchor relayed a second time")
@@ -1239,7 +1241,9 @@ func _thunder(s: ChargedSpellData, ctx: Dictionary) -> bool:
 			_establish_conductive([cur_pos, nxt.global_position])
 		VFX.lightning(cur_pos + Vector3(0, 1.0, 0), nxt.global_position + Vector3(0, 1.0, 0))
 		# DEX: chain jumps are the multi-hit part of the spell
-		hero.spell_damage(nxt, dmg * hero.stats.multihit_mult(), poise * 0.6, s.display_name + " (chain)", {"hitstop": 0.03})
+		# Elemental Crossroads (Conductive Anchors): the jump relayed through a conductive formation is enhanced
+		var mag: float = hero.rt.interaction_mult("conductive_anchors") if (via_anchor and hero.rt) else 1.0
+		hero.spell_damage(nxt, DamageCalc.chain_power(hero.stats, power, s.chain_falloff, hit.size() - 1) * mag, poise * 0.6 * mag, s.display_name + " (chain)", {"hitstop": 0.03})
 		hit.append(nxt)
 		cur_pos = nxt.global_position
 	if full and kit.aug("living_thunder") > 0:

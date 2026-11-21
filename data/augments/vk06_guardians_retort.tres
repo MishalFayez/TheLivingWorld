@@ -25,6 +25,10 @@ synergy_partners = PackedStringArray("vc01_guardians_reach")
 synergy_text = {
 "vc01_guardians_reach": "Reach only creates more interception chances; one shield per counter."
 }
+synergy_kind = {
+"vc01_guardians_reach": "rule"
+}
+requires_party = true
 trigger_summary = "Counter right after an interception"
 cooldown = 8.0
 scaling_sources = PackedStringArray("weapon_power")

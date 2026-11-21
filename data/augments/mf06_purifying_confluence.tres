@@ -26,6 +26,9 @@ synergy_partners = PackedStringArray("mc06_woven_protection")
 synergy_text = {
 "mc06_woven_protection": "A cleanse would refresh an existing shield's duration once (not its amount)."
 }
+synergy_kind = {
+"mc06_woven_protection": "rule"
+}
 trigger_summary = "Ally-targeted interaction (no cleansable statuses exist)"
 scaling_sources = PackedStringArray()
 params = {
