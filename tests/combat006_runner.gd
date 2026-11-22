@@ -377,6 +377,51 @@ func test_wheel_cancellations() -> void:
 	check(h.hp > hp0, "F (Lifeline) still heals")
 	await test_wheel_review1()
 	await test_wheel_defaults_review2()
+	await test_instant_spell_augments_review2()
+
+
+## 006 review 2 bug fix: instant spells are known to the Augment runtime BEFORE their effect lands.
+## Rewoven Spell judged a partial Thunder Conduit by the previous cast; Living Confluence never paid out on it.
+func test_instant_spell_augments_review2() -> void:
+	print("\n[006 review 2: Rewoven Spell / Living Confluence see the instant Thunder Conduit itself]")
+	var fired: Array = []
+	var cb := func(o, id, _d): if o == Game.player: fired.append(id)
+	Events.augment_triggered.connect(cb)
+	for case in ["ma03", "mf05"]:
+		var h := await castw(10)
+		Game.prog("mage").augments.append("ma03_rewoven_spell" if case == "ma03" else "mf05_living_confluence")
+		h.refresh_stats(true)
+		var el: MageElementalist = h.kit.el
+		var a := dummy("raider", h.global_position + Vector3(0, 0, -6))
+		var b2 := dummy("raider", h.global_position + Vector3(1.5, 0, -6.5))
+		for e in [a, b2]:
+			e.max_hp = 99999
+			e.hp = 99999
+		h.lock_target = a
+		face(h, a)
+		await wait(0.1)
+		# a FULL Flame first (so the "previous spell" is not a partial Thunder Conduit)
+		el.ai_spell = {"light": "flame_cataclysm"}
+		h.press("light")
+		await wait(1.4)
+		h.release("light")
+		await until_idle(h)
+		await wait(0.8)
+		h.kit.mana = 100.0
+		if case == "mf05":
+			h.rt.open("mf05", 4.0, {"element": "fire", "id": "thermal_fracture"})   # an interaction just happened
+		fired.clear()
+		el.ai_spell = {"light": "thunder_conduit"}
+		h.press("light")
+		await wait(0.35)
+		h.release("light")
+		await wait(0.3)
+		var id := "ma03_rewoven_spell" if case == "ma03" else "mf05_living_confluence"
+		check(fired.has(id), "%s activates on a partial Thunder Conduit cast right after a full Flame" % id)
+		a.queue_free()
+		b2.queue_free()
+		el.ai_spell = {}
+	Events.augment_triggered.disconnect(cb)
 
 
 ## 006 review 2: LMB = Offensive Elements, RMB = Life & Control by default; distinct at every level 1-10,

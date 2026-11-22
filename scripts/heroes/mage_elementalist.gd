@@ -557,6 +557,9 @@ func release() -> void:
 	var ctx := {"full": full, "sanctum": in_sanctum(), "charge_time": charge_t, "mult": sanctum_mult(), "cast": _cast_serial}
 	var held := charge_t
 	_end_charge()
+	# 006 review 2 bug fix: Augments that identify "the spell that just hit" (Living Confluence, Rewoven Spell)
+	# must know THIS spell before its instant effects land (Thunder Conduit, heals); spell_released comes after.
+	var snap: Dictionary = hero.rt.begin_cast(s.id, s.element, full) if hero.rt else {}
 	var ok := true
 	match s.id:
 		"flame_cataclysm":
@@ -583,6 +586,8 @@ func release() -> void:
 			ok = _verdant(s, ctx)
 	if not ok:
 		# nothing was cast (no valid target / no room): no mana spent
+		if hero.rt:
+			hero.rt.abort_cast(snap)
 		Events.spell_interrupted.emit(hero, s.id, "no_target")
 		return
 	if hero.rt:
@@ -1610,6 +1615,8 @@ func lifeline() -> bool:
 		cancel("lifeline")
 	kit.mana -= s.mana_partial
 	kit.set_cd("lifeline", s.cooldown)
+	if hero.rt:
+		hero.rt.begin_cast(s.id, "life", false)     # 006 review 2: known before the instant heal lands
 	FX.beam(tip_pos(), t.global_position + Vector3(0, 1.0, 0), COLORS.life)
 	_heal(t, DamageCalc.direct_heal(hero.weapon_power, s.power_partial), "Lifeline")
 	_recovery(s, false)

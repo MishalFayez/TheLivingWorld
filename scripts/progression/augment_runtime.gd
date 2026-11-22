@@ -681,6 +681,31 @@ func status_duration(dur: float, hard_cc: bool) -> float:
 	return dur + ext
 
 
+## 006 review 2 bug fix: called by the Worldweaver right BEFORE a spell's effects run. Instant effects (Thunder
+## Conduit damage, Life Bloom / Lifeline heals) land before spell_released; without this, Living Confluence
+## never paid out on them and Rewoven Spell judged a partial Thunder Conduit by the PREVIOUS cast.
+## Returns a snapshot for abort_cast (nothing was cast).
+func begin_cast(spell_id: String, element: String, full: bool) -> Dictionary:
+	var snap := {"id": _last_spell_id, "full": _last_spell_full, "armed": windows["mf05"].get("armed", null) if windows.has("mf05") else null}
+	_last_spell_id = spell_id
+	_last_spell_full = full
+	if active("mf05") and String(windows["mf05"].get("element", "")) != element:
+		windows["mf05"]["armed"] = spell_id
+	return snap
+
+
+func abort_cast(snap: Dictionary) -> void:
+	if snap.is_empty():
+		return
+	_last_spell_id = String(snap.id)
+	_last_spell_full = bool(snap.full)
+	if windows.has("mf05"):
+		if snap.armed == null:
+			windows["mf05"].erase("armed")
+		else:
+			windows["mf05"]["armed"] = snap.armed
+
+
 func _on_spell_released(caster, spell_id: String, element: String, full: bool, _t: float, _mana: float) -> void:
 	if caster != hero:
 		return
