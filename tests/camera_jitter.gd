@@ -138,6 +138,8 @@ func _lock_checks(h: Hero, rig: CameraRig) -> void:
 
 
 func _ready() -> void:
+	# 006 review 1 save audit: this suite starts a session directly; never let it reach the real save
+	preload("res://tests/test_save_guard.gd").isolate("camera_jitter")
 	Game.auto_open_drafts = false
 	var world = load("res://scenes/world/ashen_valley.tscn").instantiate()
 	add_child(world)

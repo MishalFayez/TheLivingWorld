@@ -262,6 +262,8 @@ func create_character(c: String, char_name: String) -> void:
 	var old: ClassProgress = progress.get(c)
 	if old and old.created:
 		p.life_number = old.life_number + 1
+		# save safety (006 review 1): keep the save as it was before this character is replaced
+		Save.backup_before("replace %s Lv%d" % [c, old.level])
 	p.created = true
 	p.character_name = char_name if char_name.strip_edges() != "" else c.capitalize()
 	for it in starter_items(c):
@@ -717,6 +719,8 @@ func on_hero_true_death(h: Hero) -> void:
 		if world and world.has_method("on_player_true_death"):
 			world.on_player_true_death()
 		if permadeath:
+			# save safety (006 review 1): keep the save as it was before the True Death reset is autosaved
+			Save.backup_before("true death %s Lv%d" % [active_class, prog().level])
 			prog().reset()
 			for it in starter_items(active_class):
 				prog().equipment[it.slot] = it.id

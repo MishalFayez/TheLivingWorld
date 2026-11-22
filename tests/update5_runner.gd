@@ -37,7 +37,60 @@ func _run_all() -> void:
 	await test_rv3_title_explains_unloadable_save()
 	await test_rv3_accepted_saves_load_cleanly()
 	await test_rv4_newer_save_blocks_saving_sessions()
+	await test_006r1_backup_before_destructive()
 	await teardown()
+
+
+## COMBAT-BALANCE-UX-006 review 1: replacing / resetting a character and a permadeath True Death first copy
+## the save, unchanged, to save_backups/; test / debug sessions and disabled saving make no backup.
+func test_006r1_backup_before_destructive() -> void:
+	print("\n[006 review 1: a backup of the save is kept before every destructive character operation]")
+	var p: String = await _qa_begin("bk006.json")
+	var bdir := Save.backup_dir()
+	for f in DirAccess.get_files_at(bdir) if DirAccess.dir_exists_absolute(bdir) else []:
+		DirAccess.remove_absolute(bdir.path_join(f))
+	Game.create_character("mage", "Lyra")
+	check(DirAccess.get_files_at(bdir).size() == 0 if DirAccess.dir_exists_absolute(bdir) else true, "creating a NEW character makes no backup")
+	Game.prog("mage").set_level(10)
+	Save.save_game()
+	var before := FileAccess.get_file_as_string(p)
+	Game.reset_character("mage")
+	var files := DirAccess.get_files_at(bdir)
+	check(files.size() == 1 and String(files[0]).contains("replace-mage-lv10"), "Reset keeps a backup named after the replaced character", str(files))
+	var bk: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(bdir.path_join(files[0])))
+	check(FileAccess.get_file_as_string(bdir.path_join(files[0])) == before and int(bk.characters.mage.level) == 10, "the backup is the save exactly as it was (Lyra Lv10)")
+	check(Game.prog("mage").level == 1 and _qa_parse(p).characters.mage.level == 1, "the reset itself still happens")
+	# test / debug sessions never write the save, so they never back it up either
+	Game.start_fresh_test("mage")
+	check(DirAccess.get_files_at(bdir).size() == 1, "Fresh Lv1 Test makes no backup and no write")
+	Game.test_session = false
+	Game.fresh_test = false
+	Game.debug_tainted = true
+	check(Save.backup_before("x") == "", "a debug session makes no backup")
+	Game.debug_tainted = false
+	Save.enabled = false
+	check(Save.backup_before("x") == "", "disabled saving makes no backup")
+	Save.enabled = true
+	# permadeath True Death (on by default): the reset is autosaved at once, so the backup comes first
+	var h := await setup("vanguard", false, false, false)
+	Game.debug_tainted = false
+	Game.prog("vanguard").set_level(7)
+	Game.prog("vanguard").character_name = "Keeper"
+	Save.save_game()
+	var before_death := FileAccess.get_file_as_string(p)
+	Game.permadeath = true
+	Game.on_hero_true_death(h)
+	var deaths := Array(DirAccess.get_files_at(bdir)).filter(func(f): return String(f).contains("true-death-vanguard-lv7"))
+	check(deaths.size() == 1 and FileAccess.get_file_as_string(bdir.path_join(deaths[0])) == before_death, "permadeath True Death keeps a backup of the Lv7 save before resetting it")
+	check(int(_qa_parse(p).characters.vanguard.level) == 1, "the True Death reset itself is unchanged (permadeath rule kept)")
+	await teardown()
+	# pruning keeps the newest BACKUP_KEEP
+	for i in Save.BACKUP_KEEP + 3:
+		Save.backup_before("prune %d" % i)
+	check(DirAccess.get_files_at(bdir).size() == Save.BACKUP_KEEP, "only the newest %d backups are kept" % Save.BACKUP_KEEP)
+	for f in DirAccess.get_files_at(bdir):
+		DirAccess.remove_absolute(bdir.path_join(f))
+	_qa_end(p)
 
 
 func test_save_roundtrip() -> void:
@@ -611,11 +664,15 @@ func test_rv_tools_isolate_real_save() -> void:
 			continue
 		var txt := FileAccess.get_file_as_string("res://tests/" + fname)
 		var at := txt.find("load(\"res://scenes/main.tscn\")")
+		# 006 review 1: scripts that start a session directly (no main.tscn) are covered as well
+		var at2 := txt.find("Game.start_session(")
+		if at < 0 or (at2 >= 0 and at2 < at):
+			at = at2
 		if at < 0:
 			continue
 		n += 1
 		var before := txt.substr(0, at)
-		if not (before.contains("test_save_guard.gd\").isolate(") or before.contains("Save.enabled = false")):
+		if not (before.contains("test_save_guard.gd\").isolate(") or before.contains("Save.enabled = false") or before.contains("Save.path = ")):
 			bad.append(fname)
 	check(n >= 9 and bad.is_empty(), "all %d scripts that start main.tscn disable / redirect saving first" % n, "unsafe: %s" % str(bad))
 	# and the guard itself really redirects

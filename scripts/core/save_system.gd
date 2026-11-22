@@ -408,6 +408,53 @@ func created_characters() -> Array:
 	return out
 
 
+## COMBAT-BALANCE-UX-006 review 1 (save safety): before a destructive character operation (replacing a
+## created character, Reset, a permadeath True Death) the CURRENT save file is copied, unchanged, to
+## <save dir>/save_backups/<save name>.<reason>.<time>.json. The primary save is only read. Skipped when
+## saving is off (tests / tools), in debug or test sessions (nothing would be written), and when the
+## primary is missing, unreadable or from a newer build (it is never touched then anyway). Only the oldest
+## files this function created are pruned, keeping BACKUP_KEEP. Returns the backup path or "".
+const BACKUP_KEEP := 30
+
+func backup_dir() -> String:
+	return ProjectSettings.globalize_path(path).get_base_dir().path_join("save_backups")
+
+
+func backup_before(reason: String) -> String:
+	if not enabled or Game.debug_tainted or Game.test_session:
+		return ""
+	var abs_path := ProjectSettings.globalize_path(path)
+	if not FileAccess.file_exists(abs_path) or not (_read_file(abs_path) is Dictionary):
+		return ""
+	var dir := backup_dir()
+	DirAccess.make_dir_recursive_absolute(dir)
+	var safe_reason := reason.to_lower().replace(" ", "-").validate_filename()
+	var stamp := Time.get_datetime_string_from_system().replace(":", "").replace("-", "").replace("T", "-")
+	var dst := dir.path_join("%s.%s.%s.json" % [path.get_file().get_basename(), safe_reason, stamp])
+	var n := 1
+	while FileAccess.file_exists(dst):
+		dst = dir.path_join("%s.%s.%s-%d.json" % [path.get_file().get_basename(), safe_reason, stamp, n])
+		n += 1
+	if DirAccess.copy_absolute(abs_path, dst) != OK or not (_read_file(dst) is Dictionary):
+		last_error = "save backup failed"
+		push_warning(last_error)
+		return ""
+	_prune_backups(dir)
+	Events.log_message.emit("Save backed up before %s: %s" % [reason, dst.get_file()], "system")
+	return dst
+
+
+func _prune_backups(dir: String) -> void:
+	var prefix := path.get_file().get_basename() + "."
+	var files: Array = []
+	for f in DirAccess.get_files_at(dir):
+		if f.begins_with(prefix) and f.ends_with(".json"):
+			files.append(f)
+	files.sort_custom(func(a, b): return FileAccess.get_modified_time(dir.path_join(a)) < FileAccess.get_modified_time(dir.path_join(b)) or (FileAccess.get_modified_time(dir.path_join(a)) == FileAccess.get_modified_time(dir.path_join(b)) and a < b))
+	while files.size() > BACKUP_KEEP:
+		DirAccess.remove_absolute(dir.path_join(files.pop_front()))
+
+
 func delete_save() -> void:
 	if has_save():
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
