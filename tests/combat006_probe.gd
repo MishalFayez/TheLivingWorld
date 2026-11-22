@@ -120,6 +120,7 @@ func _cam_run(label: String, setup_fn: Callable, step_fn: Callable, frames: int)
 	var yaws: Array = []
 	var poss: Array = []
 	var hps: Array = []
+	var min_d := 99.0
 	for f in frames:
 		step_fn.call(h, e, f)
 		await get_tree().physics_frame
@@ -127,6 +128,7 @@ func _cam_run(label: String, setup_fn: Callable, step_fn: Callable, frames: int)
 		yaws.append(rig.yaw)
 		poss.append(rig.global_position)
 		hps.append(h.global_position)
+		min_d = minf(min_d, rig.cur_dist)
 	h.move_input = Vector3.ZERO
 	var max_acc := 0.0
 	var yaw_spikes := 0
@@ -149,7 +151,7 @@ func _cam_run(label: String, setup_fn: Callable, step_fn: Callable, frames: int)
 		var b1: Vector3 = hps[i - 1] - hps[i - 2]
 		var b2: Vector3 = hps[i] - hps[i - 1]
 		hero_jerk = maxf(hero_jerk, (b2 - b1).length() * 3600.0)
-	lines.append("CAMERA | %-34s | yaw accel max %6.1f rad/s2, spikes>60: %3d | cam pos accel max %6.1f m/s2, spikes>150: %3d | hero accel max %6.1f m/s2" % [label, max_acc, yaw_spikes, max_jerk, pos_spikes, hero_jerk])
+	lines.append("CAMERA | %-34s | yaw accel max %6.1f rad/s2, spikes>60: %3d | cam pos accel max %6.1f m/s2, spikes>150: %3d | hero accel max %6.1f m/s2 | closest cam %.2fm" % [label, max_acc, yaw_spikes, max_jerk, pos_spikes, hero_jerk, min_d])
 	e.queue_free()
 
 
@@ -235,4 +237,4 @@ func _dbg_lock() -> void:
 		if pp.size() >= 3:
 			acc = ((pp[-1] - pp[-2]) - (pp[-2] - pp[-3])).length() * 3600.0
 		if acc > 150.0 or f < 2:
-			lines.append("DBG acc %.0f f%02d d %.3f yaw %.4f pitch %.4f cur_dist %.3f frame_dist %.3f shift %s offfrac %.3f lift %.3f want %.3f target %.3f blocked %s pos %s" % [acc, f, d, rig.yaw, rig.pitch, rig.cur_dist, rig.frame_dist, str(rig.shift.snapped(Vector3.ONE * 0.001)), rig._offset_frac, rig.cam_lift, rig.dbg_want, rig.dbg_target, str(rig.dbg_blocked), str(rig.global_position.snapped(Vector3.ONE * 0.001))])
+			lines.append("DBG acc %.0f f%02d pullv %.2f d %.3f yaw %.4f pitch %.4f cur_dist %.3f frame_dist %.3f shift %s offfrac %.3f lift %.3f want %.3f target %.3f blocked %s pos %s" % [acc, f, rig._pull_v, d, rig.yaw, rig.pitch, rig.cur_dist, rig.frame_dist, str(rig.shift.snapped(Vector3.ONE * 0.001)), rig._offset_frac, rig.cam_lift, rig.dbg_want, rig.dbg_target, str(rig.dbg_blocked), str(rig.global_position.snapped(Vector3.ONE * 0.001))])

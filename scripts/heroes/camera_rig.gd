@@ -43,6 +43,9 @@ extends Node3D
 @export var pull_in_min_speed: float = 14.0    ## m/s minimum pull-in speed
 @export var near_clip_radius: float = 0.14     ## camera near-plane volume that must never be inside geometry
 @export var occlusion_pull_speed: float = 15.0
+@export var occlusion_pull_accel: float = 80.0    ## m/s^2: ramp of an anticipated (look-ahead) pull-in (006 review 1)
+var _pull_v: float = 0.0
+var _last_yaw: float = 0.0
 @export var min_collision_distance: float = 0.3 ## closest the camera may come to the pivot (was 0.6)
 @export var prediction_time: float = 0.3      ## s of pivot motion used to see obstacles coming
 @export var prediction_samples: int = 3       ## points sampled along the prediction horizon
@@ -195,11 +198,16 @@ func _update(delta: float) -> void:
 		# "follow" (>= 1.9m). Blade Dancer fights at 1.2-2.2m, so lateral Dance / Orbit crossed that line and
 		# the camera got a sudden yaw acceleration (measured ~1100 rad/s^2 spikes). Now the follow strength
 		# blends smoothly across hold_blend_width around the threshold; far targets behave exactly as before.
+		# 006 review 1: the follow RATE now rises continuously to ~600/s as w -> 1 (the former "w >= 0.999 ->
+		# exact heading" switch was itself a small yaw-velocity step: measured 364 m/s^2 camera spike while
+		# walking sideways around a locked target at ~2.19m). Exact heading only far beyond the blend, where the
+		# rate already makes the difference invisible (< 0.0001 of the lag).
 		var w := smoothstep(behind_hold_distance - hold_blend_width, behind_hold_distance + 0.3, d)
-		if w >= 0.999:
+		if d > behind_hold_distance + 0.8:
 			lock_heading = atan2(-to.x, -to.z)
 		elif w > 0.0:
-			lock_heading = lerp_angle(lock_heading, atan2(-to.x, -to.z), 1.0 - exp(-12.0 * w * delta))
+			var rate := 12.0 * w + 600.0 * pow(w, 40.0)
+			lock_heading = lerp_angle(lock_heading, atan2(-to.x, -to.z), 1.0 - exp(-rate * delta))
 		# manual offset recentres smoothly
 		var decay := exp(-lock_offset_decay * delta)
 		lock_offset_yaw *= decay
@@ -250,13 +258,20 @@ func _apply(hp: Vector3, delta: float, snap: bool) -> void:
 	if not snap and delta > 0.0 and _has_last_pivot:
 		var pv := (pivot - _last_pivot) / delta
 		pv.y = 0.0
-		if pv.length() > 0.3:
+		# 006 review 1: while orbiting a locked target the BOOM ROTATES (yaw ~2-3 rad/s), so the camera end
+		# sweeps sideways ~10-15 m/s although the pivot moves only ~3-4 m/s. Predicting only the pivot's
+		# translation saw scenery one frame before it entered the boom (late, full-speed pull-in = the remaining
+		# 2-3 frame spike). The predicted boom now also turns by the measured yaw rate.
+		var yaw_rate := wrapf(yaw - _last_yaw, -PI, PI) / delta
+		if pv.length() > 0.3 or absf(yaw_rate) > 0.3:
 			# sample the whole horizon, not only its end: an obstacle crossed WITHIN the horizon (sliding past a
 			# pillar on a curved path) is otherwise missed, the camera eases out, and later needs a snap
 			for k in range(1, prediction_samples + 1):
 				var t := prediction_time * float(k) / float(prediction_samples)
-				target = minf(target, _collision_distance(pivot + pv * t, back, frame_dist, prediction_radius))
+				var back_t := back.rotated(Vector3.UP, yaw_rate * t) if absf(yaw_rate) > 0.3 else back
+				target = minf(target, _collision_distance(pivot + pv * t, back_t, frame_dist, prediction_radius))
 	_last_pivot = pivot
+	_last_yaw = yaw
 	_has_last_pivot = true
 	# COMBAT-BALANCE-UX-006 jitter fix: cast_motion returns a QUANTIZED safe fraction, so while the boom is
 	# limited by geometry the limit rises in 2-3 cm steps on alternate frames and the camera copied that
@@ -271,9 +286,25 @@ func _apply(hp: Vector3, delta: float, snap: bool) -> void:
 		_limit_smooth = minf(target, lerpf(_limit_smooth, target, 1.0 - exp(-limit_rise_rate * delta)))
 	target = _limit_smooth
 	if snap:
+		_pull_v = 0.0
 		cur_dist = want
+	elif target >= cur_dist and _pull_v > 0.0:
+		# the anticipated obstacle cleared while still pulling in: coast to a stop at the same bounded rate
+		# (zeroing the speed at once was a small one-frame stop), never closer than the real limit allows
+		_pull_v = maxf(0.0, _pull_v - occlusion_pull_accel * delta)
+		var coast_d := cur_dist - _pull_v * delta
+		if not _penetrating(pivot + back * coast_d):
+			cur_dist = coast_d
 	elif target < cur_dist:
-		var next_d := move_toward(cur_dist, target, occlusion_pull_speed * delta)
+		# 006 review 1: an ANTICIPATED pull-in (only the look-ahead sees the obstacle; the boom is still clear)
+		# starts gently with a bounded acceleration instead of jumping to full speed in one frame (measured:
+		# 605 m/s^2 camera spike while walking sideways around a locked target). A real occluder (the current
+		# boom is already blocked) still pulls in at full speed, and the anti-clipping snap below is unchanged.
+		var urgent := want < cur_dist - 0.01
+		# ...and brakes into the target with the same bounded deceleration (no 15 -> 0 m/s stop in one frame)
+		var brake := sqrt(2.0 * occlusion_pull_accel * maxf(cur_dist - target, 0.0))
+		_pull_v = occlusion_pull_speed if urgent else minf(minf(occlusion_pull_speed, _pull_v + occlusion_pull_accel * delta), maxf(brake, 0.25 * occlusion_pull_accel * delta))
+		var next_d := move_toward(cur_dist, target, _pull_v * delta)
 		if _penetrating(pivot + back * next_d):
 			if debug_track_inside:
 				last_snap_info = _overlap_info(pivot + back * next_d) + " d %.2f->%.2f" % [cur_dist, want]
