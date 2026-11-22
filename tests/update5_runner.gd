@@ -38,7 +38,50 @@ func _run_all() -> void:
 	await test_rv3_accepted_saves_load_cleanly()
 	await test_rv4_newer_save_blocks_saving_sessions()
 	await test_006r1_backup_before_destructive()
+	await test_006r2_name_confirmation()
 	await teardown()
+
+
+## COMBAT-BALANCE-UX-006 review 2: Reset / Create over an existing character needs the character's name typed
+## before "Replace" works; nothing is replaced on cancel; a new (empty) class is created without the prompt.
+func test_006r2_name_confirmation() -> void:
+	print("\n[006 review 2: destructive Reset / Create require the character's name]")
+	var p: String = await _qa_begin("nc006.json")
+	Game.create_character("mage", "Lyra")
+	Game.prog("mage").set_level(9)
+	Save.save_game()
+	Game.auto_open_drafts = false
+	var main = load("res://scenes/main.tscn").instantiate()
+	add_child(main)
+	await wait(0.1)
+	main._ask_reset("mage")
+	await wait(0.05)
+	var ok: Button = main.confirm.get_ok_button()
+	check(main.confirm.visible and main.name_box.visible and ok.disabled, "Reset asks for the name; Replace is disabled")
+	main.name_confirm_edit.text = "Lyr"
+	main._on_confirm_name_changed("Lyr")
+	check(ok.disabled, "a wrong / partial name keeps Replace disabled")
+	main.name_confirm_edit.text = " lyra "
+	main._on_confirm_name_changed(" lyra ")
+	check(not ok.disabled, "the name (any case, spaces ignored) enables Replace")
+	main.confirm.hide()
+	await wait(0.05)
+	check(Game.prog("mage").level == 9, "cancelling replaces nothing")
+	# Create over the existing Mage: same protection
+	main._goto("create")
+	main._pick_new_class("mage")
+	main._confirm_create()
+	await wait(0.05)
+	check(main.name_box.visible and main.confirm.get_ok_button().disabled, "Create over an existing character asks for the name too")
+	main.confirm.hide()
+	# an empty class is created directly (nothing to lose)
+	main._pick_new_class("reaver")
+	check(not Game.prog("reaver").created, "control: no Reaver yet")
+	main.queue_free()
+	await wait(0.05)
+	for f in DirAccess.get_files_at(Save.backup_dir()) if DirAccess.dir_exists_absolute(Save.backup_dir()) else []:
+		DirAccess.remove_absolute(Save.backup_dir().path_join(f))
+	_qa_end(p)
 
 
 ## COMBAT-BALANCE-UX-006 review 1: replacing / resetting a character and a permadeath True Death first copy

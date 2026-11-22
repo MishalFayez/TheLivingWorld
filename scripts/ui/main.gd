@@ -18,6 +18,10 @@ var preview: ModelPreview
 var info_box: VBoxContainer
 var name_edit: LineEdit
 var confirm: ConfirmationDialog
+var name_box: VBoxContainer
+var name_msg: Label
+var name_confirm_edit: LineEdit
+var _confirm_name: String = ""
 var class_buttons: Dictionary = {}
 var select_list: VBoxContainer
 
@@ -82,7 +86,47 @@ func _show_menu() -> void:
 	confirm.ok_button_text = "Replace"
 	confirm.cancel_button_text = "Cancel"
 	root.add_child(confirm)
+	# 006 review 2 (save safety): destructive Reset / Create over an existing character needs the name typed
+	name_box = VBoxContainer.new()
+	name_box.add_theme_constant_override("separation", 10)
+	name_msg = Label.new()
+	name_msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_msg.custom_minimum_size = Vector2(480, 0)
+	name_box.add_child(name_msg)
+	name_confirm_edit = LineEdit.new()
+	name_confirm_edit.text_changed.connect(_on_confirm_name_changed)
+	name_box.add_child(name_confirm_edit)
+	name_box.visible = false
+	confirm.add_child(name_box)
 	_goto("title")
+
+
+## Shows `msg` and requires the character's name (case-insensitive) before the destructive OK is enabled.
+func _arm_name_confirm(msg: String, char_name: String) -> void:
+	_confirm_name = char_name.strip_edges() if char_name.strip_edges() != "" else "REPLACE"
+	confirm.dialog_text = ""
+	name_msg.text = msg + "\n\nA backup of your save is kept automatically.\nType the character's name to confirm:  " + _confirm_name
+	name_confirm_edit.text = ""
+	name_confirm_edit.placeholder_text = _confirm_name
+	name_box.visible = true
+	confirm.get_ok_button().disabled = true
+
+
+func _disarm_name_confirm() -> void:
+	_confirm_name = ""
+	if name_box:
+		name_box.visible = false
+	confirm.get_ok_button().disabled = false
+
+
+func _on_confirm_name_changed(t: String) -> void:
+	confirm.get_ok_button().disabled = _confirm_name == "" or t.strip_edges().to_lower() != _confirm_name.to_lower()
+
+
+func _popup_confirm() -> void:
+	confirm.popup_centered()
+	if name_box.visible:
+		name_confirm_edit.grab_focus()
 
 
 func _goto(s: String) -> void:
@@ -300,6 +344,7 @@ func _pick_new_class(cid: String) -> void:
 
 ## REVIEW-004: while a newer-version save is protected, a character can only start a labelled test session.
 func _confirm_test_session() -> void:
+	_disarm_name_confirm()
 	confirm.title = "Test session - not saved"
 	confirm.ok_button_text = "Start Test Session"
 	confirm.dialog_text = ("Your save was made by a newer version of the game and is protected: it will not be changed.\n" +
@@ -324,11 +369,11 @@ func _confirm_create() -> void:
 	confirm.ok_button_text = "Replace"
 	var p := Game.prog(new_class)
 	if p.created:
-		confirm.dialog_text = "Your %s %s (Level %d) will be permanently replaced by a new Level 1 character.\nOther classes are not affected." % [new_class.capitalize(), p.character_name, p.level]
+		_arm_name_confirm("Your %s %s (Level %d) will be permanently replaced by a new Level 1 character.\nOther classes are not affected." % [new_class.capitalize(), p.character_name, p.level], p.character_name)
 		for cn in confirm.confirmed.get_connections():
 			confirm.confirmed.disconnect(cn.callable)
 		confirm.confirmed.connect(_create_now)
-		confirm.popup_centered()
+		_popup_confirm()
 	else:
 		_create_now()
 
@@ -409,13 +454,13 @@ func _ask_reset(cid: String) -> void:
 	var p := Game.prog(cid)
 	confirm.title = "Replace character?"
 	confirm.ok_button_text = "Replace"
-	confirm.dialog_text = "Reset %s (Level %d) back to a fresh Level 1 %s?\nThis cannot be undone. Other classes are not affected." % [p.character_name, p.level, cid.capitalize()]
+	_arm_name_confirm("Reset %s (Level %d) back to a fresh Level 1 %s?\nThis cannot be undone. Other classes are not affected." % [p.character_name, p.level, cid.capitalize()], p.character_name)
 	for cn in confirm.confirmed.get_connections():
 		confirm.confirmed.disconnect(cn.callable)
 	confirm.confirmed.connect(func():
 		Game.reset_character(cid)
 		_refresh_select())
-	confirm.popup_centered()
+	_popup_confirm()
 
 
 # ------------------------------------------------------------------ settings
