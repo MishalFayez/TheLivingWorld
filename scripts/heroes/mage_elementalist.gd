@@ -75,6 +75,22 @@ var pending_slot: Dictionary = {}
 var restore_spell: Dictionary = {}     # Emergency Thread: {slot, spell, until} restored by the next press
 var wheel_events: Array = []           # diagnostics: [{kind, slot, from, to}]
 var cur_mods: Dictionary = {"min": 1.0, "full": 1.0}
+## COMBAT-BALANCE-UX-006 review 2 (approved): the two buttons have DIFFERENT default groups, chosen by the
+## spell's actual function (not its colour). 0 = LMB "Offensive Elements", 1 = RMB "Life & Control".
+## Level 1-10 charged spells: Flame Cataclysm / Earthbreaker (heavy stone damage + Poise) / Thunder Conduit ->
+## LMB; Life Bloom (heal) / Crystal Formation (ice formation, control) -> RMB. Advanced (Debug-only) spells are
+## classified too so a Debug grant never lands in a surprising wheel. Utility (3) and emergency (F) spells are
+## not charged and keep their own keys.
+const DEFAULT_WHEEL := {"flame_cataclysm": 0, "inferno_wave": 0, "cinderfall": 0, "glacial_spear": 0, "earthbreaker": 0,
+	"thunder_conduit": 0, "lightning_verdict": 0, "storm_arc": 0,
+	"life_bloom": 1, "verdant_renewal": 1, "crystal_formation": 1}
+const WHEEL_NAMES := ["Offensive Elements", "Life & Control"]
+## One-line function of each charged spell (Spellbook / wheel labels).
+const SPELL_ROLE := {"flame_cataclysm": "fire damage, burning area", "inferno_wave": "fire wave, area pressure",
+	"cinderfall": "delayed fire impact", "glacial_spear": "ice projectile, chill", "earthbreaker": "heavy stone damage, Poise",
+	"thunder_conduit": "lightning damage, chains", "lightning_verdict": "bolt that cancels a preparation",
+	"storm_arc": "lightning along a path", "life_bloom": "healing", "verdant_renewal": "healing over time",
+	"crystal_formation": "ice formation, blocks and chills"}
 
 
 func _init(p_kit) -> void:
@@ -336,12 +352,25 @@ func wheel_options(slot: int = -1) -> Array:
 	var set: Array = []
 	if slot >= 0:
 		set = prog().wheel_set(slot)
+		if set.is_empty():
+			set = default_wheel(slot)
 	var cur_id := slot_spell(slot) if slot >= 0 else ""
 	for e in ELEMENT_ORDER:
 		for id in known_charged():
-			if spells[id].element == e and (set.is_empty() or set.has(id) or id == cur_id):
+			if spells[id].element == e and (slot < 0 or set.has(id) or id == cur_id):
 				out.append(id)
 	return out
+
+
+## 006 review 2: the default (not customized) group of a wheel - the known charged spells whose function
+## belongs to it. Grows automatically as spells unlock. Never empty: if nothing known fits, every known
+## charged spell is offered (a wheel must stay usable).
+func default_wheel(slot: int) -> Array:
+	var out: Array = []
+	for id in known_charged():
+		if int(DEFAULT_WHEEL.get(id, 0)) == slot:
+			out.append(id)
+	return out if not out.is_empty() else known_charged()
 
 
 func _close_wheel() -> void:
@@ -794,7 +823,11 @@ func interaction(id: String, detail: String, pos: Vector3) -> void:
 	Events.elemental_interaction.emit(hero, id, detail)
 	Events.log_message.emit("%s: %s" % [id.replace("_", " ").capitalize(), detail], "fusion")
 	var lbl := Label3D.new()
-	lbl.text = id.replace("_", " ").to_upper()
+	# 006 review 2 (elemental feedback): the interaction name AND the effect it actually produced
+	var eff := detail.strip_edges()
+	if eff.length() > 46:
+		eff = eff.substr(0, 44) + "…"
+	lbl.text = id.replace("_", " ").to_upper() + ("\n" + eff if eff != "" else "")
 	lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	lbl.no_depth_test = true
 	lbl.font_size = 44

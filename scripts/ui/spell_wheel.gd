@@ -106,7 +106,7 @@ func _draw() -> void:
 				draw_arc(c, R_OUT + 10.0, a0, a1, 24, Color(1, 0.95, 0.75, 0.6 + 0.3 * sin(Time.get_ticks_msec() * 0.012)), 3.0, true)
 	draw_arc(c, R_IN, 0, TAU, 48, Color(1, 0.9, 0.6, 0.35), 1.5, true)
 	var slot_name: String = ["LMB", "RMB"][clampi(el.wheel_slot, 0, 1)]
-	var hint := "%s wheel · point to choose · release to cast" % slot_name
+	var hint := "%s · %s · point to choose · release to cast" % [slot_name, MageElementalist.WHEEL_NAMES[clampi(el.wheel_slot, 0, 1)]]
 	var hw := font.get_string_size(hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
 	draw_string_outline(font, c + Vector2(-hw * 0.5, R_OUT + 34.0), hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, 4, Color(0, 0, 0, 0.75))
 	draw_string(font, c + Vector2(-hw * 0.5, R_OUT + 34.0), hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(0.9, 0.85, 0.72, 0.85))

@@ -297,9 +297,13 @@ func test_casting_wheels() -> void:
 	# RMB has its own wheel and set; healing can be in either wheel
 	var pr := Game.prog("mage")
 	pr.wheel_sets = {"0": [lmb0]}
-	check(el.wheel_options(0).size() == 1 and el.wheel_options(1).size() == el.known_charged().size(), "LMB and RMB wheels have independent spell sets (Spellbook)")
+	# 006 review 2 (approved): the wheels have DIFFERENT default groups; customizing one leaves the other's default
+	check(el.wheel_options(0).size() == 1 and _same(el.wheel_options(1), el.default_wheel(1)), "LMB and RMB wheels have independent spell sets (Spellbook)")
 	pr.wheel_sets = {}
-	check(el.wheel_options(0).has("life_bloom") and el.wheel_options(1).has("life_bloom"), "healing is available in both wheels (no damage-only / heal-only split)")
+	check(el.wheel_options(1).has("life_bloom") and not el.wheel_options(0).has("life_bloom"), "healing sits in the RMB (Life & Control) wheel by default")
+	pr.set_wheel_member(0, "life_bloom", true, el.wheel_options(0))
+	check(el.wheel_options(0).has("life_bloom") and el.wheel_options(1).has("life_bloom"), "the player may also put healing in the LMB wheel (Spellbook)")
+	pr.wheel_sets = {}
 	h.kit.mana = 100.0
 	h.press("heavy")
 	await wait(0.2)
@@ -372,6 +376,45 @@ func test_wheel_cancellations() -> void:
 	await wait(0.1)
 	check(h.hp > hp0, "F (Lifeline) still heals")
 	await test_wheel_review1()
+	await test_wheel_defaults_review2()
+
+
+## 006 review 2: LMB = Offensive Elements, RMB = Life & Control by default; distinct at every level 1-10,
+## never empty, grows with unlocks, Debug-only spells excluded, customization saved and resettable.
+func test_wheel_defaults_review2() -> void:
+	print("\n[006 review 2: distinct default wheels at every unlock level]")
+	var expect := {1: [["flame_cataclysm"], ["life_bloom"]], 3: [["flame_cataclysm"], ["life_bloom", "crystal_formation"]],
+		7: [["flame_cataclysm", "earthbreaker"], ["life_bloom", "crystal_formation"]],
+		9: [["flame_cataclysm", "earthbreaker", "thunder_conduit"], ["life_bloom", "crystal_formation"]],
+		10: [["flame_cataclysm", "earthbreaker", "thunder_conduit"], ["life_bloom", "crystal_formation"]]}
+	for lvl in expect:
+		var h := await castw(lvl)
+		var el: MageElementalist = h.kit.el
+		Game.prog("mage").wheel_sets = {}
+		var l0: Array = el.wheel_options(0)
+		var l1: Array = el.wheel_options(1)
+		var ok: bool = l0.size() == expect[lvl][0].size() and l1.size() == expect[lvl][1].size()
+		for id in expect[lvl][0]:
+			ok = ok and l0.has(id)
+		for id in expect[lvl][1]:
+			ok = ok and l1.has(id)
+		var shared := l0.filter(func(x): return l1.has(x))
+		check(ok and shared.is_empty() and not l0.is_empty() and not l1.is_empty(), "Lv%d: LMB %s | RMB %s (distinct, none empty)" % [lvl, l0, l1])
+		check(not (l0 + l1).any(func(x): return el.spells[x].advanced), "Lv%d: no Debug-only spell in the normal wheels" % lvl)
+	# customization: saved, reloaded, and the default can be restored
+	var h2 := await castw(9)
+	var e2: MageElementalist = h2.kit.el
+	var pr := Game.prog("mage")
+	pr.wheel_sets = {}
+	pr.set_wheel_member(1, "thunder_conduit", true, e2.wheel_options(1))
+	var d := pr.to_dict()
+	var p2 := ClassProgress.new("mage")
+	p2.from_dict(d)
+	check(p2.wheel_set(1).has("thunder_conduit") and p2.wheel_set(1).has("life_bloom") and p2.wheel_set(0).is_empty(), "a customized RMB wheel is saved and loaded (LMB stays default)")
+	pr.wheel_sets.erase("1")
+	check(_same(e2.wheel_options(1), e2.default_wheel(1)), "restoring the default group")
+	# quick tap still casts each button's last spell; RMB's default is the heal
+	check(e2.slot_spell(0) == "flame_cataclysm" and e2.slot_spell(1) == "life_bloom", "fresh loadout: LMB Flame, RMB Life Bloom")
 
 
 ## 006 review 1, Part 4: switching does not delay quick casts; the camera does not turn or snap around the
@@ -503,3 +546,10 @@ func test_ui_clarity() -> void:
 	g01.params["stamina_off"] = 0.3
 	check(AugmentText.short(g01, false).contains("30%"), "the card number comes from the resource (30% after changing it)")
 	g01.params["stamina_off"] = 0.25
+
+func _same(a: Array, b: Array) -> bool:
+	var x := a.duplicate()
+	var y := b.duplicate()
+	x.sort()
+	y.sort()
+	return x == y

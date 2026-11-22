@@ -321,15 +321,17 @@ func from_dict(d: Dictionary) -> void:
 			if ws.get(k) is Array:
 				wheel_sets[k] = Array(ws[k]).filter(func(x): return x is String)
 
-## Spells assigned to a casting wheel (0 = LMB, 1 = RMB); empty = every known charged spell.
+## Spells assigned to a casting wheel (0 = LMB, 1 = RMB) by the player. Empty = not customized: the wheel shows
+## its DEFAULT group (006 review 2: LMB offensive / RMB life & control, MageElementalist.default_wheel).
 func wheel_set(slot: int) -> Array:
 	return Array(wheel_sets.get(str(slot), []))
 
 
-func set_wheel_member(slot: int, id: String, on: bool, all_known: Array) -> void:
+## `shown_now` = what the wheel offers before this change (its default group when not customized yet).
+func set_wheel_member(slot: int, id: String, on: bool, shown_now: Array) -> void:
 	var cur: Array = wheel_set(slot)
 	if cur.is_empty():
-		cur = all_known.duplicate()
+		cur = shown_now.duplicate()
 	if on and not cur.has(id):
 		cur.append(id)
 	elif not on:

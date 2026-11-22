@@ -826,28 +826,43 @@ func _spellbook() -> Control:
 	# wheel's current (last cast) spell; healing may sit in either wheel.
 	v.add_child(UITheme.title("CASTING WHEELS  ·  hold LMB / RMB, point to a spell, release to cast", 16))
 	var wgrid := GridContainer.new()
-	wgrid.columns = 3
+	wgrid.columns = 4
 	wgrid.add_theme_constant_override("h_separation", 26)
 	v.add_child(wgrid)
-	for hd in ["Spell", "LMB wheel", "RMB wheel"]:
+	for hd in ["Spell", "Function", "LMB · " + MageElementalist.WHEEL_NAMES[0], "RMB · " + MageElementalist.WHEEL_NAMES[1]]:
 		wgrid.add_child(UITheme.text(hd, 14, UITheme.GOLD, true))
 	var pr := Game.prog()
 	for sid in e.wheel_options():
 		var s: ChargedSpellData = e.spells[sid]
 		wgrid.add_child(UITheme.text("%s  (%s)" % [s.display_name, s.element.capitalize()], 14, MageElementalist.COLORS.get(s.element, UITheme.PARCHMENT)))
+		wgrid.add_child(UITheme.text(String(MageElementalist.SPELL_ROLE.get(sid, "")), 14, UITheme.TEXT_DIM))
 		for slot in [0, 1]:
 			var cb := CheckBox.new()
 			cb.focus_mode = Control.FOCUS_ALL
-			var set: Array = pr.wheel_set(slot)
-			cb.button_pressed = set.is_empty() or set.has(sid) or e.slot_spell(slot) == sid
+			cb.button_pressed = e.wheel_options(slot).has(sid)
 			cb.disabled = e.slot_spell(slot) == sid      # the wheel's current spell stays in it
 			var sl: int = slot
 			var id: String = sid
 			cb.toggled.connect(func(on):
-				pr.set_wheel_member(sl, id, on, e.wheel_options())
+				# 006 review 2: customizing starts from what the wheel shows now (its default group)
+				pr.set_wheel_member(sl, id, on, e.wheel_options(sl))
 				Game.autosave()
 				show_tab("Spellbook"))
 			wgrid.add_child(cb)
+	var reset_row := HBoxContainer.new()
+	reset_row.add_theme_constant_override("separation", 16)
+	for slot in [0, 1]:
+		var sl2: int = slot
+		var customized: bool = not pr.wheel_set(slot).is_empty()
+		var rb := Button.new()
+		rb.text = "%s wheel: %s" % [["LMB", "RMB"][slot], "restore default group" if customized else "default group"]
+		rb.disabled = not customized
+		rb.pressed.connect(func():
+			pr.wheel_sets.erase(str(sl2))
+			Game.autosave()
+			show_tab("Spellbook"))
+		reset_row.add_child(rb)
+	v.add_child(reset_row)
 	if e.bloom_modes_known():
 		var bm := CheckButton.new()
 		bm.focus_mode = Control.FOCUS_NONE
