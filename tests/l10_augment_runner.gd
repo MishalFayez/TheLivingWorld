@@ -664,7 +664,8 @@ func test_vanguard_cards() -> void:
 	pg.source_pos = r.global_position
 	h.take_damage(pg)
 	check(pg.perfect and h.rt.active("vk01") and h.rt.active("vk02"), "Perfect Guard opens Aegis Reversal and Precise Defense")
-	check(absf(h.rt.perfect_window_bonus() - 0.03) < 0.0001, "V-K02: next Perfect Guard window +0.03s")
+	# 006 review 1: the bonus is 0.08s (measured: 0.03s was barely noticeable; tests/precise_defense_probe)
+	check(absf(h.rt.perfect_window_bonus() - 0.08) < 0.0001, "V-K02: next Perfect Guard window +0.08s")
 	h.release("guard")
 	await wait(0.05)
 	dmg.clear()

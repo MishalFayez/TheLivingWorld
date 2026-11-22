@@ -95,6 +95,13 @@ func fire(id: String, detail: String) -> void:
 		PlaceholderSfx.play(hero, "augment")
 
 
+## 006 review 1 (activation clarity): a short "ready" cue for the player when a card's window OPENS (what to
+## do next). Feedback only: it is not an activation (no count, no augment_triggered, no effect).
+func cue(text: String) -> void:
+	if hero.is_player:
+		FX.number(hero, text, Color(0.62, 0.9, 1.0), 0.6)
+
+
 func _is_enemy(t) -> bool:
 	return t != null and is_instance_valid(t) and t is Enemy
 
@@ -227,6 +234,7 @@ func on_hit_landed(target, info: DamageInfo) -> void:
 			open("rd03", float(pv("rd03_circling_predator", "window", 2.0)), {"target": target})
 			use_cd("rd03", float(pv("rd03_circling_predator", "cooldown", 7.0)))
 			fire("rd03_circling_predator", "Flank hit (%.0f deg): Predator follow-up ready (LMB)" % ang)
+			cue("PREDATOR CUT READY: LMB within %.0fs" % float(pv("rd03_circling_predator", "window", 2.0)))
 	# V-K05 Judgment Echo: a connecting counter opens one follow-up
 	if first and ctx.get("counter", false) and has("vk05_judgment_echo") and ready("vk05"):
 		open("vk05", float(pv("vk05_judgment_echo", "window", 2.0)), {"reversal": ctx.get("reversal", false)})
@@ -440,7 +448,7 @@ func guard_forward_fraction() -> float:
 
 func perfect_window_bonus() -> float:
 	if active("vk02"):
-		return float(pv("vk02_precise_defense", "extra_window", 0.03))
+		return float(pv("vk02_precise_defense", "extra_window", 0.08))
 	return 0.0
 
 
@@ -476,7 +484,7 @@ func _on_perfect_guard(info) -> void:
 	if has("vk02_precise_defense") and ready("vk02_cd"):
 		use_cd("vk02_cd", float(pv("vk02_precise_defense", "cooldown", 10.0)))
 		open("vk02", float(pv("vk02_precise_defense", "window", 4.0)))
-		fire("vk02_precise_defense", "Next Perfect Guard window +%.2fs" % float(pv("vk02_precise_defense", "extra_window", 0.03)))
+		fire("vk02_precise_defense", "Next Perfect Guard window +%.2fs" % float(pv("vk02_precise_defense", "extra_window", 0.08)))
 	elif active("vk02"):
 		take("vk02")   # single use: the widened opportunity was used by this Perfect Guard
 	if has("vk01_aegis_reversal"):
@@ -705,7 +713,9 @@ const INTERACTION_ELEMENT := {"thermal_fracture": "fire", "living_bastion": "lif
 func _on_interaction(caster, interaction_id: String, _detail: String) -> void:
 	if caster != hero or not has("mf05_living_confluence") or not ready("mf05"):
 		return
-	open("mf05", float(pv("mf05_living_confluence", "window", 4.0)), {"element": String(INTERACTION_ELEMENT.get(interaction_id, "")), "id": interaction_id})
+	var el := String(INTERACTION_ELEMENT.get(interaction_id, ""))
+	open("mf05", float(pv("mf05_living_confluence", "window", 4.0)), {"element": el, "id": interaction_id})
+	cue("CONFLUENCE READY: cast a non-%s spell" % el.capitalize() if el != "" else "CONFLUENCE READY: cast another element")
 
 
 func _on_damage_applied(info) -> void:

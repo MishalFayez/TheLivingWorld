@@ -17,17 +17,17 @@ const BUILDS := {
 		"A2": ["vb01_living_fortress", "vb03_bastion_pulse"], "B2": ["vk01_aegis_reversal", "vk04_retaliation_window"],
 		"A3 syn": ["vb01_living_fortress", "vb03_bastion_pulse", "vb04_heavy_anchor"], "A3 alt": ["vb01_living_fortress", "vb04_heavy_anchor", "vc02_steel_foundation"],
 		"B3 syn": ["vk01_aegis_reversal", "vk03_redirected_force", "vk04_retaliation_window"], "B3 alt": ["vk01_aegis_reversal", "vk05_judgment_echo", "vk02_precise_defense"],
-		"A3 party": ["vb01_living_fortress", "vb03_bastion_pulse", "vc03_shared_aegis"], "B3 party": ["vk01_aegis_reversal", "vk05_judgment_echo", "vk06_guardians_retort"]},
+		"vk02 only": ["vk02_precise_defense"], "A3 party": ["vb01_living_fortress", "vb03_bastion_pulse", "vc03_shared_aegis"], "B3 party": ["vk01_aegis_reversal", "vk05_judgment_echo", "vk06_guardians_retort"]},
 	"mage": {"A1": ["mf01_elemental_crossroads"], "B1": ["ma01_spell_threading"],
 		"A2": ["mf01_elemental_crossroads", "mf03_thermal_fracture"], "B2": ["ma01_spell_threading", "mc05_dual_invocation"],
 		"A3 syn": ["mf01_elemental_crossroads", "mf03_thermal_fracture", "mf05_living_confluence"], "A3 alt": ["mf01_elemental_crossroads", "mf02_lingering_essence", "mc02_gentle_current"],
 		"B3 syn": ["ma01_spell_threading", "mc05_dual_invocation", "ma03_rewoven_spell"], "B3 alt": ["ma01_spell_threading", "ma04_swift_invocation", "mc03_elemental_memory"],
-		"A3 party": ["mf01_elemental_crossroads", "mf05_living_confluence", "mc06_woven_protection"], "B3 party": ["ma01_spell_threading", "ma05_sympathetic_link", "ma02_arcane_relay"]},
+		"mf05 only": ["mf05_living_confluence"], "ma03 only": ["ma03_rewoven_spell"], "A3 party": ["mf01_elemental_crossroads", "mf05_living_confluence", "mc06_woven_protection"], "B3 party": ["ma01_spell_threading", "ma05_sympathetic_link", "ma02_arcane_relay"]},
 	"reaver": {"A1": ["rd01_phantom_footwork"], "B1": ["re01_perfect_draw"],
 		"A2": ["rd01_phantom_footwork", "rd02_flowing_steps"], "B2": ["re01_perfect_draw", "re03_fracturing_edge"],
 		"A3 syn": ["rd01_phantom_footwork", "rd02_flowing_steps", "rd05_tempest_waltz"], "A3 alt": ["rd01_phantom_footwork", "rd04_extended_orbit", "rc02_swordsmans_breath"],
 		"B3 syn": ["re01_perfect_draw", "re03_fracturing_edge", "rc06_clean_execution"], "B3 alt": ["re01_perfect_draw", "re06_patient_blade", "re02_steel_focus"],
-		"A3 party": ["rd01_phantom_footwork", "rd02_flowing_steps", "g02_measured_recovery"], "B3 party": ["re01_perfect_draw", "re03_fracturing_edge", "g03_echoing_impact"]},
+		"rd03 only": ["rd03_circling_predator"], "A3 party": ["rd01_phantom_footwork", "rd02_flowing_steps", "g02_measured_recovery"], "B3 party": ["re01_perfect_draw", "re03_fracturing_edge", "g03_echoing_impact"]},
 }
 ## [level, build, encounter, party]
 const PLAN := [
@@ -49,7 +49,8 @@ const SCRIPTED_ALL := [[1, "none", "elite raider", "dps"], [3, "none", "elite ra
 	[4, "A1", "elite raider", "dps"], [4, "B1", "elite raider", "dps"],
 	[10, "A3 syn", "elite raider", "dps"], [10, "A3 alt", "elite raider", "dps"], [10, "B3 syn", "elite raider", "dps"], [10, "B3 alt", "elite raider", "dps"],
 	[10, "none", "elite raider", "nodef"], [10, "none", "elite raider", "defend"],
-	[10, "none", "boss", "boss"], [10, "A3 syn", "boss", "boss"], [10, "B3 syn", "boss", "boss"]]
+	[10, "none", "boss", "boss"], [10, "A3 syn", "boss", "boss"], [10, "B3 syn", "boss", "boss"],
+	[10, "AUDIT", "elite raider", "dps"], [10, "AUDIT", "boss", "boss"]]
 const SCRIPTED_BOSS := [[10, "none", "elite raider", "dps"], [10, "none", "boss", "boss"], [10, "A3 syn", "boss", "boss"], [10, "B3 syn", "boss", "boss"]]
 
 var trig_n: Dictionary = {}
@@ -105,8 +106,12 @@ func _setup_hero(cls: String, level: int, build: String, party: bool) -> Hero:
 	for c in Game.CLASSES:
 		Game.prog(c).pending_drafts = 0
 		Game.prog(c).pending_draft_tiers.clear()
-	if build != "none":
-		for id in BUILDS[cls][build]:
+	var bname := build
+	if build == "AUDIT":
+		# 006 review 1 Augment audit: one card alone against the no-card baseline
+		bname = {"vanguard": "vk02 only", "mage": "mf05 only", "reaver": "rd03 only"}[cls]
+	if bname != "none":
+		for id in BUILDS[cls][bname]:
 			Game.prog(cls).augments.append(id)
 	await wait(0.2)
 	h.refresh_stats(true)
@@ -240,6 +245,8 @@ func _scripted_run(cls: String, level: int, build: String, enemy: String, mode: 
 	var dodges := 0
 	var hp_start := r.hp
 	var zones: Array = []          # active Burning Ground circles [pos, until]
+	var stuck := 0
+	var arena_mid: Vector3 = (h.global_position + r.global_position) * 0.5
 	var hold := -1
 	var hold_action := ""
 	var step := 0
@@ -254,8 +261,17 @@ func _scripted_run(cls: String, level: int, build: String, enemy: String, mode: 
 		var to: Vector3 = r.global_position - h.global_position
 		to.y = 0
 		var incoming: bool = defend and r.runner.is_busy() and r.runner.phase == AttackRunner.Phase.STARTUP and r.runner.data != null \
-			and (r.runner.data.hits > 0 or r.runner.data.special in ["lance_far", "execution"]) \
+			and (r.runner.data.hits > 0 or r.runner.data.special == "execution" or (cls == "vanguard" and r.runner.data.special == "lance_far")) \
 			and r.runner.t > r.runner.data.startup - 0.14 and to.length() < 7.5
+		# 006 review 1 benchmark fix: Ember Lance is aimed on release (not homing) - dodgers answer the projectile
+		# when it is about to arrive, not the windup (an early dodge was punished every time)
+		if defend and cls != "vanguard" and not incoming:
+			for pj in Game.world.get_children():
+				if pj is Projectile and pj.source == r and is_instance_valid(pj):
+					var rel: Vector3 = h.global_position - pj.global_position
+					rel.y = 0
+					if rel.length() < 3.2:
+						incoming = true
 		# Burning Ground: the marked circle (2.8m) is placed where you stood when the windup began - walk out of it
 		var burning: bool = defend and r.runner.is_busy() and r.runner.phase == AttackRunner.Phase.STARTUP and r.runner.data != null and r.runner.data.special == "burning_ground"
 		if burning and hold_action != "guard":
@@ -269,6 +285,8 @@ func _scripted_run(cls: String, level: int, build: String, enemy: String, mode: 
 		elif not h.dodging and hold_action == "" and h.kit.charging == "":
 			h.move_input = Vector3.ZERO
 		# remember the burning circles while they burn (6s) and never stand / fight inside them
+		if OS.get_environment("L10_DBG") == "1" and r.runner.is_busy() and r.runner.data != null and r.runner.data.special == "burning_ground":
+			print("DBGB f %d phase %d t %.2f zones %d spots %d gt %.2f" % [f, r.runner.phase, r.runner.t, zones.size(), r.burn_spots.size(), Game.time])
 		if r.runner.is_busy() and r.runner.phase == AttackRunner.Phase.ACTIVE and r.runner.data != null and r.runner.data.special == "burning_ground" and zones.is_empty():
 			for sp in r.burn_spots:
 				zones.append([sp, Game.time + 6.3])
@@ -281,16 +299,54 @@ func _scripted_run(cls: String, level: int, build: String, enemy: String, mode: 
 				in_zone = true
 				if not h.dodging and hold_action != "guard":
 					h.move_input = away.normalized() if away.length() > 0.1 else to.normalized().cross(Vector3.UP)
+		# 006 review 1 benchmark fix: the kiting mage backed into the arena wall and stayed pinned in the fire
+		# (move input +z, velocity 0, for 6 s). A player walks back toward open ground when blocked.
+		if not h.dodging and h.move_input.length() > 0.5 and Vector2(h.velocity.x, h.velocity.z).length() < 0.3 and f > 0:
+			stuck += 1
+		else:
+			stuck = 0
+		if stuck >= 4:
+			var open: Vector3 = arena_mid - h.global_position
+			open.y = 0
+			if open.length() > 0.5:
+				h.move_input = open.normalized()
+		if in_zone and OS.get_environment("L10_DBG") == "1" and cls == "mage" and f % 20 == 0:
+			var dz: Vector3 = h.global_position - Vector3(zones[0][0])
+			dz.y = 0
+			print("DBGZ f %d dist %.2f pos %s mv %s vel %s charging '%s' dodging %s hold %d st %.0f can_act %s busy %s" % [f, dz.length(), str(h.global_position.snapped(Vector3.ONE * 0.1)), str(h.move_input.snapped(Vector3.ONE * 0.1)), str(h.velocity.snapped(Vector3.ONE * 0.1)), h.kit.charging, h.dodging, hold, h.stamina, h.can_act(), h.runner.is_busy()])
 		if in_zone and not burning:
-			await get_tree().physics_frame
-			continue
+			# a charging mage moves at 60%: a player dodges out of the fire, or releases the spell when out of stamina
+			if cls == "mage" and h.kit.charging != "" and not h.dodging:
+				if h.stamina > 20.0:
+					h.try_dodge()
+				elif hold > 1:
+					hold = 1
+			if not (cls == "mage" and hold == 1):
+				await get_tree().physics_frame
+				continue
 		# the mage keeps casting range instead of trading blows in melee
-		if cls == "mage" and defend and not incoming and not burning and to.length() < 5.0 and h.kit.charging == "" and not h.dodging:
+		if cls == "mage" and defend and not incoming and not burning and to.length() < 5.0 and h.kit.charging == "" and not h.dodging and stuck < 4:
 			h.move_input = -to.normalized()
+			# ...but never backs into a burning circle: sidestep away from it instead
+			for z in zones:
+				var nxt: Vector3 = h.global_position - to.normalized() * 1.5 - Vector3(z[0])
+				nxt.y = 0
+				if nxt.length() < 4.2:
+					var side := to.normalized().cross(Vector3.UP)
+					var fz: Vector3 = h.global_position - Vector3(z[0])
+					h.move_input = side if side.dot(fz) >= 0.0 else -side
+		if OS.get_environment("L10_DBG") == "1" and cls == "mage" and f % 30 == 0:
+			for z in zones:
+				var dz: Vector3 = h.global_position - Vector3(z[0])
+				dz.y = 0
+				print("DBGZ t %.1f dist_zone %.2f charging %s dodging %s hold %d stamina %.0f to %.2f mv %s" % [f / 60.0, dz.length(), h.kit.charging, h.dodging, hold, h.stamina, to.length(), str(h.move_input.snapped(Vector3.ONE * 0.1))])
 		if hold > 0:
 			hold -= 1
 			if cls == "vanguard" and hold_action == "guard":
 				h.move_input = to.normalized() if to.length() > 1.6 else Vector3.ZERO
+			# the mage releases at full charge (or when the charge was dropped by a dodge / stagger)
+			if cls == "mage" and hold > 1 and (h.kit.el.cur == null or h.kit.el.is_full()):
+				hold = 1
 			if hold == 0:
 				h.release(hold_action)
 				h.move_input = Vector3.ZERO
@@ -309,6 +365,13 @@ func _scripted_run(cls: String, level: int, build: String, enemy: String, mode: 
 			elif h.can_act():
 				if to.length() > 3.0 and vk.unlocked("shield_rush") and vk.skill_ready(0):
 					tap(h, "skill1")
+				# 006 review 1 benchmark fix: a real Vanguard also uses Judgment Strike (charged) and Iron Sweep
+				elif to.length() <= 2.6 and vk.unlocked("judgment_strike") and vk.skill_ready(1):
+					h.press("skill2")
+					hold_action = "skill2"
+					hold = int(vk.skills[1].attack.charge_time * 60.0) + 3
+				elif to.length() <= 2.6 and vk.unlocked("iron_sweep") and vk.skill_ready(2):
+					tap(h, "skill3")
 				else:
 					h.move_input = to.normalized() if to.length() > 1.8 else Vector3.ZERO
 					tap(h, "light")
@@ -332,12 +395,13 @@ func _scripted_run(cls: String, level: int, build: String, enemy: String, mode: 
 					el.ai_aim = r.global_position - to.normalized() * 1.2
 					slot = "heavy"
 				else:
-					el.ai_spell = {"light": "flame_cataclysm"}
-				if casts % 4 == 0:
-					tap(h, "wheel_primary")    # a tap swap (spell wheel) between casts
+					# 006 review 1 benchmark fix: rotate through every known damage spell (was Flame only; the
+					# removed Q-key wheel tap did nothing since 006) and release at FULL charge, not after 70 frames
+					var dmg_spells: Array = ["flame_cataclysm", "thunder_conduit", "earthbreaker"].filter(func(x): return el.spell_known(x))
+					el.ai_spell = {"light": dmg_spells[(casts / 3) % dmg_spells.size()]}
 				h.press(slot)
 				hold_action = slot
-				hold = 70
+				hold = 240
 		else:
 			var bdk: ReaverBladeDancer = h.kit.bd
 			if incoming and h.stamina > 18.0 and not h.dodging and h.can_act():

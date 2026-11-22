@@ -27,6 +27,6 @@ cooldown = 10.0
 scaling_sources = PackedStringArray()
 params = {
 "cooldown": 10.0,
-"extra_window": 0.03,
+"extra_window": 0.08,
 "window": 4.0
 }

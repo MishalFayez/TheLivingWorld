@@ -371,6 +371,95 @@ func test_wheel_cancellations() -> void:
 	h.release("life")
 	await wait(0.1)
 	check(h.hp > hp0, "F (Lifeline) still heals")
+	await test_wheel_review1()
+
+
+## 006 review 1, Part 4: switching does not delay quick casts; the camera does not turn or snap around the
+## wheel; emergency healing (F) stays usable while a wheel charge is held.
+func test_wheel_review1() -> void:
+	print("\n[006 review 1: quick casts after a switch, camera around the wheel, Lifeline during a held charge]")
+	var h := await castw(9)
+	var el: MageElementalist = h.kit.el
+	var rel_t := [-1.0]
+	var cb := func(c, _sid, _e, _f, _t, _m): if c == h and rel_t[0] < 0.0: rel_t[0] = Game.time
+	Events.spell_released.connect(cb)
+	var opts := el.wheel_options(0)
+	var lmb0 := el.slot_spell(0)
+	var other := ""
+	for id in opts:
+		if id != lmb0 and el.spells[id].element != "life":
+			other = id
+	# baseline: a quick tap of `other` when it is ALREADY the button's spell (no wheel involved)
+	el.apply_slot(0, other, "wheel")
+	h.kit.mana = 100.0
+	await until_idle(h)
+	rel_t[0] = -1.0
+	var t0 := Game.time
+	tap(h, "light")
+	for i in 120:
+		await get_tree().physics_frame
+		if rel_t[0] >= 0.0:
+			break
+	var base_delay: float = rel_t[0] - t0
+	# switch away and back through the wheel, then quick-tap again
+	el.apply_slot(0, lmb0, "wheel")
+	await until_idle(h)
+	h.kit.mana = 100.0
+	h.press("light")
+	await wait(0.2)
+	el.wheel_select(opts.find(other))
+	await wait(0.6)
+	h.release("light")
+	await until_idle(h)
+	await wait(0.3)
+	h.kit.mana = 100.0
+	rel_t[0] = -1.0
+	t0 = Game.time
+	tap(h, "light")
+	for i in 120:
+		await get_tree().physics_frame
+		if rel_t[0] >= 0.0:
+			break
+	var after_delay: float = rel_t[0] - t0
+	check(base_delay >= 0.0 and after_delay >= 0.0 and absf(after_delay - base_delay) < 0.02, "a quick tap after a wheel switch casts as fast as a normal tap (%.2fs vs %.2fs)" % [after_delay, base_delay])
+	Events.spell_released.disconnect(cb)
+	# camera: mouse motion while the wheel is open does not turn it; no snap when it closes
+	await until_idle(h)
+	var rig := _rig()
+	h.kit.mana = 100.0
+	h.press("light")
+	await wait(0.25)
+	var yaw0: float = rig.yaw
+	var pitch0: float = rig.pitch
+	for i in 10:
+		var ev := InputEventMouseMotion.new()
+		ev.relative = Vector2(40, 15)
+		rig._unhandled_input(ev)
+		await get_tree().physics_frame
+	check(el.wheel_open and absf(wrapf(rig.yaw - yaw0, -PI, PI)) < 0.01 and absf(rig.pitch - pitch0) < 0.01, "mouse motion while the wheel is open does not turn the camera")
+	h.release("light")
+	var max_step := 0.0
+	var prev: float = rig.yaw
+	for i in 20:
+		await get_tree().physics_frame
+		max_step = maxf(max_step, absf(wrapf(rig.yaw - prev, -PI, PI)))
+		prev = rig.yaw
+	check(max_step < 0.02, "no camera snap when the wheel closes (largest yaw step %.3f rad)" % max_step)
+	await until_idle(h)
+	# Lifeline (F) while a wheel charge is held
+	h.hp = h.max_hp * 0.4
+	h.kit.mana = 100.0
+	h.kit.cooldowns.clear()
+	h.press("light")
+	await wait(0.3)
+	var hp1 := h.hp
+	h.press("life")
+	h.release("life")
+	await wait(0.15)
+	check(h.hp > hp1, "Lifeline (F) heals while a wheel charge is held")
+	h.release("light")
+	await wait(0.6)
+	check(not el.wheel_open and not Game.wheel_open, "no stuck wheel after using Lifeline mid-charge")
 
 func test_ui_clarity() -> void:
 	print("\n[UI clarity: short skill tooltips with real +1 previews; one-sentence augment cards]")

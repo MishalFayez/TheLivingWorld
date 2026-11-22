@@ -94,6 +94,8 @@ func _draw() -> void:
 		var label := s.display_name
 		var fs := 13
 		var w := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		# 006 review 1 screenshot review: a dark outline keeps the label readable over the bright robe / crystals
+		draw_string_outline(font, p + Vector2(-w * 0.5, 22), label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 4, Color(0, 0, 0, 0.75))
 		draw_string(font, p + Vector2(-w * 0.5, 22), label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color.WHITE if sel else Color(0.88, 0.84, 0.76))
 		if sel:
 			# charge progress along the outer edge of the selected sector, glow at full charge
@@ -106,6 +108,7 @@ func _draw() -> void:
 	var slot_name: String = ["LMB", "RMB"][clampi(el.wheel_slot, 0, 1)]
 	var hint := "%s wheel · point to choose · release to cast" % slot_name
 	var hw := font.get_string_size(hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+	draw_string_outline(font, c + Vector2(-hw * 0.5, R_OUT + 34.0), hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, 4, Color(0, 0, 0, 0.75))
 	draw_string(font, c + Vector2(-hw * 0.5, R_OUT + 34.0), hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(0.9, 0.85, 0.72, 0.85))
 	if cursor.length() > 2.0:
 		draw_circle(c + cursor.normalized() * minf(cursor.length(), R_IN - 10.0), 4.0, Color(1, 1, 1, 0.85))
