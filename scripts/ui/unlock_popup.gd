@@ -7,6 +7,7 @@ var queue: Array = []
 var panel: PanelContainer
 var t: float = 0.0
 var showing: bool = false
+var cur_m: Dictionary = {}
 
 
 func _ready() -> void:
@@ -23,7 +24,27 @@ func _ready() -> void:
 					queue.append(m))
 
 
+## 006 review 2: never shown while an Augment draft is open (it showed through the draft's dim layer and
+## overlapped "CHOOSE AN AUGMENT" after rapid levelling). A popup already on screen steps aside and is shown
+## again in full once the draft closes. Progression is unchanged: only the display is scheduled.
+func _draft_open() -> bool:
+	var p := get_parent()
+	if p == null:
+		return false
+	for n in p.get_children():
+		if n is DraftUI and n.is_open:
+			return true
+	return false
+
+
 func _process(delta: float) -> void:
+	if _draft_open():
+		if showing:
+			if is_instance_valid(panel):
+				panel.queue_free()
+			showing = false
+			queue.push_front(cur_m)
+		return
 	if showing:
 		t -= delta
 		if t <= 0.0:
@@ -36,6 +57,7 @@ func _process(delta: float) -> void:
 
 
 func _show(m: Dictionary) -> void:
+	cur_m = m
 	var root := Control.new()
 	panel = PanelContainer.new()
 	var acc: Color = UITheme.CLASS_ACCENT.get(Game.active_class, UITheme.GOLD)

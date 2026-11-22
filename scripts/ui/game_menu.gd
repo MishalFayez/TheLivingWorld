@@ -837,10 +837,13 @@ func _spellbook() -> Control:
 		wgrid.add_child(UITheme.text("%s  (%s)" % [s.display_name, s.element.capitalize()], 14, MageElementalist.COLORS.get(s.element, UITheme.PARCHMENT)))
 		wgrid.add_child(UITheme.text(String(MageElementalist.SPELL_ROLE.get(sid, "")), 14, UITheme.TEXT_DIM))
 		for slot in [0, 1]:
+			if e.slot_spell(slot) == sid:
+				# the wheel's current spell always stays in it (006 review 2: a marker, not a greyed-out box)
+				wgrid.add_child(UITheme.text("◆ current", 14, UITheme.GOLD))
+				continue
 			var cb := CheckBox.new()
 			cb.focus_mode = Control.FOCUS_ALL
 			cb.button_pressed = e.wheel_options(slot).has(sid)
-			cb.disabled = e.slot_spell(slot) == sid      # the wheel's current spell stays in it
 			var sl: int = slot
 			var id: String = sid
 			cb.toggled.connect(func(on):

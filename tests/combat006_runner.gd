@@ -378,6 +378,36 @@ func test_wheel_cancellations() -> void:
 	await test_wheel_review1()
 	await test_wheel_defaults_review2()
 	await test_instant_spell_augments_review2()
+	await test_popup_waits_for_draft()
+
+
+## 006 review 2: the Attribute Points / unlock popup never overlaps an open Augment draft; it is shown after.
+func test_popup_waits_for_draft() -> void:
+	print("\n[006 review 2: level-up popups wait while an Augment draft is open]")
+	var holder := Node.new()
+	add_child(holder)
+	var draft := DraftUI.new()
+	holder.add_child(draft)
+	var pop := UnlockPopup.new()
+	holder.add_child(pop)
+	await get_tree().process_frame
+	var m := {"kind": "stats", "level": 2, "name": "Attribute Points", "desc": "test", "icon": ""}
+	pop.queue.append(m)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	check(pop.showing, "control: with no draft the popup shows at once")
+	draft.is_open = true
+	await get_tree().process_frame
+	await get_tree().process_frame
+	check(not pop.showing and pop.queue.size() == 1, "a draft opening hides the popup and keeps it queued")
+	await wait(0.5)
+	check(not pop.showing, "nothing is shown while the draft stays open")
+	draft.is_open = false
+	await get_tree().process_frame
+	await get_tree().process_frame
+	check(pop.showing and pop.cur_m == m, "after the draft closes the same popup is shown in full")
+	holder.queue_free()
+	await get_tree().process_frame
 
 
 ## 006 review 2 bug fix: instant spells are known to the Augment runtime BEFORE their effect lands.

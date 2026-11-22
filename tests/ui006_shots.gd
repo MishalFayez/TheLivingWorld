@@ -58,6 +58,18 @@ func _ready() -> void:
 	await shot("02c_wheel_rmb")
 	p.release("heavy")
 	await wait(1.2)
+	# 006 review 2: wheel readability over the darker ash ground near the boss arena
+	main.world.teleport_player("boss")
+	await wait(0.6)
+	var e2 := Game.spawn_enemy("raider", p.global_position + Vector3(0, 0.2, -7), "keep")
+	e2.sm.set_physics_process(false)
+	p.lock_target = e2
+	p.kit.mana = 100.0
+	p.press("light")
+	await wait(0.6)
+	await shot("02d_wheel_lmb_dark_ground")
+	p.release("light")
+	await wait(1.2)
 	var gm = main.get_node("GameMenu")
 	gm.open_tab("Skills")
 	await wait(0.3)
