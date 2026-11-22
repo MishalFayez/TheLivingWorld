@@ -236,5 +236,5 @@ func _dbg_lock() -> void:
 		var acc := 0.0
 		if pp.size() >= 3:
 			acc = ((pp[-1] - pp[-2]) - (pp[-2] - pp[-3])).length() * 3600.0
-		if acc > 150.0 or f < 2:
-			lines.append("DBG acc %.0f f%02d pullv %.2f d %.3f yaw %.4f pitch %.4f cur_dist %.3f frame_dist %.3f shift %s offfrac %.3f lift %.3f want %.3f target %.3f blocked %s pos %s" % [acc, f, rig._pull_v, d, rig.yaw, rig.pitch, rig.cur_dist, rig.frame_dist, str(rig.shift.snapped(Vector3.ONE * 0.001)), rig._offset_frac, rig.cam_lift, rig.dbg_want, rig.dbg_target, str(rig.dbg_blocked), str(rig.global_position.snapped(Vector3.ONE * 0.001))])
+		if acc > 150.0 or f < 2 or (f >= 112 and f <= 122):
+			lines.append("DBG acc %.0f f%02d pullv %.2f easev %.2f d %.3f yaw %.4f pitch %.4f cur_dist %.3f frame_dist %.3f shift %s offfrac %.3f lift %.3f want %.3f target %.3f blocked %s pos %s" % [acc, f, rig._pull_v, rig._ease_v, d, rig.yaw, rig.pitch, rig.cur_dist, rig.frame_dist, str(rig.shift.snapped(Vector3.ONE * 0.001)), rig._offset_frac, rig.cam_lift, rig.dbg_want, rig.dbg_target, str(rig.dbg_blocked), str(rig.global_position.snapped(Vector3.ONE * 0.001))])

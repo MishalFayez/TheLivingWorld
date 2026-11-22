@@ -45,6 +45,7 @@ extends Node3D
 @export var occlusion_pull_speed: float = 15.0
 @export var occlusion_pull_accel: float = 80.0    ## m/s^2: ramp of an anticipated (look-ahead) pull-in (006 review 1)
 var _pull_v: float = 0.0
+var _ease_v: float = 0.0
 var _last_yaw: float = 0.0
 @export var min_collision_distance: float = 0.3 ## closest the camera may come to the pivot (was 0.6)
 @export var prediction_time: float = 0.3      ## s of pivot motion used to see obstacles coming
@@ -287,6 +288,7 @@ func _apply(hp: Vector3, delta: float, snap: bool) -> void:
 	target = _limit_smooth
 	if snap:
 		_pull_v = 0.0
+		_ease_v = 0.0
 		cur_dist = want
 	elif target >= cur_dist and _pull_v > 0.0:
 		# the anticipated obstacle cleared while still pulling in: coast to a stop at the same bounded rate
@@ -300,10 +302,11 @@ func _apply(hp: Vector3, delta: float, snap: bool) -> void:
 		# starts gently with a bounded acceleration instead of jumping to full speed in one frame (measured:
 		# 605 m/s^2 camera spike while walking sideways around a locked target). A real occluder (the current
 		# boom is already blocked) still pulls in at full speed, and the anti-clipping snap below is unchanged.
+		_ease_v = 0.0
 		var urgent := want < cur_dist - 0.01
 		# ...and brakes into the target with the same bounded deceleration (no 15 -> 0 m/s stop in one frame)
-		var brake := sqrt(2.0 * occlusion_pull_accel * maxf(cur_dist - target, 0.0))
-		_pull_v = occlusion_pull_speed if urgent else minf(minf(occlusion_pull_speed, _pull_v + occlusion_pull_accel * delta), maxf(brake, 0.25 * occlusion_pull_accel * delta))
+		var brake := _brake_v(cur_dist - target, delta)
+		_pull_v = occlusion_pull_speed if urgent else minf(minf(occlusion_pull_speed, _pull_v + occlusion_pull_accel * delta), maxf(brake, 0.05 * occlusion_pull_accel * delta))
 		var next_d := move_toward(cur_dist, target, _pull_v * delta)
 		if _penetrating(pivot + back * next_d):
 			if debug_track_inside:
@@ -317,12 +320,19 @@ func _apply(hp: Vector3, delta: float, snap: bool) -> void:
 		# frame and repeat every 2-3 frames (a visible ~7cm oscillation)
 		# a held quantization dip keeps the camera where it is, but never lets it ease OUT past the real
 		# limit (that space can turn solid a frame later and force a small snap-back at walls)
-		var out_d := move_toward(cur_dist, maxf(cur_dist, minf(target, raw_target)), ease_out_speed * delta)
+		var goal := maxf(cur_dist, minf(target, raw_target))
+		# 006 review 2: easing OUT also starts and stops with a bounded acceleration (it jumped to 4 m/s in one
+		# frame and stopped dead: the remaining 172 m/s^2 one-frame spike when a pull-in turned into an ease-out)
+		var ease_brake := _brake_v(goal - cur_dist, delta)
+		_ease_v = minf(minf(ease_out_speed, _ease_v + occlusion_pull_accel * delta), maxf(ease_brake, 0.05 * occlusion_pull_accel * delta))
+		var out_d := move_toward(cur_dist, goal, _ease_v * delta)
 		dbg_want = want
 		dbg_target = target
 		dbg_blocked = not (out_d <= cur_dist or snap or not _penetrating(pivot + back * out_d))
 		if out_d <= cur_dist or snap or not _penetrating(pivot + back * out_d):
 			cur_dist = out_d
+		else:
+			_ease_v = 0.0
 	var cam_pos := pivot + back * cur_dist
 	# min_collision_distance must never place the near plane inside geometry (hero backed into a tall
 	# boundary wall): the pivot is kept clear above, so first move toward it until clear
@@ -427,3 +437,12 @@ func flat_forward() -> Vector3:
 
 func flat_right() -> Vector3:
 	return Vector3(cos(yaw), 0, -sin(yaw))
+
+
+## 006 review 2: the highest speed that still stops within `gap` at the bounded deceleration, in DISCRETE steps
+## (sqrt(2 a gap) is the continuous answer; evaluated once per frame it braked hard in the last frame).
+func _brake_v(gap: float, delta: float) -> float:
+	if gap <= 0.0 or delta <= 0.0:
+		return 0.0
+	var a := occlusion_pull_accel
+	return a * delta * (sqrt(1.0 + 2.0 * gap / (a * delta * delta)) - 1.0)
